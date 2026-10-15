@@ -1,0 +1,52 @@
+{
+  "checked_at": "2026-10-14T12:14:29Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "1149db93968c17dde5303247b036db79",
+      "passed": true,
+      "span_count": 11,
+      "operations": [
+        "xai.chat",
+        "verify.client_credentials",
+        "xai.chat",
+        "deepagents.run",
+        "lumen.action",
+        "verify.obo_exchange",
+        "vault.read",
+        "mysql.query",
+        "data.access",
+        "application.list_masked",
+        "tool.consultar_solicitudes"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "database/creds/chatbot-readwrite",
+          "http_status": 200,
+          "jwt_bytes": 1516,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "2e55da9c-e7fb-4039-60b0-917a9637dd4d",
+          "path": "database/creds/chatbot-readwrite",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-writer"
+          ],
+          "human_or_agent_entity": "44318398-1540-f395-d4aa-89d3ae113f9e",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-1149db93968c17dde5303247b036db79-24f6f8783ecddf8d-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

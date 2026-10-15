@@ -1,0 +1,6 @@
+{
+  "dni_matches": true,
+  "iban_matches": true,
+  "dni_removed_after_close": true,
+  "iban_removed_after_close": true
+}

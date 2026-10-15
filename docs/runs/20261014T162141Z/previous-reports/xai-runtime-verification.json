@@ -1,0 +1,45 @@
+{
+  "traces": [
+    {
+      "trace_id": "b512ccce0970621383cb36bc72ba4726",
+      "start_ns": 1791986058706993000,
+      "cache_hit": false,
+      "refresh_reason": "initial",
+      "lease_id": "xai/creds/lumen/zFGrDEbyWpECXzRNitjT4GAX.NMoXn",
+      "api_key_id": "b473877f-b5e0-4046-812d-9eefb98cba47",
+      "ttl": 300,
+      "remaining": 297,
+      "renewable": false
+    },
+    {
+      "trace_id": "fe103ebb0a0113072498405b4448e93e",
+      "start_ns": 1791986085274560000,
+      "cache_hit": true,
+      "refresh_reason": null,
+      "lease_id": "xai/creds/lumen/zFGrDEbyWpECXzRNitjT4GAX.NMoXn",
+      "api_key_id": "b473877f-b5e0-4046-812d-9eefb98cba47",
+      "ttl": 300,
+      "remaining": 273,
+      "renewable": false
+    },
+    {
+      "trace_id": "ad0082bc87d86a3f84072ee372ef14a9",
+      "start_ns": 1791986222129300000,
+      "cache_hit": false,
+      "refresh_reason": "insufficient_validity",
+      "lease_id": "xai/creds/lumen/WPig6vuTWplmq6n2aPRf3e3m.NMoXn",
+      "api_key_id": "ad3f88ea-762f-4ac8-8a9d-c940917a8e90",
+      "ttl": 300,
+      "remaining": 297,
+      "renewable": false
+    }
+  ],
+  "checks": {
+    "three_runs": true,
+    "reuse": true,
+    "automatic_replacement": true,
+    "replaced_before_expiry": true,
+    "plugin_not_renewable": true
+  },
+  "all_passed": true
+}

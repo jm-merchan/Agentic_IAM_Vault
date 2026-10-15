@@ -1,0 +1,100 @@
+{
+  "checked_at": "2026-10-14T18:09:35.774869+00:00",
+  "trace_id": "2fde3c3b0ca8b8f7c1511c7378b0bd8e",
+  "model_calls": 2,
+  "field_checks": [
+    {
+      "span": "xai.chat",
+      "field": "gen_ai.input.messages",
+      "matches_local": true,
+      "bytes": 4371,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "gen_ai.output.messages",
+      "matches_local": true,
+      "bytes": 191,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "gen_ai.tool.definitions",
+      "matches_local": true,
+      "bytes": 1051,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "lumen.model.parameters",
+      "matches_local": true,
+      "bytes": 61,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "lumen.user.message",
+      "matches_local": true,
+      "bytes": 169,
+      "truncated": false
+    },
+    {
+      "span": "tool.consultar_solicitudes",
+      "field": "gen_ai.tool.call.arguments",
+      "matches_local": true,
+      "bytes": 2,
+      "truncated": false
+    },
+    {
+      "span": "tool.consultar_solicitudes",
+      "field": "gen_ai.tool.call.result",
+      "matches_local": true,
+      "bytes": 366,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "gen_ai.input.messages",
+      "matches_local": true,
+      "bytes": 5111,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "gen_ai.output.messages",
+      "matches_local": true,
+      "bytes": 226,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "gen_ai.tool.definitions",
+      "matches_local": true,
+      "bytes": 1051,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "lumen.model.parameters",
+      "matches_local": true,
+      "bytes": 61,
+      "truncated": false
+    },
+    {
+      "span": "xai.chat",
+      "field": "lumen.user.message",
+      "matches_local": true,
+      "bytes": 169,
+      "truncated": false
+    }
+  ],
+  "protected_data_checks": {
+    "dni_absent_from_model_content": true,
+    "iban_absent_from_model_content": true,
+    "full_name_absent_from_model_content": true,
+    "street_absent_from_model_content": true,
+    "email_absent_from_model_content": true,
+    "phone_absent_from_model_content": true
+  },
+  "all_passed": true
+}

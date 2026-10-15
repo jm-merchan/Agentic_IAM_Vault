@@ -1,0 +1,7 @@
+{
+  "llm_spans": 5,
+  "prompts_captured": true,
+  "responses_captured": true,
+  "form_dni_and_iban_absent_from_llm": true,
+  "favicon_matches_workspace": true
+}

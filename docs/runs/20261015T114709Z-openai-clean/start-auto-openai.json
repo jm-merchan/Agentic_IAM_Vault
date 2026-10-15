@@ -1,0 +1,100 @@
+{
+  "run": "20261015T121914Z",
+  "action": "start",
+  "dry_run": false,
+  "completed": true,
+  "steps": [
+    {
+      "name": "Prerrequisitos y .env",
+      "passed": true
+    },
+    {
+      "name": "Minikube, Vault, TLS, init/unseal y plugin",
+      "passed": true
+    },
+    {
+      "name": "MySQL Enterprise y KMIP",
+      "passed": true
+    },
+    {
+      "name": "Namespace verify y secretos de integración",
+      "passed": true
+    },
+    {
+      "name": "RAR y perfil OAuth de Vault",
+      "passed": true
+    },
+    {
+      "name": "Entorno Python",
+      "passed": true
+    },
+    {
+      "name": "Roles MySQL RO/RW y catálogo",
+      "passed": true
+    },
+    {
+      "name": "Clientes OIDC, Tavily y STS en Verify",
+      "passed": true
+    },
+    {
+      "name": "Tres usuarios y grupos",
+      "passed": true
+    },
+    {
+      "name": "Transit, tokenización y solicitudes",
+      "passed": true
+    },
+    {
+      "name": "Políticas, entidades y agentes registrados",
+      "passed": true
+    },
+    {
+      "name": "Asignaciones OIDC y grupos de Vault",
+      "passed": true
+    },
+    {
+      "name": "Vault SPIFFE JWT-SVID",
+      "passed": true
+    },
+    {
+      "name": "Discovery y JWKS públicos mediante ngrok",
+      "passed": true
+    },
+    {
+      "name": "Proyecto y cuenta de servicio OpenAI",
+      "passed": true
+    },
+    {
+      "name": "Identidad OpenAI y configuración del modelo",
+      "passed": true
+    },
+    {
+      "name": "Auditoría correlacionada de Vault",
+      "passed": true
+    },
+    {
+      "name": "Grafana, Loki, Tempo y Alloy",
+      "passed": true
+    },
+    {
+      "name": "Puertos locales y Lumen",
+      "passed": true
+    },
+    {
+      "name": "Persistencia del runtime y aislamiento de secretos",
+      "passed": true
+    },
+    {
+      "name": "Pruebas de aplicación",
+      "passed": true
+    },
+    {
+      "name": "MySQL, permisos del agente y búsqueda Tavily",
+      "passed": true
+    },
+    {
+      "name": "Estado final de servicios",
+      "passed": true
+    }
+  ]
+}

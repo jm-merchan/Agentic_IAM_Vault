@@ -1,0 +1,101 @@
+{
+  "checks": [
+    {
+      "source_trace": "71f3c57d3184239d847cf049e816ce3d",
+      "path": "database/creds/chatbot-readonly",
+      "phase": "read-blocked",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "source_trace": "71f3c57d3184239d847cf049e816ce3d",
+      "path": "database/creds/chatbot-readwrite",
+      "phase": "read-blocked",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "source_trace": "71f3c57d3184239d847cf049e816ce3d",
+      "path": "database/creds/chatbot-readonly",
+      "phase": "read-restored",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "source_trace": "71f3c57d3184239d847cf049e816ce3d",
+      "path": "database/creds/chatbot-readonly",
+      "phase": "write-blocked",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "source_trace": "71f3c57d3184239d847cf049e816ce3d",
+      "path": "database/creds/chatbot-readwrite",
+      "phase": "write-blocked",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "source_trace": "71f3c57d3184239d847cf049e816ce3d",
+      "path": "database/creds/chatbot-readwrite",
+      "phase": "write-restored",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "source_trace": "a3af53c4092282515e3a5b377c9c42f6",
+      "path": "transit/decrypt/lumen-applications",
+      "phase": "decrypt-blocked",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "source_trace": "a3af53c4092282515e3a5b377c9c42f6",
+      "path": "transform/decode/lumen-dni",
+      "phase": "decrypt-blocked",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "source_trace": "a3af53c4092282515e3a5b377c9c42f6",
+      "path": "transform/decode/lumen-iban",
+      "phase": "decrypt-blocked",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "source_trace": "a3af53c4092282515e3a5b377c9c42f6",
+      "path": "transit/decrypt/lumen-applications",
+      "phase": "decrypt-restored",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "source_trace": "a3af53c4092282515e3a5b377c9c42f6",
+      "path": "transform/decode/lumen-dni",
+      "phase": "decrypt-restored",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "source_trace": "a3af53c4092282515e3a5b377c9c42f6",
+      "path": "transform/decode/lumen-iban",
+      "phase": "decrypt-restored",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

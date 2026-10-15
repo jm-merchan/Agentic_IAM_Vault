@@ -1,0 +1,7 @@
+{
+  "trace_id": "29085891c921d694dcc86a2ff0c194a9",
+  "lumen": "http://localhost:8088/",
+  "trace": "http://localhost:8088/traces/29085891c921d694dcc86a2ff0c194a9",
+  "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2229085891c921d694dcc86a2ff0c194a9%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792064106083%22%2C%22to%22%3A%221792064231794%22%7D%7D%7D",
+  "openai_provider": "https://platform.openai.com/settings/organization/security/workload-identity-provider/idp_d39310df69d32e5019d977b3"
+}

@@ -1,0 +1,249 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lumen-observability
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alloy
+  namespace: lumen-observability
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lumen-audit-reader
+  namespace: vault
+rules:
+  - apiGroups: [""]
+    resources: [pods, pods/log]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lumen-audit-reader
+  namespace: vault
+subjects:
+  - kind: ServiceAccount
+    name: alloy
+    namespace: lumen-observability
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lumen-audit-reader
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: loki-data
+  namespace: lumen-observability
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tempo-data
+  namespace: lumen-observability
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: lumen-observability
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loki
+  namespace: lumen-observability
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: lumen-loki}
+  template:
+    metadata:
+      labels: {app: lumen-loki}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {fsGroup: 10001, runAsUser: 10001, runAsNonRoot: true}
+      containers:
+        - name: loki
+          image: grafana/loki:3.7.8
+          args: [-config.file=/etc/loki/loki.yaml]
+          ports: [{containerPort: 3100}]
+          readinessProbe:
+            httpGet: {path: /ready, port: 3100}
+            initialDelaySeconds: 10
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            - {name: config, mountPath: /etc/loki}
+            - {name: data, mountPath: /var/loki}
+      volumes:
+        - name: config
+          configMap: {name: loki-config}
+        - name: data
+          persistentVolumeClaim: {claimName: loki-data}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tempo
+  namespace: lumen-observability
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: lumen-tempo}
+  template:
+    metadata:
+      labels: {app: lumen-tempo}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {fsGroup: 10001, runAsUser: 10001, runAsNonRoot: true}
+      containers:
+        - name: tempo
+          image: grafana/tempo:2.10.8
+          args: [-config.file=/etc/tempo/tempo.yaml]
+          ports: [{containerPort: 3200}, {containerPort: 4318}]
+          readinessProbe:
+            httpGet: {path: /ready, port: 3200}
+            initialDelaySeconds: 10
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            - {name: config, mountPath: /etc/tempo}
+            - {name: data, mountPath: /var/tempo}
+      volumes:
+        - name: config
+          configMap: {name: tempo-config}
+        - name: data
+          persistentVolumeClaim: {claimName: tempo-data}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alloy
+  namespace: lumen-observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: lumen-alloy}
+  template:
+    metadata:
+      labels: {app: lumen-alloy}
+    spec:
+      serviceAccountName: alloy
+      containers:
+        - name: alloy
+          # Lab pin: includes grafana/alloy#7080 (stdout/stderr out-of-order logs).
+          # v1.20.1 silently omitted raw Vault audit requests; see E2E report.
+          image: grafana/alloy:v1.21.0-rc.0
+          args: [run, /etc/alloy/config.alloy, --storage.path=/tmp/alloy, --server.http.listen-addr=0.0.0.0:12345, --disable-reporting]
+          readinessProbe:
+            httpGet: {path: /-/ready, port: 12345}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          volumeMounts:
+            - {name: config, mountPath: /etc/alloy}
+      volumes:
+        - name: config
+          configMap: {name: alloy-config}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: lumen-observability
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: lumen-grafana}
+  template:
+    metadata:
+      labels: {app: lumen-grafana}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {fsGroup: 472, runAsUser: 472, runAsNonRoot: true}
+      containers:
+        - name: grafana
+          image: grafana/grafana:13.2.4
+          env:
+            - {name: GF_AUTH_ANONYMOUS_ENABLED, value: 'false'}
+            - {name: GF_USERS_ALLOW_SIGN_UP, value: 'false'}
+            - {name: GF_ANALYTICS_REPORTING_ENABLED, value: 'false'}
+            - {name: GF_ANALYTICS_CHECK_FOR_UPDATES, value: 'false'}
+            - {name: GOMEMLIMIT, value: 768MiB}
+            - {name: GF_SECURITY_ADMIN_USER, value: lumen-admin}
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: grafana-admin, key: password}
+          ports: [{containerPort: 3000}]
+          readinessProbe:
+            httpGet: {path: /api/health, port: 3000}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1536Mi}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/grafana}
+            - {name: datasources, mountPath: /etc/grafana/provisioning/datasources}
+            - {name: providers, mountPath: /etc/grafana/provisioning/dashboards}
+            - {name: dashboards, mountPath: /var/lib/grafana/dashboards}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: grafana-data}
+        - name: datasources
+          configMap: {name: grafana-datasources}
+        - name: providers
+          configMap: {name: grafana-providers}
+        - name: dashboards
+          configMap: {name: grafana-dashboards}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loki
+  namespace: lumen-observability
+spec:
+  selector: {app: lumen-loki}
+  ports: [{port: 3100, targetPort: 3100}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tempo
+  namespace: lumen-observability
+spec:
+  selector: {app: lumen-tempo}
+  ports:
+    - {name: http, port: 3200, targetPort: 3200}
+    - {name: otlp-http, port: 4318, targetPort: 4318}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: lumen-observability
+spec:
+  selector: {app: lumen-grafana}
+  ports: [{port: 3000, targetPort: 3000}]

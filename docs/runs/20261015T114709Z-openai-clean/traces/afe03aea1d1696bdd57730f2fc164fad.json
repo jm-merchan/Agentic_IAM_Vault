@@ -1,0 +1,157 @@
+{
+  "checked_at": "2026-10-15T12:32:26Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "afe03aea1d1696bdd57730f2fc164fad",
+      "passed": true,
+      "span_count": 20,
+      "operations": [
+        "lumen.application.submit",
+        "application.save",
+        "data.access",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.read",
+        "mysql.query",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.write",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.write",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.write",
+        "data.access",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.read"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "database/creds/chatbot-readonly",
+          "http_status": 200,
+          "jwt_bytes": 1515,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transit/encrypt/lumen-applications",
+          "http_status": 200,
+          "jwt_bytes": 1522,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transform/encode/lumen-dni",
+          "http_status": 200,
+          "jwt_bytes": 1511,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transform/encode/lumen-iban",
+          "http_status": 200,
+          "jwt_bytes": 1512,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "database/creds/chatbot-readwrite",
+          "http_status": 403,
+          "jwt_bytes": 1516,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "0b794823-eca2-22be-64c5-42d4d5acd1af",
+          "path": "database/creds/chatbot-readonly",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-writer"
+          ],
+          "human_or_agent_entity": "1bebd7c8-a214-e064-f8b8-7b5f60a833d7",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-afe03aea1d1696bdd57730f2fc164fad-866715eb9ba9b56c-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "0f267d4c-6cdd-6d59-b4f9-221407b979fc",
+          "path": "transit/encrypt/lumen-applications",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-writer"
+          ],
+          "human_or_agent_entity": "1bebd7c8-a214-e064-f8b8-7b5f60a833d7",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-afe03aea1d1696bdd57730f2fc164fad-c1ebeb7b6d0aa909-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "3d2323d0-6a99-72b8-d541-9d1ca2ed7143",
+          "path": "transform/encode/lumen-iban",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-writer"
+          ],
+          "human_or_agent_entity": "1bebd7c8-a214-e064-f8b8-7b5f60a833d7",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-afe03aea1d1696bdd57730f2fc164fad-0eb04d9abba90537-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "6573b9ee-d1fb-484b-be7c-185c7901cd70",
+          "path": "transform/encode/lumen-dni",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-writer"
+          ],
+          "human_or_agent_entity": "1bebd7c8-a214-e064-f8b8-7b5f60a833d7",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-afe03aea1d1696bdd57730f2fc164fad-60828f25bda232f9-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "a82ca368-543e-2499-0832-92079d54dd78",
+          "path": "database/creds/chatbot-readwrite",
+          "namespace": "verify/",
+          "allowed": false,
+          "policies": [
+            "chatbot-writer"
+          ],
+          "human_or_agent_entity": "1bebd7c8-a214-e064-f8b8-7b5f60a833d7",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-afe03aea1d1696bdd57730f2fc164fad-2e618580a7d905bb-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

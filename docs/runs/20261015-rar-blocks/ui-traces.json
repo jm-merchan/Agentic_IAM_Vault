@@ -1,0 +1,13 @@
+{
+  "xai_allowed": "69e45bd60ce841c99e4884c4940ed435",
+  "xai_blocked": "da49d07d75f741ff97c39442ee8c887d",
+  "xai_restored": "7d6e12b01cd217b925e7a89e07b0b1b2",
+  "writer_baseline": "71f3c57d3184239d847cf049e816ce3d",
+  "database_read_blocked": "0300754b0178a1b7885f92e07cff75a3",
+  "database_write_blocked": "6d52925e03df2dea86e76741ea2b45ad",
+  "database_write_restored": "f7b0c3acd68f251d9c013da6c345131b",
+  "supervisor_baseline": "a3af53c4092282515e3a5b377c9c42f6",
+  "decrypt_blocked": "1c340385e2a2de07082788f1449b748c",
+  "decrypt_restored": "5eb997320c01a8f1e2ab52b0d72ae548",
+  "xai_reused": "a43d48ebc7fdcca966913c98fca526a2"
+}

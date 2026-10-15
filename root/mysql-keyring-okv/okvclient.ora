@@ -1,0 +1,2 @@
+SERVER=vault-kmip.vault.svc.cluster.local:5696
+STANDBY_SERVER=vault-kmip.vault.svc.cluster.local:5696

@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-10-14T18:09:35.774869+00:00",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "2fde3c3b0ca8b8f7c1511c7378b0bd8e",
+      "passed": true,
+      "span_count": 14,
+      "operations": [
+        "lumen.action",
+        "deepagents.run",
+        "xai.chat",
+        "model.credentials",
+        "verify.client_credentials",
+        "vault.read",
+        "xai.chat",
+        "tool.consultar_solicitudes",
+        "application.list_masked",
+        "data.access",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.read",
+        "mysql.query"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "xai/creds/lumen",
+          "http_status": 200,
+          "jwt_bytes": 1192,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "database/creds/chatbot-readonly",
+          "http_status": 200,
+          "jwt_bytes": 1515,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "2128722f-7fbb-783a-4ba6-910160df46e0",
+          "path": "xai/creds/lumen",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-xai"
+          ],
+          "human_or_agent_entity": "d2675e3b-5f18-d5b1-3e51-ba6ed6b86de2",
+          "actor": null,
+          "traceparent": "00-2fde3c3b0ca8b8f7c1511c7378b0bd8e-a708502c2babac71-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "df00f5c4-83ce-44bf-0597-a374de1617cf",
+          "path": "database/creds/chatbot-readonly",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-reader"
+          ],
+          "human_or_agent_entity": "621f6d43-9305-e3db-7a46-4563eb15dfde",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-2fde3c3b0ca8b8f7c1511c7378b0bd8e-651638fdcb9b2cfe-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

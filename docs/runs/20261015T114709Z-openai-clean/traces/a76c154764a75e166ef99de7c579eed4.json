@@ -1,0 +1,47 @@
+{
+  "checked_at": "2026-10-15T12:32:24Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "a76c154764a75e166ef99de7c579eed4",
+      "passed": true,
+      "span_count": 6,
+      "operations": [
+        "lumen.action",
+        "data.access",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.read",
+        "mysql.query"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "database/creds/chatbot-readonly",
+          "http_status": 200,
+          "jwt_bytes": 1515,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "3ee6481c-eaf7-2217-dfd4-5e977297cff2",
+          "path": "database/creds/chatbot-readonly",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-reader"
+          ],
+          "human_or_agent_entity": "4b32db8f-78a6-9685-b2b4-c7c8ad82450c",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-a76c154764a75e166ef99de7c579eed4-8a8ad8b937cc66b2-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "checked_at": "2026-10-15T07:20:06.098105+00:00",
+  "application_tests_passed": 80,
+  "application_subtests_passed": 2,
+  "profiles": {
+    "reader": {
+      "trace_id": "4ce1020015619a66b832f6f16c6b569f",
+      "allowed": 1,
+      "denied": 8,
+      "checks_match_expected": true,
+      "span_count": 29,
+      "no_mysql_queries": true,
+      "grafana_url": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%224ce1020015619a66b832f6f16c6b569f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792048095100%22%2C%22to%22%3A%221792048219322%22%7D%7D%7D"
+    },
+    "writer": {
+      "trace_id": "c54ea17d14b1a18af6e28a5e2042667b",
+      "allowed": 5,
+      "denied": 4,
+      "checks_match_expected": true,
+      "span_count": 29,
+      "no_mysql_queries": true,
+      "grafana_url": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22c54ea17d14b1a18af6e28a5e2042667b%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792048219046%22%2C%22to%22%3A%221792048343074%22%7D%7D%7D"
+    },
+    "supervisor": {
+      "trace_id": "745c1d52de0c2675933ec861ad3fb9f0",
+      "allowed": 4,
+      "denied": 5,
+      "checks_match_expected": true,
+      "span_count": 29,
+      "no_mysql_queries": true,
+      "grafana_url": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22745c1d52de0c2675933ec861ad3fb9f0%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792048141868%22%2C%22to%22%3A%221792048265774%22%7D%7D%7D"
+    }
+  },
+  "permission_checks_passed": 27,
+  "vault_audit_events_matched": 54,
+  "span_count": 87,
+  "fixture_setup_idempotent": true,
+  "mobile_no_horizontal_overflow": true,
+  "loki_raw_complete": false,
+  "limitation": "Dos eventos request raw no aparecen en Loki; sus pares completos están en los logs de origen de Vault. Se verificaron allí los JWT, cuerpos y respuestas contra Tempo.",
+  "static_checks_passed": true
+}

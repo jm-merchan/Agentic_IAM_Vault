@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-10-14T18:18:56.007608+00:00",
+  "verify_resources": [
+    {
+      "kind": "sts",
+      "name": "vault-chatbot-sts",
+      "old_id": "364b66b7-cb5d-406b-b1fa-5fafa15d7b35",
+      "new_id": "0b7003af-642a-4724-84dd-29da0e46d2da",
+      "recreated": true
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-oidc",
+      "old_id": "4267992909895969136",
+      "new_id": "4276625463337772637",
+      "recreated": true
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-research",
+      "old_id": "4268003834955005356",
+      "new_id": "4276638205613580453",
+      "recreated": true
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-xai",
+      "old_id": "4268105733974584383",
+      "new_id": "4276742381694023958",
+      "recreated": true
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-readers",
+      "old_id": "6470001IM6",
+      "new_id": "6480001HIN",
+      "recreated": true
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-writers",
+      "old_id": "6470001IM8",
+      "new_id": "645009JB9Q",
+      "recreated": true
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-supervisors",
+      "old_id": "6480001H5K",
+      "new_id": "6470001J0G",
+      "recreated": true
+    },
+    {
+      "kind": "user",
+      "name": "lumen-reader",
+      "old_id": "646009TNKU",
+      "new_id": "645009JB9N",
+      "recreated": true
+    },
+    {
+      "kind": "user",
+      "name": "lumen-writer",
+      "old_id": "6470001IM7",
+      "new_id": "6480001HIO",
+      "recreated": true
+    },
+    {
+      "kind": "user",
+      "name": "lumen-supervisor",
+      "old_id": "645009JAWV",
+      "new_id": "646009TNXV",
+      "recreated": true
+    }
+  ],
+  "volumes_recreated": 10,
+  "no_previous_volume_reused": true,
+  "env_preserved_at_remove": true,
+  "all_passed": true
+}

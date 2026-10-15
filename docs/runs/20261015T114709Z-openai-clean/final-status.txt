@@ -1,0 +1,15 @@
+NAME      READY   STATUS    RESTARTS   AGE
+vault-0   1/1     Running   0          63m
+vault-1   1/1     Running   0          63m
+vault-2   1/1     Running   0          63m
+NAME                 READY   STATUS    RESTARTS   AGE
+mysql-enterprise-0   1/1     Running   0          62m
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+alloy     1/1     1            1           58m
+grafana   1/1     1            1           58m
+loki      1/1     1            1           58m
+tempo     1/1     1            1           58m
+Lumen: OK
+Grafana: OK
+Tempo: OK
+Loki: OK

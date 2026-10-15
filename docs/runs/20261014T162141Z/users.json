@@ -1,0 +1,23 @@
+[
+  {
+    "username": "lumen-reader",
+    "user_id": "645009JB9N",
+    "group": "chatbot-readers",
+    "group_id": "6480001HIN",
+    "password_reset_required": false
+  },
+  {
+    "username": "lumen-writer",
+    "user_id": "6480001HIO",
+    "group": "chatbot-writers",
+    "group_id": "645009JB9Q",
+    "password_reset_required": false
+  },
+  {
+    "username": "lumen-supervisor",
+    "user_id": "646009TNXV",
+    "group": "chatbot-supervisors",
+    "group_id": "6470001J0G",
+    "password_reset_required": false
+  }
+]

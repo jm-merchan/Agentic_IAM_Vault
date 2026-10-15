@@ -1,0 +1,57 @@
+{
+  "checked_at": "2026-10-13T16:50:41Z",
+  "namespace": "verify",
+  "token_exchange": true,
+  "signature_validated_by_vault": true,
+  "tests": [
+    {
+      "test": "autonomous_read",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "test": "autonomous_write_denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "test": "obo_shared_read",
+      "status": 200,
+      "expected": 200,
+      "passed": true
+    },
+    {
+      "test": "obo_write_denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "test": "obo_human_only_denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "test": "obo_admin_secret_denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "test": "obo_agent_ceiling_denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    },
+    {
+      "test": "obo_rar_read_denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

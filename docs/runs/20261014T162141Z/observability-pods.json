@@ -1,0 +1,58 @@
+[
+  {
+    "name": "alloy-8447d66b75-jq5lh",
+    "ready": true,
+    "restarts": 0,
+    "resources": {
+      "limits": {
+        "memory": "512Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "128Mi"
+      }
+    }
+  },
+  {
+    "name": "grafana-7f6bb9f98b-74n8v",
+    "ready": true,
+    "restarts": 0,
+    "resources": {
+      "limits": {
+        "memory": "1536Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "256Mi"
+      }
+    }
+  },
+  {
+    "name": "loki-85b66fcf9-jdlqv",
+    "ready": true,
+    "restarts": 0,
+    "resources": {
+      "limits": {
+        "memory": "1Gi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "256Mi"
+      }
+    }
+  },
+  {
+    "name": "tempo-57dc8b8bdd-dct4g",
+    "ready": true,
+    "restarts": 0,
+    "resources": {
+      "limits": {
+        "memory": "1Gi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "256Mi"
+      }
+    }
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-14T12:16:56Z",
+  "application_id": "14016b95-9820-4034-962f-b102d637507d",
+  "unit_tests": {
+    "passed": 41
+  },
+  "infrastructure_tests": {
+    "passed": 16
+  },
+  "browser": {
+    "writer_save": true,
+    "writer_reveal_denied": true,
+    "reader_masked": true,
+    "reader_reveal_denied": true,
+    "supervisor_reveal": true,
+    "supervisor_rw_denied": true,
+    "dni_validation": true,
+    "dark_mode": true,
+    "mobile_iframe_width": 390,
+    "mobile_no_horizontal_overflow": true,
+    "agent_masked_query": true
+  },
+  "database": {
+    "transit_ciphertext": true,
+    "dni_is_token": true,
+    "iban_is_token": true,
+    "name_not_plaintext": true
+  },
+  "reports": [
+    "application-save-verification.json",
+    "application-reveal-verification.json",
+    "application-denials-verification.json",
+    "application-agent-verification.json",
+    "application-model-content-check.json"
+  ]
+}

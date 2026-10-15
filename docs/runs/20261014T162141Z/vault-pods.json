@@ -1,0 +1,20 @@
+[
+  {
+    "name": "vault-0",
+    "image": "josemerchan/vault-xai:2.1.2-ent",
+    "ready": true,
+    "restarts": 0
+  },
+  {
+    "name": "vault-1",
+    "image": "josemerchan/vault-xai:2.1.2-ent",
+    "ready": true,
+    "restarts": 0
+  },
+  {
+    "name": "vault-2",
+    "image": "josemerchan/vault-xai:2.1.2-ent",
+    "ready": true,
+    "restarts": 0
+  }
+]

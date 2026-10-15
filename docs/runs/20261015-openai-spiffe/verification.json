@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-10-15T11:41:25Z",
+  "status": "validated",
+  "active_provider": "openai",
+  "model": "gpt-4.1-mini",
+  "integration": "SPIFFE JWT-SVID",
+  "deployment_passed": true,
+  "exchange_and_inference": true,
+  "chat_trace_id": "29085891c921d694dcc86a2ff0c194a9",
+  "chat_span_count": 15,
+  "chat_audit_correlated": true,
+  "identity_audit_correlated": true,
+  "responsive": {
+    "banner": "auto_awesomeOpenAI · gpt-4.1-miniSPIFFE JWT-SVID · Vault → OpenAI",
+    "document": 390,
+    "viewport": 390
+  },
+  "static_project_api_keys": 0,
+  "admin_key_matches_vault": true
+}

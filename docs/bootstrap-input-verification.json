@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-10-14T15:27:40Z",
+  "scope": "Preflight with empty local state, not a fresh cluster deployment",
+  "all_passed": true,
+  "checks": [
+    {
+      "name": "preflight_without_vault_token",
+      "passed": true
+    },
+    {
+      "name": "preflight_without_generated_bootstrap",
+      "passed": true
+    },
+    {
+      "name": "ambient_vault_credentials_ignored",
+      "passed": true
+    },
+    {
+      "name": "existing_bootstrap_loaded_without_env_token",
+      "passed": true
+    },
+    {
+      "name": "existing_vault_initialized_and_unsealed",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-14T18:01:00.445Z",
+  "application_id": "8cd2a9fd-190b-4864-afce-1bbc41b6f97f",
+  "checks": {
+    "dni": true,
+    "iban": true,
+    "name": true
+  },
+  "all_passed": true
+}

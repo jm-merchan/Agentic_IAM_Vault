@@ -1,0 +1,230 @@
+{
+  "uid": "lumen-iam",
+  "title": "Lumen · Vault IAM y trazas",
+  "schemaVersion": 39,
+  "tags": [
+    "Lumen",
+    "Vault",
+    "OBO"
+  ],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "trace",
+        "label": "Trace ID (vacío = todos)",
+        "type": "textbox",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "options": []
+      },
+      {
+        "name": "audit_mode",
+        "label": "Auditoría",
+        "type": "custom",
+        "query": "raw,hmac",
+        "current": {
+          "text": "raw",
+          "value": "raw"
+        },
+        "options": [
+          {
+            "text": "raw",
+            "value": "raw",
+            "selected": true
+          },
+          {
+            "text": "hmac",
+            "value": "hmac",
+            "selected": false
+          }
+        ]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Cómo seguir una operación",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Copia el **Trace ID** de [Lumen](http://localhost:8088) y pégalo arriba. **raw** muestra las rutas de la demo en verify sin HMAC; **hmac** muestra la copia protegida. Cada petición tiene request + response con el mismo request.id.\n\nEn Tempo abre **vault.read** o **vault.write**: **vault.http.request**, **vault.auth.jwt**, **vault.auth.jwt.decoded**, **vault.http.response**. Incluyen JWT y credenciales en claro en este laboratorio. En **xai.chat** u **openai.chat**: gen_ai.input.messages y gen_ai.output.messages. OpenAI añade **spiffe.mint_jwt_svid** y **openai.token_exchange**."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Peticiones únicas a Vault",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "lumen-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sum by (request_id) (count_over_time({service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\",audit_type=\"request\"} |= \"${trace:raw}\" | json request_id=\"request.id\" | __error__=\"\" [$__range]))) or vector(0)",
+          "queryType": "instant"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Respuestas denegadas por Vault",
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "lumen-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sum by (request_id) (count_over_time({service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\",audit_type=\"response\"} |= \"${trace:raw}\" |= \"permission denied\" | json request_id=\"request.id\" | __error__=\"\" [$__range]))) or vector(0)",
+          "queryType": "instant"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "type": "text",
+      "title": "Flujos",
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 8,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Datos:** OBO → Vault → MySQL\n\n**Protección:** OBO → Transit / Transform\n\n**Web:** Agent Registry → Vault → Tavily"
+      }
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "Peticiones de Vault · detalle y enlace a la traza",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "lumen-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\"} |= \"${trace:raw}\" | json | json traceparent=\"request.headers.traceparent[0]\" | line_format \"{{.type}} · {{.request_operation}} {{.request_path}} · allowed={{.auth_policy_results_allowed}} · request_id={{.request_id}} · {{.traceparent}}\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Últimas ejecuciones (todas) · abre Trace ID",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "lumen-tempo"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "traceql",
+          "query": "{ resource.service.name = \"lumen-chatbot\" }",
+          "limit": 30,
+          "tableType": "traces"
+        }
+      ],
+      "options": {
+        "showHeader": true
+      }
+    },
+    {
+      "id": 7,
+      "type": "logs",
+      "title": "Audit JSON original · ${audit_mode}",
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "lumen-loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\"} |= \"${trace:raw}\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": false,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
+    }
+  ]
+}

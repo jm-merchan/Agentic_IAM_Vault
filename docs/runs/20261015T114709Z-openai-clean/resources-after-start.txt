@@ -1,0 +1,28 @@
+Retirada completa en workshop: namespaces mysql, lumen-observability y vault, TODO su contenido y PVC.
+Esto incluye todos los secretos/namespaces internos de este Vault y las filas de MySQL.
+  Volumen: vault/pvc-1632c2c2-6300-43aa-b95f-8c1cbde01ac9
+  Volumen: vault/pvc-20824615-b0f4-46b5-a162-cd005e7e34ba
+  Volumen: vault/pvc-4a296139-a22b-4a56-8f7e-bdfb7af7376d
+  Volumen: lumen-observability/pvc-5210c0e8-7975-4810-ba0c-d400c95a3eb8
+  Volumen: lumen-observability/pvc-69448e6c-2178-4a78-b807-033b318640b4
+  Volumen: lumen-observability/pvc-8ae82cce-b098-47bc-89b8-1104d87e3350
+  Volumen: vault/pvc-8d4434ef-98d1-4850-a75b-c8c7bf1a9fd1
+  Volumen: mysql/pvc-c976b22e-a264-4170-97cc-5edd93ce9b85
+  Volumen: vault/pvc-f92f5571-1f28-45dc-a8b5-64354ef4584e
+  Volumen: vault/pvc-fd106a21-286b-4c11-a5c0-50e8212f75d1
+Verify: https://merchan.verify.ibm.com
+  sts: vault-chatbot-sts (67be64b7-72b8-47fb-8697-1bec6c7cac0c)
+  app: vault-chatbot-oidc (4568982305408033368)
+  app: vault-chatbot-research (4568992790224902417)
+  app: vault-chatbot-xai (4580463673960791187)
+  app: vault-chatbot-openai (4569899501502107395)
+  group: chatbot-readers (646009U0LK)
+  group: chatbot-writers (645009JO6J)
+  group: chatbot-supervisors (646009U0LO)
+  user: lumen-reader (6480001TZZ)
+  user: lumen-writer (646009U0LM)
+  user: lumen-supervisor (6480001U02)
+Estado operativo local: /Users/jose/.local/state/lumen-vault-demo/{vault,mysql,runtime,vault-chatbot-storage,services,pids,ngrok,openai}
+Se conservan .env, recursos OpenAI, cliente administrativo, RAR compartido, otros recursos Verify, perfil Minikube y documentación.
+Plan sin credenciales: /Users/jose/.local/state/lumen-vault-demo/remove-plan.json
+Simulación: no se han detenido ni eliminado recursos.

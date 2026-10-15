@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-14T18:00:10.117545+00:00",
+  "subject": "646009TNXV",
+  "groups": [
+    "chatbot-supervisors",
+    "allUsers"
+  ],
+  "role": "readonly",
+  "tests": [
+    {
+      "test": "obo_readonly_allowed",
+      "passed": true
+    },
+    {
+      "test": "obo_readonly_cannot_read_tavily",
+      "passed": true
+    },
+    {
+      "test": "obo_readonly_mysql_select",
+      "passed": true
+    },
+    {
+      "test": "obo_readonly_mysql_write_boundary",
+      "passed": true
+    },
+    {
+      "test": "obo_readwrite_denied",
+      "passed": true
+    },
+    {
+      "test": "obo_readwrite_cannot_read_tavily",
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

@@ -1,0 +1,12 @@
+{
+  "run": "20261015T114801Z",
+  "action": "remove",
+  "dry_run": false,
+  "completed": true,
+  "steps": [
+    {
+      "name": "Retirada de la demo (o simulación)",
+      "passed": true
+    }
+  ]
+}

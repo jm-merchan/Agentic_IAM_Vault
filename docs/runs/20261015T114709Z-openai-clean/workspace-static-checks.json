@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-10-15T12:54:48.836940+00:00",
+  "local_links_checked": 330,
+  "notebooks_checked": 10,
+  "bash_cells_checked": 62,
+  "shell_scripts_checked": 56,
+  "missing_local_links": [],
+  "notebooks_with_outputs": [],
+  "invalid_notebooks": [],
+  "shell_syntax_errors": [],
+  "all_passed": true
+}

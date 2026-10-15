@@ -1,0 +1,75 @@
+{
+  "checked_at": "2026-10-15T12:32:27Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "42547759181613eeafb91782f66a44b3",
+      "passed": true,
+      "span_count": 10,
+      "operations": [
+        "verify.client_credentials",
+        "verify.obo_exchange",
+        "vault.read",
+        "mysql.query",
+        "data.access",
+        "verify.obo_exchange",
+        "vault.write",
+        "application.reveal",
+        "lumen.application.reveal",
+        "verify.client_credentials"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "database/creds/chatbot-readonly",
+          "http_status": 200,
+          "jwt_bytes": 1526,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transit/decrypt/lumen-applications",
+          "http_status": 403,
+          "jwt_bytes": 1532,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "00c2c1cc-f8e0-f5e7-4706-f4cfb3dc300e",
+          "path": "transit/decrypt/lumen-applications",
+          "namespace": "verify/",
+          "allowed": false,
+          "policies": [
+            "chatbot-supervisor"
+          ],
+          "human_or_agent_entity": "c51b4f7e-764a-e236-67a9-87f0adc0ce67",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-42547759181613eeafb91782f66a44b3-d50fbd8edfae6cf2-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "e1844a12-8fa0-6d77-8cdf-b965cb4080e9",
+          "path": "database/creds/chatbot-readonly",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-supervisor"
+          ],
+          "human_or_agent_entity": "c51b4f7e-764a-e236-67a9-87f0adc0ce67",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-42547759181613eeafb91782f66a44b3-cfb491221dc6f539-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

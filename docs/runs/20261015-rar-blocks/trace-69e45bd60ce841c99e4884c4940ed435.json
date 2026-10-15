@@ -1,0 +1,75 @@
+{
+  "checked_at": "2026-10-15T08:08:36Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "69e45bd60ce841c99e4884c4940ed435",
+      "passed": true,
+      "span_count": 8,
+      "operations": [
+        "verify.client_credentials",
+        "vault.read",
+        "model.authorization",
+        "vault.read",
+        "model.credentials",
+        "xai.chat",
+        "deepagents.run",
+        "lumen.action"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "secrets/data/chatbot/xai-access",
+          "http_status": 200,
+          "jwt_bytes": 1456,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "xai/creds/lumen",
+          "http_status": 200,
+          "jwt_bytes": 1456,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "2981d17f-3c0f-f91f-d6b5-5bec14e630ce",
+          "path": "secrets/data/chatbot/xai-access",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-xai",
+            "lumen-block-xai"
+          ],
+          "human_or_agent_entity": "d2675e3b-5f18-d5b1-3e51-ba6ed6b86de2",
+          "actor": null,
+          "traceparent": "00-69e45bd60ce841c99e4884c4940ed435-384f572953570f5a-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "4066f4ce-9899-1b9b-3f3b-2ce836bab281",
+          "path": "xai/creds/lumen",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-xai",
+            "lumen-block-xai"
+          ],
+          "human_or_agent_entity": "d2675e3b-5f18-d5b1-3e51-ba6ed6b86de2",
+          "actor": null,
+          "traceparent": "00-69e45bd60ce841c99e4884c4940ed435-8b72ff66c3a8b229-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

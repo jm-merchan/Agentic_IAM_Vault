@@ -1,0 +1,12 @@
+{
+  "checked_at": "2026-10-14T16:00:04Z",
+  "actual_deletion_executed": false,
+  "all_passed": true,
+  "isolated_teardown_tests": 7,
+  "live_preview": {
+    "dry_run": true,
+    "verify_resources": 10,
+    "persistent_volumes": 10
+  },
+  "fresh_redeployment_executed": false
+}

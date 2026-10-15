@@ -1,0 +1,9 @@
+autonomous_read: HTTP 200 (expected 200)
+autonomous_write_denied: HTTP 403 (expected 403)
+obo_shared_read: HTTP 200 (expected 200)
+obo_write_denied: HTTP 403 (expected 403)
+obo_human_only_denied: HTTP 403 (expected 403)
+obo_admin_secret_denied: HTTP 403 (expected 403)
+obo_agent_ceiling_denied: HTTP 403 (expected 403)
+obo_rar_read_denied: HTTP 403 (expected 403)
+Token exchange and all Vault authorization checks passed.

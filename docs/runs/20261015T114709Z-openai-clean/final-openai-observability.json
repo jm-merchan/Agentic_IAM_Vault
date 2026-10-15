@@ -1,0 +1,76 @@
+{
+  "checked_at": "2026-10-15T12:48:54Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "96275a7c21efb0d4f82aa383c35fb972",
+      "passed": true,
+      "span_count": 11,
+      "operations": [
+        "lumen.verify.openai_spiffe",
+        "model.credentials",
+        "openai.token_exchange",
+        "model.credentials",
+        "openai.token_exchange",
+        "spiffe.mint_jwt_svid",
+        "verify.client_credentials",
+        "vault.write",
+        "spiffe.mint_jwt_svid",
+        "verify.client_credentials",
+        "vault.write"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "8ba11896-3a90-dbd7-c7d6-9e5de8d1fe4f",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "30865384-1592-12ff-7915-f8a81a58bd0c",
+          "actor": null,
+          "traceparent": "00-96275a7c21efb0d4f82aa383c35fb972-45a729b7448ba2a9-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "d8a27fa3-87d1-b66a-d586-3c5bcfc6b825",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "30865384-1592-12ff-7915-f8a81a58bd0c",
+          "actor": null,
+          "traceparent": "00-96275a7c21efb0d4f82aa383c35fb972-5884bab6d29637a5-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

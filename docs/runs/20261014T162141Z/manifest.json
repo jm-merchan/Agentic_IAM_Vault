@@ -1,0 +1,44 @@
+{
+  "started_at": "2026-10-14T16:21:41Z",
+  "directory": "docs/runs/20261014T162141Z",
+  "status": "complete",
+  "scope": "real remove, clean start, OIDC/OBO roles, protected forms, Tavily, dynamic xAI and correlated traces",
+  "completed_at": "2026-10-14T18:21:34.944062+00:00",
+  "all_passed": true,
+  "real_removals": 2,
+  "recreated_verify_resources": 10,
+  "recreated_volumes": 10,
+  "env_preserved": true,
+  "unit_tests": 74,
+  "unit_subtests": 2,
+  "infrastructure_checks": 18,
+  "obo_checks": 20,
+  "xai_dynamic_checks": 12,
+  "traces_correlated": 20,
+  "spans_correlated": 185,
+  "vault_operations_correlated": 37,
+  "screenshots": 33,
+  "services_available": [
+    "Lumen",
+    "Grafana",
+    "Tempo",
+    "Loki",
+    "Vault",
+    "MySQL"
+  ],
+  "forward_recovery_verified": true,
+  "static_checks": {
+    "notebooks": 9,
+    "bash_cells": 53,
+    "shell_scripts": 44,
+    "local_links": 200
+  },
+  "report": "../../E2E_VERIFICATION.md",
+  "incidents": "incidents.json",
+  "artifact_hashes": "checksums.json",
+  "notes": [
+    "Incidents were corrected during verification; see report for sequence.",
+    "Traces and audit logs depend on retention and are deleted by the next remove.",
+    "Raw credentials stay in private lab state; published reports contain metadata and checks."
+  ]
+}

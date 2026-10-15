@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-14T16:23:17Z",
+  "all_passed": true,
+  "namespaces_remaining": 0,
+  "volumes_remaining": 0,
+  "operational_state_removed": true,
+  "env_unchanged": true,
+  "external_xai_leases_revoked": true,
+  "verify_resources_remaining": 0
+}

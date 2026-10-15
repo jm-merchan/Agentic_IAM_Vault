@@ -1,0 +1,5 @@
+xai                permitido
+database-read      permitido
+database-write     permitido
+decrypt            permitido
+Permitido significa sin bloqueo adicional; siguen aplicando los permisos del perfil y RAR.

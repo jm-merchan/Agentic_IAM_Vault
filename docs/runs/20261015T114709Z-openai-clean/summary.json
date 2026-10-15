@@ -1,0 +1,57 @@
+{
+  "checked_at": "2026-10-15T12:53:10.491903+00:00",
+  "all_passed": true,
+  "scope": "One real lab removal, clean-state verification, recreation, UI workflows and OpenAI/xAI provider regression; external OpenAI trust preserved",
+  "removed_verify_resources": 11,
+  "removed_volumes": 10,
+  "verify_resource_ids_all_changed": true,
+  "pytest": {
+    "passed": 114,
+    "subtests": 2,
+    "result": "114 passed, 2 subtests passed in 42.89s"
+  },
+  "infrastructure_checks": 18,
+  "obo_checks": 20,
+  "ui_permission_checks": 27,
+  "ui_observability": {
+    "traces": 16,
+    "spans": 229,
+    "vault_operations": 55
+  },
+  "openai_checks": 5,
+  "xai_dynamic_checks": 12,
+  "xai_rar_block_checks": 8,
+  "final_provider": "openai",
+  "final_model": "gpt-4.1-mini",
+  "final_integration": "SPIFFE JWT-SVID",
+  "final_blocks": "all four additional blocks disabled; profile ACLs and RAR remain active",
+  "alloy_image": "grafana/alloy:v1.21.0-rc.0",
+  "alloy_release_candidate": true,
+  "preserved_external": [
+    ".env",
+    "Verify administrative client and shared RAR schema",
+    "OpenAI project, service account, WIF provider and mapping",
+    "Minikube profile and image cache"
+  ],
+  "evidence_files": [
+    "start-auto-openai.json",
+    "final-start-openai.json",
+    "final-verify-openai.json",
+    "verify-xai-run.json",
+    "all-ui-observability.json",
+    "fresh-after-alloy-fix.json",
+    "final-openai-inference.json",
+    "final-openai-observability.json",
+    "xai-dynamic.json",
+    "xai-blocks.json",
+    "infrastructure-tests.json",
+    "obo-readonly.json",
+    "obo-readwrite.json",
+    "obo-supervisor.json",
+    "verify-resources-recreated.json",
+    "dashboard-counts.json",
+    "final-application.json",
+    "workspace-static-checks.json",
+    "secret-output-check.json"
+  ]
+}

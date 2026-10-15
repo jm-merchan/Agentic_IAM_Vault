@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-14T18:20:41.440102+00:00",
+  "passed": 74,
+  "subtests_passed": 2,
+  "all_passed": true,
+  "source": "private deploy-20261014T181707Z.log",
+  "summary": [
+    "74 passed, 2 subtests passed in 32.86s"
+  ]
+}

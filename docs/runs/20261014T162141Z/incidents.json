@@ -1,0 +1,30 @@
+{
+  "checked_at": "2026-10-14T18:18:56.007608+00:00",
+  "resolved": [
+    {
+      "issue": "Inventario ausente en instalación vacía",
+      "fix": "01-database.sh crea tabla cifrada y tres equipos sintéticos si está vacía",
+      "verification": "Segundo ciclo remove/start y lectura real por agente"
+    },
+    {
+      "issue": "Reloj de VM atrasado tras suspensión del host",
+      "fix": "Preflight exige desfase <=60s; VM sincronizada, sin desactivar TLS",
+      "verification": "Instalación completa tras sincronización"
+    },
+    {
+      "issue": "JWT recién emitido rechazado por nbf/iat con desfase inferior a un segundo",
+      "fix": "clock_skew_leeway=15 en perfil OAuth y cliente",
+      "verification": "Tres logins OIDC y 20 checks OBO repetidos"
+    },
+    {
+      "issue": "Spans unitarios mezclados en el archivo local de trazas",
+      "fix": "pytest usa directorio temporal y no exporta OTLP",
+      "verification": "Suite completa y correlación de 20 trazas reales seleccionadas"
+    },
+    {
+      "issue": "Grafana OOMKilled con 768Mi y port-forward sin recuperación",
+      "fix": "Límite 1536Mi, GOMEMLIMIT=768MiB y launchd KeepAlive para túneles; unload antes de reemplazar",
+      "verification": "Rollout sano, terminación deliberada del túnel y recuperación automática, UI con datos previos"
+    }
+  ]
+}

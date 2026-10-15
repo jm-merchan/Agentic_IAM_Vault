@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-14T08:07:57.296304+00:00",
+  "provider": "xai",
+  "model": "grok-4.3",
+  "live_security_checks": 30,
+  "live_security_all_passed": true,
+  "unit_tests_passed": 12,
+  "browser_checks": {
+    "oidc_reader": true,
+    "oidc_writer": true,
+    "reader_write_rejected": true,
+    "writer_draft_persisted": true,
+    "deep_agents_mysql_and_tavily": true,
+    "light_and_dark_modes": true,
+    "mobile_width": 390,
+    "mobile_horizontal_overflow": false,
+    "history_survives_reload": true,
+    "deep_agents_prepares_draft_without_writing": true
+  },
+  "notes": [
+    "No tokens, passwords or API keys in reports.",
+    "OBO group authorization uses explicit Verify-to-Vault membership synchronization."
+  ]
+}

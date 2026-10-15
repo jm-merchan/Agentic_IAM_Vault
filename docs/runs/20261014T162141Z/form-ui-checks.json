@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-14T18:03:11.947Z",
+  "checks": {
+    "shift_tab_leaves_empty": true,
+    "manual_value_preserved": true,
+    "invalid_dni_rejected": true,
+    "dni_tab_accepts_suggestion": true,
+    "iban_tab_accepts_suggestion": true,
+    "mobile_no_horizontal_overflow": true,
+    "mobile_width": 390,
+    "new_draft_has_new_dni": true,
+    "reveal_removed_from_dom_after_close": true,
+    "suggestion_button_accepts": true
+  },
+  "all_passed": true
+}

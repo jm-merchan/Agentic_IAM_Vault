@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "name": "vault",
+      "uid": "d8e74341-09dd-413a-a6c5-6dc4e73b2d33",
+      "created": "2026-10-14T16:27:49Z"
+    },
+    {
+      "name": "mysql",
+      "uid": "7809ae76-87c3-43a3-a242-233fb686516f",
+      "created": "2026-10-14T16:57:28Z"
+    },
+    {
+      "name": "lumen-observability",
+      "uid": "b732fa63-dc6f-4823-baab-3d08fa8530cb",
+      "created": "2026-10-14T16:58:41Z"
+    }
+  ]
+}

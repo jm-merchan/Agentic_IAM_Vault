@@ -1,0 +1,9 @@
+{
+  "row_count": 1,
+  "application_id": "991f9bb8-9255-4582-a015-8cb5cfb0428b",
+  "transit_ciphertext": true,
+  "dni_is_token": true,
+  "iban_is_token": true,
+  "raw_document_absent": true,
+  "raw_iban_absent": true
+}

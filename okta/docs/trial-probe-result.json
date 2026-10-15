@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-10-13T15:29:27.342281+00:00",
+  "issuer": "https://trial-2604851.okta.com/oauth2/default",
+  "client_id": "0oa18o3v5esdbEzB5698",
+  "scope": "vault.trial.probe",
+  "grant_type": "client_credentials",
+  "dpop_enabled": true,
+  "attempts": [
+    {
+      "http_status": 400,
+      "error": "invalid_grant"
+    }
+  ],
+  "http_status": 400,
+  "error": "invalid_grant",
+  "error_description": "The NHI Authentication Tokens SKU is not enabled. Contact your Account Executive to enable the SKU to use the requested grant type or token exchange flow."
+}

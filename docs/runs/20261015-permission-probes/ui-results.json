@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-10-15T07:14:21.804Z",
+  "profiles": {
+    "reader": {
+      "trace_url": "/traces/4ce1020015619a66b832f6f16c6b569f",
+      "tables": [
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  database/creds/chatbot-readonly\n  Permitido\n  Permitido\n\n\n  database/creds/chatbot-readwrite\n  Denegado\n  Denegado\n\n\n  secrets/data/verify-admin\n  Denegado\n  Denegado\n\n\n",
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  transit/encrypt/lumen-applications\n  Denegado\n  Denegado\n\n\n  transit/decrypt/lumen-applications\n  Denegado\n  Denegado\n\n\n",
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  transform/encode/lumen-dni\n  Denegado\n  Denegado\n\n\n  transform/decode/lumen-dni\n  Denegado\n  Denegado\n\n\n  transform/encode/lumen-iban\n  Denegado\n  Denegado\n\n\n  transform/decode/lumen-iban\n  Denegado\n  Denegado\n\n\n"
+      ]
+    },
+    "supervisor": {
+      "trace_url": "/traces/745c1d52de0c2675933ec861ad3fb9f0",
+      "tables": [
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  database/creds/chatbot-readonly\n  Permitido\n  Permitido\n\n\n  database/creds/chatbot-readwrite\n  Denegado\n  Denegado\n\n\n  secrets/data/verify-admin\n  Denegado\n  Denegado\n\n\n",
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  transit/encrypt/lumen-applications\n  Denegado\n  Denegado\n\n\n  transit/decrypt/lumen-applications\n  Permitido\n  Permitido\n\n\n",
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  transform/encode/lumen-dni\n  Denegado\n  Denegado\n\n\n  transform/decode/lumen-dni\n  Permitido\n  Permitido\n\n\n  transform/encode/lumen-iban\n  Denegado\n  Denegado\n\n\n  transform/decode/lumen-iban\n  Permitido\n  Permitido\n\n\n"
+      ]
+    },
+    "writer": {
+      "trace_url": "/traces/c54ea17d14b1a18af6e28a5e2042667b",
+      "tables": [
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  database/creds/chatbot-readonly\n  Permitido\n  Permitido\n\n\n  database/creds/chatbot-readwrite\n  Permitido\n  Permitido\n\n\n  secrets/data/verify-admin\n  Denegado\n  Denegado\n\n\n",
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  transit/encrypt/lumen-applications\n  Permitido\n  Permitido\n\n\n  transit/decrypt/lumen-applications\n  Denegado\n  Denegado\n\n\n",
+        "\n\n\n  Ruta de Vault\n  Resultado\n  Esperado\n\n\n\n\n  transform/encode/lumen-dni\n  Permitido\n  Permitido\n\n\n  transform/decode/lumen-dni\n  Denegado\n  Denegado\n\n\n  transform/encode/lumen-iban\n  Permitido\n  Permitido\n\n\n  transform/decode/lumen-iban\n  Denegado\n  Denegado\n\n\n"
+      ]
+    },
+    "mobile": {
+      "width": 390,
+      "no_horizontal_overflow": true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "reader_catalog_inventory": "/traces/b123f1c4eb409325b27b2909f8f05a6f",
+  "xai_reuse": "/traces/036230ee2a36248da7e0464e3e3e952a",
+  "reader_limits": "/traces/8a0b639afb518673407b4d18e33f65f1",
+  "reader_local_block": "/traces/e0bb535d1169b88fff1328e4bf2dcf47",
+  "tavily": "/traces/8941b4123d2b4367f3d3a014cefc938c",
+  "xai_rotation": "/traces/af3fb267a674b0c091ec601024af2cb6",
+  "writer_prepare": "/traces/b077407f6a337a6fc48d1c1caaf34629",
+  "writer_save": "/traces/8a28f5caadcebb0576c7ef24265d02f7",
+  "writer_reveal_denied": "/traces/b2640481a5089f9b85b6e0d85e088f02",
+  "writer_limits": "/traces/a1a1205c5f835012d7f022c6ecdacb2e",
+  "reader_masked": "/traces/db78f8195a3541f408f9d2525cfbd19a",
+  "reader_reveal_denied": "/traces/979d2cfa993e56d1546647135b093ceb",
+  "reader_masked_agent": "/traces/8b96aa5f296ccae287bed64afe104028",
+  "reader_limits_repeat": "/traces/02e4b62df97ae9259edb8135d81e7aa5",
+  "supervisor_limits": "/traces/cd5dc8fe9c6c516ad514d8a873515a9f",
+  "supervisor_local_block": "/traces/cdc22de1a4f90156d4275c216261266e",
+  "supervisor_reveal": "/traces/b93a149ee494649293b8c1d3a8ff0796",
+  "reader_local_block_repeat": "/traces/79adc8383a36f3c48879a0ac82ef0e51",
+  "tavily_repeat": "/traces/97cd790adf60665a7f71eae7f2aa045f",
+  "reader_masked_agent_final": "/traces/2fde3c3b0ca8b8f7c1511c7378b0bd8e"
+}

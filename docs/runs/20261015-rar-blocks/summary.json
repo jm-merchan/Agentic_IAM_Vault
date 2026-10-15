@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-10-15T08:14:07Z",
+  "unit_tests": 96,
+  "unit_subtests": 2,
+  "previous_jwt_checks": 12,
+  "xai_rar_checks": 8,
+  "xai_lifecycle_checks": 12,
+  "functional_tests_passed": true,
+  "trace_count": 11,
+  "span_count": 159,
+  "vault_operations": 41,
+  "vault_audit_complete": true,
+  "loki_raw_complete": false,
+  "final_blocks": [],
+  "notes": [
+    "Two operations have incomplete raw events in Loki; original Vault audit pairs verified.",
+    "Earlier xAI captures before adding the authorization-route raw device are superseded by ui-traces.json."
+  ]
+}

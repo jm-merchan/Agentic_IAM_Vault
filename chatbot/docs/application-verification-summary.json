@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-10-14T18:18:56.007608+00:00",
+  "application_id": "8cd2a9fd-190b-4864-afce-1bbc41b6f97f",
+  "all_passed": true,
+  "form_ui": {
+    "checked_at": "2026-10-14T18:03:11.947Z",
+    "checks": {
+      "shift_tab_leaves_empty": true,
+      "manual_value_preserved": true,
+      "invalid_dni_rejected": true,
+      "dni_tab_accepts_suggestion": true,
+      "iban_tab_accepts_suggestion": true,
+      "mobile_no_horizontal_overflow": true,
+      "mobile_width": 390,
+      "new_draft_has_new_dni": true,
+      "reveal_removed_from_dom_after_close": true,
+      "suggestion_button_accepts": true
+    },
+    "all_passed": true
+  },
+  "reveal_ui": {
+    "checked_at": "2026-10-14T18:01:00.445Z",
+    "application_id": "8cd2a9fd-190b-4864-afce-1bbc41b6f97f",
+    "checks": {
+      "dni": true,
+      "iban": true,
+      "name": true
+    },
+    "all_passed": true
+  },
+  "protected_storage": {
+    "row_count": 1,
+    "checked_at": "2026-10-14 17:07:43.000000",
+    "ciphertext": true,
+    "application_id": "8cd2a9fd-190b-4864-afce-1bbc41b6f97f",
+    "table_encrypted": 1,
+    "kmip_plugin_active": 1,
+    "dni_token_is_opaque": true,
+    "iban_token_is_opaque": true,
+    "all_four_tables_encrypted": 1
+  },
+  "trace_count": 20,
+  "span_count": 185,
+  "vault_operation_count": 37,
+  "evidence_directory": "docs/runs/20261014T162141Z"
+}

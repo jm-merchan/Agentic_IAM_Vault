@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-10-14T18:19:08Z",
+  "auth_flow": "client_credentials",
+  "credential_path": "verify/xai/creds/lumen",
+  "test_ttl_seconds": 60,
+  "expired_xai_http_status": 400,
+  "tests": [
+    {
+      "test": "dynamic_key_issued",
+      "passed": true
+    },
+    {
+      "test": "xai_agent_denied_database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "test": "xai_agent_denied_secrets/data/tavily",
+      "passed": true
+    },
+    {
+      "test": "xai_agent_denied_secrets/data/xai",
+      "passed": true
+    },
+    {
+      "test": "xai_agent_denied_secrets/data/xai_mgmt",
+      "passed": true
+    },
+    {
+      "test": "xai_agent_denied_xai/config",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_secrets/data/xai",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_secrets/data/xai_mgmt",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_xai/creds/lumen",
+      "passed": true
+    },
+    {
+      "test": "grok_inference_with_dynamic_key",
+      "passed": true
+    },
+    {
+      "test": "expired_key_rejected_by_xai",
+      "passed": true
+    },
+    {
+      "test": "expired_lease_removed",
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

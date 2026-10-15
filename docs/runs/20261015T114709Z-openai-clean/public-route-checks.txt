@@ -1,0 +1,4 @@
+404 /v1/sys/health
+404 /ui/
+404 /v1/verify/spiffe/config
+404 /v1/verify/secrets/data/openai-admin

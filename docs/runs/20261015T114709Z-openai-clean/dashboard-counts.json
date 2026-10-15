@@ -1,0 +1,29 @@
+{
+  "all_passed": true,
+  "cases": {
+    "supervisor_reveal": {
+      "trace_id": "0e41593d38eb8f16182d37877aeafd70",
+      "expected": {
+        "requests": 4,
+        "denied": 0
+      },
+      "observed": {
+        "requests": 4,
+        "denied": 0
+      },
+      "passed": true
+    },
+    "supervisor_decrypt_blocked": {
+      "trace_id": "42547759181613eeafb91782f66a44b3",
+      "expected": {
+        "requests": 2,
+        "denied": 1
+      },
+      "observed": {
+        "requests": 2,
+        "denied": 1
+      },
+      "passed": true
+    }
+  }
+}

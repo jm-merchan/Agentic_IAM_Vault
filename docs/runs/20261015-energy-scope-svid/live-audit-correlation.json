@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-10-15T13:06:06Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "02513e793a59cc054080fe4279c0754f",
+      "passed": true,
+      "span_count": 30,
+      "operations": [
+        "verify.client_credentials",
+        "vault.write",
+        "spiffe.mint_jwt_svid",
+        "openai.token_exchange",
+        "model.credentials",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "lumen.verify.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "guardrail.energy_scope"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "04a5ccb3-016f-29e2-a66c-1e5f7ff924ed",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "30865384-1592-12ff-7915-f8a81a58bd0c",
+          "actor": null,
+          "traceparent": "00-02513e793a59cc054080fe4279c0754f-1243df35f4989cbe-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

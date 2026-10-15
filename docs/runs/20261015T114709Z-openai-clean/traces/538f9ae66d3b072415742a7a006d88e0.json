@@ -1,0 +1,45 @@
+{
+  "checked_at": "2026-10-15T12:32:24Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "538f9ae66d3b072415742a7a006d88e0",
+      "passed": true,
+      "span_count": 4,
+      "operations": [
+        "lumen.action",
+        "verify.client_credentials",
+        "vault.read",
+        "tavily.search"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "secrets/data/tavily",
+          "http_status": 200,
+          "jwt_bytes": 1192,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "96e26c69-1d35-c912-d171-3459e1f0f4e7",
+          "path": "secrets/data/tavily",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-research"
+          ],
+          "human_or_agent_entity": "8db19e6c-87e1-2c44-60b3-54822f6a4826",
+          "actor": null,
+          "traceparent": "00-538f9ae66d3b072415742a7a006d88e0-dda5d17857b50d83-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

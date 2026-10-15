@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-10-14T18:09:35.774869+00:00",
+  "checks": {
+    "initial_issue": true,
+    "same_lease_reused": true,
+    "new_lease_issued": true,
+    "reason_insufficient_validity": true,
+    "previous_lease_matches": true,
+    "replacement_before_expiry": true,
+    "nonrenewable_plugin": true
+  },
+  "traces": [
+    {
+      "scenario": "reader_catalog_inventory",
+      "trace_id": "b123f1c4eb409325b27b2909f8f05a6f",
+      "start_ns": 1791997270973681000,
+      "attributes": {
+        "agent.identity": "chatbot-xai",
+        "auth.flow": "client_credentials",
+        "vault.path": "xai/creds/lumen",
+        "vault.credential.cache_hit": false,
+        "vault.credential.refresh_reason": "initial",
+        "vault.credential.warning_count": 0,
+        "vault.lease.id": "xai/creds/lumen/LIagLZAZrsLesOSikcRAZIlD.ZTFI4",
+        "vault.lease.duration_seconds": 300,
+        "vault.lease.remaining_seconds": 298,
+        "vault.lease.renewable": false,
+        "xai.api_key.id": "ff0b202b-861f-4708-8818-47bb857b4e44",
+        "vault.credential.source": "dynamic"
+      }
+    },
+    {
+      "scenario": "xai_reuse",
+      "trace_id": "036230ee2a36248da7e0464e3e3e952a",
+      "start_ns": 1791997288609561000,
+      "attributes": {
+        "agent.identity": "chatbot-xai",
+        "auth.flow": "client_credentials",
+        "vault.path": "xai/creds/lumen",
+        "vault.credential.cache_hit": true,
+        "vault.lease.id": "xai/creds/lumen/LIagLZAZrsLesOSikcRAZIlD.ZTFI4",
+        "vault.lease.duration_seconds": 300,
+        "vault.lease.remaining_seconds": 282,
+        "vault.lease.renewable": false,
+        "xai.api_key.id": "ff0b202b-861f-4708-8818-47bb857b4e44",
+        "vault.credential.source": "dynamic"
+      }
+    },
+    {
+      "scenario": "xai_rotation",
+      "trace_id": "af3fb267a674b0c091ec601024af2cb6",
+      "start_ns": 1791997392090150000,
+      "attributes": {
+        "agent.identity": "chatbot-xai",
+        "auth.flow": "client_credentials",
+        "vault.path": "xai/creds/lumen",
+        "vault.credential.cache_hit": false,
+        "vault.credential.refresh_reason": "insufficient_validity",
+        "vault.lease.previous_id": "xai/creds/lumen/LIagLZAZrsLesOSikcRAZIlD.ZTFI4",
+        "vault.credential.warning_count": 0,
+        "vault.lease.id": "xai/creds/lumen/ox3VU4ThR06V03bBCkfNKxkF.ZTFI4",
+        "vault.lease.duration_seconds": 300,
+        "vault.lease.remaining_seconds": 299,
+        "vault.lease.renewable": false,
+        "xai.api_key.id": "a2a64590-dac4-4192-8e3c-4226a413b18f",
+        "vault.credential.source": "dynamic"
+      }
+    }
+  ],
+  "all_passed": true
+}

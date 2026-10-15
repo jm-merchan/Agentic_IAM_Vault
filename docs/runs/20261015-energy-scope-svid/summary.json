@@ -1,0 +1,45 @@
+{
+  "all_passed": true,
+  "pytest": {
+    "passed": 123,
+    "subtests_passed": 2
+  },
+  "live_scope_cases": 12,
+  "ui_cases": {
+    "weather": {
+      "trace_id": "247460c903f1264acb7a5e5a46667526",
+      "scope_allowed": false,
+      "category": "out_of_scope",
+      "business_operations": [],
+      "span_count": 9,
+      "svid_matches_sent_and_issued": true,
+      "svid_signature_verified": true,
+      "svid_complete": true,
+      "svid_not_in_model_messages": true,
+      "passed": true
+    },
+    "followup": {
+      "trace_id": "31a1a954fe74e2196da5ec0de3e3760d",
+      "scope_allowed": false,
+      "category": "out_of_scope",
+      "business_operations": [],
+      "span_count": 3,
+      "passed": true
+    },
+    "energy": {
+      "trace_id": "a5a1c2a61667d24b87c40646847ef89b",
+      "scope_allowed": true,
+      "category": "demo",
+      "business_operations": [
+        "mysql.query",
+        "tool.consultar_planes"
+      ],
+      "span_count": 17,
+      "svid_matches_sent_and_issued": true,
+      "svid_signature_verified": true,
+      "svid_complete": true,
+      "svid_not_in_model_messages": true,
+      "passed": true
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "chatbot-xai",
+  "entity_id": "d2675e3b-5f18-d5b1-3e51-ba6ed6b86de2",
+  "client_id": "b1118163-5f67-493e-9c15-af9e46b7559d",
+  "ceiling_policy": "chatbot-xai",
+  "credential_path": "xai/creds/lumen",
+  "auth_flow": "client_credentials"
+}

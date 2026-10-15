@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-14T15:19:22Z",
+  "checks": [
+    {
+      "check": "ciphertext_and_tokens",
+      "passed": true
+    },
+    {
+      "check": "rows_preserved_after_restart",
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

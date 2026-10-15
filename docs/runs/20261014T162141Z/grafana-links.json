@@ -1,0 +1,102 @@
+{
+  "reader_catalog_inventory": {
+    "trace_id": "b123f1c4eb409325b27b2909f8f05a6f",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b123f1c4eb409325b27b2909f8f05a6f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b123f1c4eb409325b27b2909f8f05a6f&var-audit_mode=raw"
+  },
+  "xai_reuse": {
+    "trace_id": "036230ee2a36248da7e0464e3e3e952a",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22036230ee2a36248da7e0464e3e3e952a%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=036230ee2a36248da7e0464e3e3e952a&var-audit_mode=raw"
+  },
+  "reader_limits": {
+    "trace_id": "8a0b639afb518673407b4d18e33f65f1",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%228a0b639afb518673407b4d18e33f65f1%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=8a0b639afb518673407b4d18e33f65f1&var-audit_mode=raw"
+  },
+  "reader_local_block": {
+    "trace_id": "e0bb535d1169b88fff1328e4bf2dcf47",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22e0bb535d1169b88fff1328e4bf2dcf47%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=e0bb535d1169b88fff1328e4bf2dcf47&var-audit_mode=raw"
+  },
+  "tavily": {
+    "trace_id": "8941b4123d2b4367f3d3a014cefc938c",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%228941b4123d2b4367f3d3a014cefc938c%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=8941b4123d2b4367f3d3a014cefc938c&var-audit_mode=raw"
+  },
+  "xai_rotation": {
+    "trace_id": "af3fb267a674b0c091ec601024af2cb6",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22af3fb267a674b0c091ec601024af2cb6%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=af3fb267a674b0c091ec601024af2cb6&var-audit_mode=raw"
+  },
+  "writer_prepare": {
+    "trace_id": "b077407f6a337a6fc48d1c1caaf34629",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b077407f6a337a6fc48d1c1caaf34629%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b077407f6a337a6fc48d1c1caaf34629&var-audit_mode=raw"
+  },
+  "writer_save": {
+    "trace_id": "8a28f5caadcebb0576c7ef24265d02f7",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%228a28f5caadcebb0576c7ef24265d02f7%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=8a28f5caadcebb0576c7ef24265d02f7&var-audit_mode=raw"
+  },
+  "writer_reveal_denied": {
+    "trace_id": "b2640481a5089f9b85b6e0d85e088f02",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b2640481a5089f9b85b6e0d85e088f02%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b2640481a5089f9b85b6e0d85e088f02&var-audit_mode=raw"
+  },
+  "writer_limits": {
+    "trace_id": "a1a1205c5f835012d7f022c6ecdacb2e",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22a1a1205c5f835012d7f022c6ecdacb2e%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=a1a1205c5f835012d7f022c6ecdacb2e&var-audit_mode=raw"
+  },
+  "reader_masked": {
+    "trace_id": "db78f8195a3541f408f9d2525cfbd19a",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22db78f8195a3541f408f9d2525cfbd19a%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=db78f8195a3541f408f9d2525cfbd19a&var-audit_mode=raw"
+  },
+  "reader_reveal_denied": {
+    "trace_id": "979d2cfa993e56d1546647135b093ceb",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22979d2cfa993e56d1546647135b093ceb%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=979d2cfa993e56d1546647135b093ceb&var-audit_mode=raw"
+  },
+  "reader_masked_agent": {
+    "trace_id": "8b96aa5f296ccae287bed64afe104028",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%228b96aa5f296ccae287bed64afe104028%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=8b96aa5f296ccae287bed64afe104028&var-audit_mode=raw"
+  },
+  "reader_limits_repeat": {
+    "trace_id": "02e4b62df97ae9259edb8135d81e7aa5",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2202e4b62df97ae9259edb8135d81e7aa5%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=02e4b62df97ae9259edb8135d81e7aa5&var-audit_mode=raw"
+  },
+  "supervisor_limits": {
+    "trace_id": "cd5dc8fe9c6c516ad514d8a873515a9f",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22cd5dc8fe9c6c516ad514d8a873515a9f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=cd5dc8fe9c6c516ad514d8a873515a9f&var-audit_mode=raw"
+  },
+  "supervisor_local_block": {
+    "trace_id": "cdc22de1a4f90156d4275c216261266e",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22cdc22de1a4f90156d4275c216261266e%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=cdc22de1a4f90156d4275c216261266e&var-audit_mode=raw"
+  },
+  "supervisor_reveal": {
+    "trace_id": "b93a149ee494649293b8c1d3a8ff0796",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b93a149ee494649293b8c1d3a8ff0796%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b93a149ee494649293b8c1d3a8ff0796&var-audit_mode=raw"
+  },
+  "reader_local_block_repeat": {
+    "trace_id": "79adc8383a36f3c48879a0ac82ef0e51",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2279adc8383a36f3c48879a0ac82ef0e51%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=79adc8383a36f3c48879a0ac82ef0e51&var-audit_mode=raw"
+  },
+  "tavily_repeat": {
+    "trace_id": "97cd790adf60665a7f71eae7f2aa045f",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2297cd790adf60665a7f71eae7f2aa045f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=97cd790adf60665a7f71eae7f2aa045f&var-audit_mode=raw"
+  },
+  "reader_masked_agent_final": {
+    "trace_id": "2fde3c3b0ca8b8f7c1511c7378b0bd8e",
+    "grafana": "http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%222fde3c3b0ca8b8f7c1511c7378b0bd8e%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D",
+    "audit": "http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=2fde3c3b0ca8b8f7c1511c7378b0bd8e&var-audit_mode=raw"
+  }
+}

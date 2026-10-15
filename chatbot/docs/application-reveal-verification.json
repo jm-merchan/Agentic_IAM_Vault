@@ -1,0 +1,129 @@
+{
+  "checked_at": "2026-10-14T18:09:35.774869+00:00",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "b93a149ee494649293b8c1d3a8ff0796",
+      "passed": true,
+      "span_count": 16,
+      "operations": [
+        "lumen.application.reveal",
+        "application.reveal",
+        "data.access",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.read",
+        "mysql.query",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.write",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.write",
+        "verify.obo_exchange",
+        "verify.client_credentials",
+        "vault.write"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "database/creds/chatbot-readonly",
+          "http_status": 200,
+          "jwt_bytes": 1526,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transit/decrypt/lumen-applications",
+          "http_status": 200,
+          "jwt_bytes": 1532,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transform/decode/lumen-dni",
+          "http_status": 200,
+          "jwt_bytes": 1522,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "transform/decode/lumen-iban",
+          "http_status": 200,
+          "jwt_bytes": 1523,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "2e1c1a4f-571a-0a56-503e-11498424903f",
+          "path": "transit/decrypt/lumen-applications",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-supervisor"
+          ],
+          "human_or_agent_entity": "df55b2df-d29e-f160-a0b4-de3a613d0de3",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-b93a149ee494649293b8c1d3a8ff0796-cff4aaf22fc57af9-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "9800d8ab-9575-4bb4-6bc7-d287d29ec1a0",
+          "path": "transform/decode/lumen-iban",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-supervisor"
+          ],
+          "human_or_agent_entity": "df55b2df-d29e-f160-a0b4-de3a613d0de3",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-b93a149ee494649293b8c1d3a8ff0796-4dac37dc983f492e-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "d7609c20-d239-f82e-4c4c-400f5d9e3b76",
+          "path": "transform/decode/lumen-dni",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-supervisor"
+          ],
+          "human_or_agent_entity": "df55b2df-d29e-f160-a0b4-de3a613d0de3",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-b93a149ee494649293b8c1d3a8ff0796-2fb3d006aba8b5df-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "d7702823-60f6-9b87-3fd4-f548597567b7",
+          "path": "database/creds/chatbot-readonly",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-supervisor"
+          ],
+          "human_or_agent_entity": "df55b2df-d29e-f160-a0b4-de3a613d0de3",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-b93a149ee494649293b8c1d3a8ff0796-09700bfff67d423d-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

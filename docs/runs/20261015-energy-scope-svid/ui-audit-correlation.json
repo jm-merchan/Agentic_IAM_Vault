@@ -1,0 +1,138 @@
+{
+  "checked_at": "2026-10-15T13:12:59Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "247460c903f1264acb7a5e5a46667526",
+      "passed": true,
+      "span_count": 9,
+      "operations": [
+        "verify.client_credentials",
+        "vault.write",
+        "spiffe.mint_jwt_svid",
+        "openai.token_exchange",
+        "model.credentials",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "deepagents.run",
+        "lumen.action"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "158286ab-5cb2-07a9-497d-07d0d83ab220",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "30865384-1592-12ff-7915-f8a81a58bd0c",
+          "actor": null,
+          "traceparent": "00-247460c903f1264acb7a5e5a46667526-b93344623624537e-01",
+          "audit_mode": "raw"
+        }
+      ]
+    },
+    {
+      "trace_id": "31a1a954fe74e2196da5ec0de3e3760d",
+      "passed": true,
+      "span_count": 3,
+      "operations": [
+        "guardrail.energy_scope",
+        "deepagents.run",
+        "lumen.action"
+      ],
+      "raw_capture_checks": [],
+      "vault_requests": []
+    },
+    {
+      "trace_id": "a5a1c2a61667d24b87c40646847ef89b",
+      "passed": true,
+      "span_count": 17,
+      "operations": [
+        "verify.client_credentials",
+        "vault.write",
+        "spiffe.mint_jwt_svid",
+        "openai.token_exchange",
+        "model.credentials",
+        "openai.chat",
+        "deepagents.run",
+        "lumen.action",
+        "openai.chat",
+        "guardrail.energy_scope",
+        "openai.chat",
+        "verify.client_credentials",
+        "verify.obo_exchange",
+        "vault.read",
+        "mysql.query",
+        "data.access",
+        "tool.consultar_planes"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "database/creds/chatbot-readonly",
+          "http_status": 200,
+          "jwt_bytes": 1515,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "32c3a725-8bf7-ffed-3047-024b7976326a",
+          "path": "database/creds/chatbot-readonly",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-reader"
+          ],
+          "human_or_agent_entity": "4b32db8f-78a6-9685-b2b4-c7c8ad82450c",
+          "actor": "chatbot-oidc",
+          "traceparent": "00-a5a1c2a61667d24b87c40646847ef89b-68974fb0d8e54fb8-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "5f506e52-a27d-f01d-50fe-8d5b0aa90379",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "30865384-1592-12ff-7915-f8a81a58bd0c",
+          "actor": null,
+          "traceparent": "00-a5a1c2a61667d24b87c40646847ef89b-9a1650c87d7a0b7d-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

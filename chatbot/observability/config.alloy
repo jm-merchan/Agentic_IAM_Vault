@@ -1,0 +1,57 @@
+discovery.kubernetes "vault" {
+  role = "pod"
+  namespaces { names = ["vault"] }
+  selectors {
+    role = "pod"
+    label = "app.kubernetes.io/name=vault"
+  }
+}
+discovery.relabel "vault" {
+  targets = discovery.kubernetes.vault.targets
+  rule {
+    source_labels = ["__meta_kubernetes_pod_container_name"]
+    regex = "vault"
+    action = "keep"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label = "pod"
+  }
+  rule {
+    target_label = "service"
+    replacement = "vault-audit"
+  }
+  rule {
+    target_label = "namespace"
+    replacement = "vault"
+  }
+}
+loki.source.kubernetes "vault" {
+  targets = discovery.relabel.vault.output
+  forward_to = [loki.process.audit.receiver]
+}
+loki.process "audit" {
+  stage.json {
+    expressions = { audit_type = "type", request_id = "request.id", client_token = "request.client_token" }
+    drop_malformed = true
+  }
+  stage.labels { values = { audit_type = "" } }
+  stage.match {
+    selector = "{audit_type!~\"request|response\"}"
+    action = "drop"
+  }
+  stage.drop {
+    source = "request_id"
+    expression = "^$"
+  }
+  // Separate the protected device from the filtered raw lab device. Never label tokens.
+  stage.template {
+    source = "audit_mode"
+    template = "{{ if and .client_token (eq (TrimPrefix .client_token \"hmac-sha256:\") .client_token) }}raw{{ else }}hmac{{ end }}"
+  }
+  stage.labels { values = { audit_mode = "" } }
+  forward_to = [loki.write.local.receiver]
+}
+loki.write "local" {
+  endpoint { url = "http://loki:3100/loki/api/v1/push" }
+}

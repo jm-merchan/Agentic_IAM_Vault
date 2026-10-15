@@ -1,0 +1,13 @@
+{
+  "new_vault_root_token": true,
+  "namespaces_recreated": true,
+  "spiffe_signing_key_changed": true,
+  "old_kids": [
+    "f966d917-6532-b1bd-053b-621ed51ee733",
+    "b76825fc-912b-b011-aa03-4fa2346145cc"
+  ],
+  "new_kids": [
+    "2266aa69-eb10-64af-25ef-475fc4c70a20",
+    "79c492fe-ae93-3c50-94a8-6c0c5b914ea7"
+  ]
+}

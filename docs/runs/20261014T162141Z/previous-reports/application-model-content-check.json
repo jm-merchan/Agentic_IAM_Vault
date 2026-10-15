@@ -1,0 +1,13 @@
+{
+  "trace_id": "1149db93968c17dde5303247b036db79",
+  "spans": 3,
+  "names": [
+    "xai.chat",
+    "tool.consultar_solicitudes",
+    "xai.chat"
+  ],
+  "has_masked_hint": true,
+  "no_full_dni": true,
+  "no_full_iban": true,
+  "no_name": true
+}

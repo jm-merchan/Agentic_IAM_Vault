@@ -1,0 +1,29 @@
+{
+  "verified_at": "2026-10-13T15:22:16.306283+00:00",
+  "vault_version": "2.1.2+ent",
+  "license": {
+    "state": "autoloaded",
+    "expiry_time": "2027-04-12T00:00:00Z",
+    "terminated": false
+  },
+  "checks": {
+    "vault_ready": true,
+    "issuer": true,
+    "jwks": true,
+    "audience": true,
+    "user_claim": true,
+    "rar_required_in_profile": true,
+    "agent_registered": true,
+    "rar_optional_for_agent": true,
+    "ceiling_policy": true,
+    "agent_alias": true,
+    "agent_policy": true,
+    "human_entity": true,
+    "human_alias": true,
+    "client_ids": true,
+    "client_secrets_omitted_from_state": true,
+    "human_pkce_required": true
+  },
+  "human_alias_ready": true,
+  "runtime_validation": "Run agentic_demo.py machine / login / obo; configuration checks do not prove token flows."
+}

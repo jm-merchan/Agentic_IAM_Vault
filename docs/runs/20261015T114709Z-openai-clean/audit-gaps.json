@@ -1,0 +1,50 @@
+[
+  {
+    "path": "transform/decode/lumen-dni",
+    "http_status": 403,
+    "jwt_bytes": 1511,
+    "jwt_matches_sent_header": true,
+    "jwt_matches_both_audit_events": false,
+    "request_body_matches_audit": false,
+    "vault_response_data_matches_audit": true,
+    "content_complete": true,
+    "passed": false,
+    "trace_id": "2bf0903563849fdb58f055c378d2fb8a"
+  },
+  {
+    "path": "transit/encrypt/lumen-applications",
+    "http_status": 200,
+    "jwt_bytes": 1522,
+    "jwt_matches_sent_header": true,
+    "jwt_matches_both_audit_events": false,
+    "request_body_matches_audit": false,
+    "vault_response_data_matches_audit": true,
+    "content_complete": true,
+    "passed": false,
+    "trace_id": "6b59c3876c335dfa451e0542598dd0cb"
+  },
+  {
+    "path": "transform/decode/lumen-dni",
+    "http_status": 200,
+    "jwt_bytes": 1522,
+    "jwt_matches_sent_header": true,
+    "jwt_matches_both_audit_events": false,
+    "request_body_matches_audit": false,
+    "vault_response_data_matches_audit": true,
+    "content_complete": true,
+    "passed": false,
+    "trace_id": "c10b6819d0466a8bee095880851d9f85"
+  },
+  {
+    "path": "transit/decrypt/lumen-applications",
+    "http_status": 200,
+    "jwt_bytes": 1532,
+    "jwt_matches_sent_header": true,
+    "jwt_matches_both_audit_events": false,
+    "request_body_matches_audit": false,
+    "vault_response_data_matches_audit": true,
+    "content_complete": true,
+    "passed": false,
+    "trace_id": "0e41593d38eb8f16182d37877aeafd70"
+  }
+]

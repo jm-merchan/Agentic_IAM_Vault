@@ -1,0 +1,28 @@
+{
+  "run": "20261014T170028Z",
+  "action": "verify",
+  "dry_run": false,
+  "completed": true,
+  "steps": [
+    {
+      "name": "Persistencia del runtime y aislamiento de secretos",
+      "passed": true
+    },
+    {
+      "name": "Pruebas de aplicación",
+      "passed": true
+    },
+    {
+      "name": "MySQL, permisos del agente y búsqueda Tavily",
+      "passed": true
+    },
+    {
+      "name": "Estado final de servicios",
+      "passed": true
+    },
+    {
+      "name": "xAI: inferencia, denegaciones y caducidad real",
+      "passed": true
+    }
+  ]
+}

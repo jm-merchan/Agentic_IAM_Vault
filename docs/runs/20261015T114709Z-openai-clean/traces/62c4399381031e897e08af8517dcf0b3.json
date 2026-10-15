@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-15T12:32:25Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "62c4399381031e897e08af8517dcf0b3",
+      "passed": true,
+      "span_count": 1,
+      "operations": [
+        "lumen.action"
+      ],
+      "raw_capture_checks": [],
+      "vault_requests": []
+    }
+  ]
+}

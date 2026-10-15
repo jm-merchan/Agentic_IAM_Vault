@@ -1,0 +1,53 @@
+{
+  "clientName": "vault-obo-sts",
+  "enabled": true,
+  "clientAuthentication": {
+    "clientAuthMethod": "client_secret_basic"
+  },
+  "tokenExchangeSettings": {
+    "subjectTokenTypes": [
+      "urn:ietf:params:oauth:token-type:access_token"
+    ],
+    "actorTokenTypes": [
+      "urn:ietf:params:oauth:token-type:access_token"
+    ],
+    "requestedTokenTypes": [
+      "urn:ietf:params:oauth:token-type:access_token"
+    ],
+    "actorTokenRequired": true
+  },
+  "tokenSettings": {
+    "signingAlg": "RS256",
+    "accessTokenLifetime": 600,
+    "accessTokenType": "jwt",
+    "introspectMap": [
+      {
+        "function": {
+          "custom": "{\"sub\":requestContext[\"actor_token\"].sub}"
+        },
+        "name": "actor-token"
+      }
+    ],
+    "restrictEntitlements": true,
+    "entitlements": [],
+    "restrictScopes": true,
+    "scopes": [
+      {
+        "name": "openid"
+      },
+      {
+        "name": "profile"
+      },
+      {
+        "name": "email"
+      }
+    ],
+    "restrictAuthDetailTypes": true,
+    "ignoreUnknownAuthDetailTypes": false,
+    "authDetailTypes": [
+      {
+        "type": "vault:path_access"
+      }
+    ]
+  }
+}

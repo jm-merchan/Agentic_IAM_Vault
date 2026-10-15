@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-10-15T12:41:17Z",
+  "tests": [
+    {
+      "test": "missing_rar_denied",
+      "passed": true
+    },
+    {
+      "test": "wrong_rar_denied",
+      "passed": true
+    },
+    {
+      "test": "allowed_before_block",
+      "passed": true
+    },
+    {
+      "test": "same_jwt_denied_after_block",
+      "passed": true
+    },
+    {
+      "test": "cache_authorization_denied",
+      "passed": true
+    },
+    {
+      "test": "fresh_jwt_denied_after_block",
+      "passed": true
+    },
+    {
+      "test": "issued_lease_revoked",
+      "passed": true
+    },
+    {
+      "test": "same_jwt_allowed_after_unblock",
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

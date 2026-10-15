@@ -1,0 +1,118 @@
+{
+  "templateId": "998",
+  "applicationState": true,
+  "signonState": true,
+  "visibleOnLaunchpad": false,
+  "providers": {
+    "saml": {
+      "properties": {
+        "companyName": "Lumen Lab"
+      },
+      "justInTimeProvisioning": "false"
+    },
+    "sso": {
+      "userOptions": "oidc"
+    },
+    "oidc": {
+      "applicationUrl": "http://localhost:8088",
+      "properties": {
+        "grantTypes": {
+          "authorizationCode": "true",
+          "implicit": "false",
+          "deviceFlow": "false",
+          "ropc": "false",
+          "jwtBearer": "false",
+          "policyAuth": "false",
+          "clientCredentials": "true",
+          "tokenExchange": "false",
+          "preAuthorizedCode": "false",
+          "ciba": "false"
+        },
+        "redirectUris": [
+          "http://localhost:8088/auth/callback"
+        ],
+        "idTokenSigningAlg": "RS256",
+        "accessTokenExpiry": 600,
+        "refreshTokenExpiry": 86400,
+        "doNotGenerateClientSecret": "false",
+        "generateRefreshToken": "false",
+        "sendAllKnownUserAttributes": "false",
+        "consentType": "dpcm",
+        "renewRefreshToken": "false",
+        "additionalConfig": {
+          "requestObjectMaxExpFromNbf": 1800,
+          "authorizeRspSigningAlg": "RS256",
+          "allowedClientAssertionVerificationKeys": [],
+          "requireConsentAttributeMapClaimNames": [],
+          "clientAuthMethod": "client_secret_basic",
+          "validateDPoPProofJti": false,
+          "subjectTokenTypes": [
+            "urn:ietf:params:oauth:token-type:access_token"
+          ],
+          "certificateBoundAccessTokens": false,
+          "skipDefaultMayActValidation": false,
+          "requestObjectSigningAlg": "RS256",
+          "requestedTokenTypes": [
+            "urn:ietf:params:oauth:token-type:access_token"
+          ],
+          "restrictAuthDetailTypes": true,
+          "actorTokenRequired": false,
+          "responseModes": [
+            "query"
+          ],
+          "requestObjectParametersOnly": false,
+          "responseTypes": [
+            "code"
+          ],
+          "logoutOption": "none",
+          "tctxMapping": "",
+          "ignoreUnknownAuthDetailTypes": true,
+          "exchangeForSSOSessionOption": "default",
+          "refreshAttributeMapClaimNames": [],
+          "refreshIntrospectMapClaimNames": [],
+          "suppressDefaultClaims": false,
+          "useUserDefaultEntitlements": false,
+          "dpopBoundAccessTokens": false,
+          "oidcv3": true,
+          "requestObjectRequireExp": true,
+          "authorizeRspEncryptionEnc": "none",
+          "dpopProofSigningAlg": "RS256",
+          "authorizeRspEncryptionAlg": "none",
+          "requirePushAuthorize": false,
+          "actorTokenTypes": [
+            "urn:ietf:params:oauth:token-type:access_token"
+          ],
+          "enrichClientCredentialsFlow": false
+        },
+        "idTokenEncryptAlg": "none",
+        "idTokenEncryptEnc": "none"
+      },
+      "restrictScopes": "true",
+      "scopes": [
+        {
+          "name": "profile"
+        },
+        {
+          "name": "email"
+        },
+        {
+          "name": "openid"
+        }
+      ],
+      "entitlements": [],
+      "restrictEntitlements": true,
+      "grantProperties": {
+        "generateDeviceFlowQRCode": "false"
+      },
+      "token": {
+        "accessTokenType": "jwt",
+        "attributeMappings": []
+      },
+      "consentAction": "always_prompt",
+      "requirePkceVerification": "true"
+    }
+  },
+  "identitySources": [],
+  "approvalRequired": false,
+  "provisioningMode": ""
+}

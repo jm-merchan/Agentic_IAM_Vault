@@ -1,0 +1,181 @@
+{
+  "checked_at": "2026-10-14T16:13:54Z",
+  "scope": "New Vault/MySQL/observability deployment followed by repeat start after fixing KMIP and stale forwards; no new human OIDC/OBO login in this check",
+  "deployment": {
+    "run": "20261014T161216Z",
+    "action": "start",
+    "dry_run": false,
+    "completed": true,
+    "steps": [
+      {
+        "name": "Prerrequisitos y .env",
+        "passed": true
+      },
+      {
+        "name": "Minikube, Vault, TLS, init/unseal y plugin",
+        "passed": true
+      },
+      {
+        "name": "MySQL Enterprise y KMIP",
+        "passed": true
+      },
+      {
+        "name": "Namespace verify y secretos de integración",
+        "passed": true
+      },
+      {
+        "name": "RAR y perfil OAuth de Vault",
+        "passed": true
+      },
+      {
+        "name": "Entorno Python",
+        "passed": true
+      },
+      {
+        "name": "Roles MySQL RO/RW y catálogo",
+        "passed": true
+      },
+      {
+        "name": "Clientes OIDC, Tavily y STS en Verify",
+        "passed": true
+      },
+      {
+        "name": "Tres usuarios y grupos",
+        "passed": true
+      },
+      {
+        "name": "Transit, tokenización y solicitudes",
+        "passed": true
+      },
+      {
+        "name": "Políticas, entidades y agentes registrados",
+        "passed": true
+      },
+      {
+        "name": "Asignaciones OIDC y grupos de Vault",
+        "passed": true
+      },
+      {
+        "name": "Motor dinámico xAI",
+        "passed": true
+      },
+      {
+        "name": "Identidad xAI y configuración del modelo",
+        "passed": true
+      },
+      {
+        "name": "Auditoría correlacionada de Vault",
+        "passed": true
+      },
+      {
+        "name": "Grafana, Loki, Tempo y Alloy",
+        "passed": true
+      },
+      {
+        "name": "Puertos locales y Lumen",
+        "passed": true
+      },
+      {
+        "name": "Persistencia del runtime y aislamiento de secretos",
+        "passed": true
+      },
+      {
+        "name": "Pruebas de aplicación",
+        "passed": true
+      },
+      {
+        "name": "MySQL, permisos del agente y búsqueda Tavily",
+        "passed": true
+      },
+      {
+        "name": "Estado final de servicios",
+        "passed": true
+      }
+    ]
+  },
+  "vault": {
+    "image": "josemerchan/vault-xai:2.1.2-ent",
+    "ready": 3,
+    "replicas": 3
+  },
+  "app": {
+    "status": "ok",
+    "service": "lumen"
+  },
+  "infrastructure": {
+    "checked_at": "2026-10-14T16:13:40.003272+00:00",
+    "scope": "MySQL privileges and autonomous research; OBO tested separately",
+    "tests": [
+      {
+        "test": "readonly_select",
+        "passed": true
+      },
+      {
+        "test": "readonly_insert_denied",
+        "passed": true
+      },
+      {
+        "test": "readwrite_select",
+        "passed": true
+      },
+      {
+        "test": "readwrite_insert_allowed",
+        "passed": true
+      },
+      {
+        "test": "registered_research_agent_tavily_read",
+        "passed": true
+      },
+      {
+        "test": "research_denied_database_creds_chatbot-readwrite",
+        "passed": true
+      },
+      {
+        "test": "research_denied_secrets_data_verify-admin",
+        "passed": true
+      },
+      {
+        "test": "research_denied_secrets_data_chatbot_oidc",
+        "passed": true
+      },
+      {
+        "test": "research_denied_secrets_data_xai",
+        "passed": true
+      },
+      {
+        "test": "database_agent_without_human_obo_denied",
+        "passed": true
+      },
+      {
+        "test": "bootstrap_denied_database_creds_chatbot-readwrite",
+        "passed": true
+      },
+      {
+        "test": "bootstrap_denied_secrets_data_tavily",
+        "passed": true
+      },
+      {
+        "test": "bootstrap_denied_secrets_data_verify-admin",
+        "passed": true
+      },
+      {
+        "test": "bootstrap_denied_secrets_data_chatbot_users_writer",
+        "passed": true
+      },
+      {
+        "test": "bootstrap_revoke_self",
+        "passed": true
+      },
+      {
+        "test": "tavily_live_search",
+        "passed": true
+      }
+    ],
+    "all_passed": true
+  },
+  "unit_tests": {
+    "passed": 74,
+    "subtests_passed": 2
+  },
+  "all_passed": true
+}

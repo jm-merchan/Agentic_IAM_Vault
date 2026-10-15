@@ -1,0 +1,89 @@
+{
+  "checked_at": "2026-10-15T13:05:42.320244+00:00",
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "trace_id": "02513e793a59cc054080fe4279c0754f",
+  "cases": [
+    {
+      "case": "weather",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "legacy_followup",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "blocked_followup",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "keyword_bypass",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "mixed_request",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "general_tech",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "energy",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "weather_energy_relation",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "catalog",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "demo",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "energy_followup",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "new_energy_after_rejection",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    }
+  ],
+  "svid_trace_checks": {
+    "svid_matches_vault_response": true,
+    "svid_matches_openai_subject": true,
+    "signature_verified": true,
+    "claims_match": true,
+    "complete": true,
+    "svid_absent_from_model_messages": true
+  },
+  "all_passed": true
+}

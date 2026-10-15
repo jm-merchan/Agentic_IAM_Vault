@@ -1,0 +1,11 @@
+{
+  "row_count": 1,
+  "checked_at": "2026-10-14 17:07:43.000000",
+  "ciphertext": true,
+  "application_id": "8cd2a9fd-190b-4864-afce-1bbc41b6f97f",
+  "table_encrypted": 1,
+  "kmip_plugin_active": 1,
+  "dni_token_is_opaque": true,
+  "iban_token_is_opaque": true,
+  "all_four_tables_encrypted": 1
+}

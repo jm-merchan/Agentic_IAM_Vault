@@ -1,0 +1,14 @@
+[
+  {
+    "name": "chatbot-oidc",
+    "entity_id": "f7af2663-f45f-dd48-ceb6-f5254a2b5d08",
+    "client_id": "bd1a33d4-0cac-4c12-8c5b-1c57f126033f",
+    "ceiling_policy": "chatbot-data-ceiling"
+  },
+  {
+    "name": "chatbot-research",
+    "entity_id": "e7b525a1-5629-6c84-c2d9-aa15ab92a8c5",
+    "client_id": "6b44c6ea-dbd1-4829-b7cc-9b402f8c4238",
+    "ceiling_policy": "chatbot-research"
+  }
+]

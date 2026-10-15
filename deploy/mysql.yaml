@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-kmip
+  namespace: vault
+spec:
+  selector:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    component: server
+    vault-active: "true"
+  ports:
+    - name: kmip
+      port: 5696
+      targetPort: 5696
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-enterprise
+  namespace: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql-enterprise
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-enterprise
+  namespace: mysql
+spec:
+  serviceName: mysql-enterprise
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-enterprise
+  template:
+    metadata:
+      labels:
+        app: mysql-enterprise
+    spec:
+      imagePullSecrets:
+        - name: oracle-registry
+      initContainers:
+        - name: prepare-keyring
+          image: "container-registry.oracle.com/mysql/enterprise-server:__MYSQL_TAG__"
+          imagePullPolicy: IfNotPresent
+          command: ["bash", "-ec"]
+          args:
+            - |
+              mkdir -p /mysql-keyring-okv/ssl
+              cp /kmip/okvclient.ora /mysql-keyring-okv/okvclient.ora
+              cp /kmip/CA.pem /mysql-keyring-okv/ssl/CA.pem
+              cp /kmip/cert.pem /mysql-keyring-okv/ssl/cert.pem
+              cp /kmip/key.pem /mysql-keyring-okv/ssl/key.pem
+              chown -R mysql:mysql /mysql-keyring-okv
+              chmod 755 /mysql-keyring-okv /mysql-keyring-okv/ssl
+              chmod 644 /mysql-keyring-okv/okvclient.ora /mysql-keyring-okv/ssl/CA.pem /mysql-keyring-okv/ssl/cert.pem
+              chmod 600 /mysql-keyring-okv/ssl/key.pem
+          volumeMounts:
+            - name: keyring-src
+              mountPath: /kmip
+              readOnly: true
+            - name: keyring
+              mountPath: /mysql-keyring-okv
+      containers:
+        - name: mysql
+          image: "container-registry.oracle.com/mysql/enterprise-server:__MYSQL_TAG__"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-root
+                  key: password
+          volumeMounts:
+            - name: config
+              mountPath: /etc/my.cnf
+              subPath: my.cnf
+              readOnly: true
+            - name: keyring
+              mountPath: /mysql-keyring-okv
+            - name: data
+              mountPath: /var/lib/mysql
+          readinessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 40
+      volumes:
+        - name: config
+          configMap:
+            name: mysql-tde-config
+        - name: keyring-src
+          secret:
+            secretName: mysql-keyring-okv
+        - name: keyring
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

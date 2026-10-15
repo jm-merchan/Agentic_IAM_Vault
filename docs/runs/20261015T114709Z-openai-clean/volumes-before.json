@@ -1,0 +1,52 @@
+[
+  {
+    "name": "pvc-0aaf3af6-d173-45d9-89bc-a00cf07f7a3f",
+    "namespace": "lumen-observability",
+    "uid": "9a2ab034-853b-432b-89f8-0d3ba25a57b0"
+  },
+  {
+    "name": "pvc-0ead1926-604b-49e5-8579-843f7ec04acd",
+    "namespace": "mysql",
+    "uid": "e1b33a2b-61af-488c-ad9c-21e33ed4ae70"
+  },
+  {
+    "name": "pvc-30321cfc-effe-453f-9066-438d774f8768",
+    "namespace": "vault",
+    "uid": "d39e3f09-3190-4c07-aabe-575324ce4234"
+  },
+  {
+    "name": "pvc-354156fa-0228-4c62-bce1-eee59a25c018",
+    "namespace": "lumen-observability",
+    "uid": "abf4600d-2986-4e76-8e8d-2e66ae19918d"
+  },
+  {
+    "name": "pvc-59a665d2-ebda-47d0-98db-8d08cce0ceab",
+    "namespace": "vault",
+    "uid": "c044fe8d-7817-4c04-89f0-8bbb23e4f404"
+  },
+  {
+    "name": "pvc-8fd67e06-00f9-4528-ba13-386b03267c8e",
+    "namespace": "vault",
+    "uid": "69a13107-5a2d-4a6f-8386-3709b8277e64"
+  },
+  {
+    "name": "pvc-953f908d-d83d-4a1a-a7ae-49c47fb0f7ae",
+    "namespace": "vault",
+    "uid": "69a6fc33-98a4-410f-91d2-df1dd320b40d"
+  },
+  {
+    "name": "pvc-a51bf1da-fc3c-4c88-bd93-bc51c8d77d69",
+    "namespace": "lumen-observability",
+    "uid": "3ae3db8e-dc83-4d79-a3f4-85d3d0dde8fb"
+  },
+  {
+    "name": "pvc-b9c1f4cc-a3f7-46fc-b272-d4c80bd0350c",
+    "namespace": "vault",
+    "uid": "7cf06720-b6d1-4c1a-be41-279083e86bec"
+  },
+  {
+    "name": "pvc-e59f31c8-3f13-4692-bc75-73bea6c214ae",
+    "namespace": "vault",
+    "uid": "bd4faad7-a2ff-46e0-8451-7ddcfcf6b1b8"
+  }
+]
