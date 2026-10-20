@@ -1,6 +1,6 @@
 # Lumen: recorrido por usuario y trazabilidad
 
-La última reconstrucción se realizó el **15 de octubre de 2026**. El [informe OpenAI end-to-end](../docs/E2E_OPENAI_VERIFICATION.md) contiene las capturas, resultados e IDs actuales. Los ejercicios del [14 de octubre](../docs/E2E_VERIFICATION.md) quedan como histórico; sus trazas desaparecieron con `remove`.
+Esta guía describe el visor interactivo, las capturas sensibles y **EN/ES** de la revisión del **20 de octubre de 2026**. El [historial de validación](../docs/manual/VALIDACION.md) distingue las pruebas de interfaz de las reinstalaciones. Los informes end-to-end del [15 de octubre](../docs/E2E_OPENAI_VERIFICATION.md) y del [14 de octubre](../docs/E2E_VERIFICATION.md) conservan evidencia histórica; sus IDs no acreditan el estado actual ni garantizan que la traza siga disponible.
 
 ## 1. Qué puede hacer cada usuario
 
@@ -35,7 +35,43 @@ Cada llamada tiene eventos `request` y `response` unidos por `request.id`. La ca
 
 En Lumen: **Ver última traza → Ver en Grafana**. El enlace incluye la ventana temporal de la ejecución; evita buscar una traza antigua con un rango «últimos cinco minutos». El árbol distingue `deepagents.run`, `model.credentials`, `xai.chat`, `tool.*`, `verify.obo_exchange`, `vault.read`/`vault.write`, `mysql.query` y `tavily.search`.
 
-Con OpenAI, la rama de credenciales añade `spiffe.mint_jwt_svid` y `openai.token_exchange`; la llamada al modelo aparece como `openai.chat`. La consulta del lector del 15/10, anterior al control de ámbito, tiene Trace ID `095ebb9e2bc0f1564f5e53cd328d31ed`, con 21 spans y auditoría correlacionada para SPIFFE y credenciales MySQL RO. [Configuración, capturas y enlaces de SPIFFE](../docs/OPENAI_SPIFFE.md).
+**Ver última traza** abre primero un diagrama interactivo: Lumen aparece como origen y cada servicio como destino. Seleccionar una flecha muestra la operación, ruta, tipo de credencial, respuesta prevista, estado observado y referencia del span. Se puede filtrar por servicio, avanzar llamada a llamada y mostrar u ocultar los retornos. La tabla completa y los contenidos capturados se conservan debajo.
+
+### Idioma del visor
+
+El visor usa la misma preferencia **EN / ES** que Lumen, con detección inicial del navegador. **View latest trace**, **View in Grafana**, **View sensitive values** y **HTTP Basic authentication** corresponden a **Ver última traza**, **Ver en Grafana**, **Ver valores sensibles** y **Autenticación HTTP Basic**. Los títulos, explicaciones, etiquetas accesibles, tiempos y paginación cambian de idioma. Los nombres técnicos de spans, rutas, cabeceras, JWT, `client_secret`, SVID, credenciales SQL y cuerpos de cifrado/descifrado mantienen sus valores originales.
+
+Cambiar el idioma recarga la página y cierra cualquier captura sensible abierta; para verla de nuevo hay que solicitarla dentro de la sesión propietaria vigente. Una pestaña que sigue abierta conserva sus etiquetas hasta recargarse; sus capturas se presentan en el idioma de esa página. El idioma no modifica la captura, la retención ni los permisos. Grafana tiene su propio ajuste de idioma. [Verificación bilingüe](docs/language-verification.json) · [Procedimiento](../docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+
+### Valores de cada llamada
+
+En **modo laboratorio**, selecciona una flecha y pulsa **Ver valores sensibles**. El panel permite consultar y copiar los valores registrados en esa llamada:
+
+- Verify: `client_id`, `client_secret` en claro, cabecera `Authorization: Basic …` completa, petición OAuth, token del agente, `subject_token`, `actor_token` y token OBO devuelto. La sección **Autenticación HTTP Basic** aparece en el login OIDC, Client Credentials y el intercambio STS.
+- Vault y federación: JWT presentado a Vault, JWT-SVID emitido y enviado a OpenAI/Claude, y token temporal devuelto por el proveedor.
+- MySQL: usuario y contraseña dinámicos, lease, consulta parametrizada y resultado.
+- Transit y Transform: cuerpo de entrada y salida, texto en claro, ciphertext, valor original y tokenización. El `plaintext` Base64 de Transit también se presenta decodificado como UTF-8.
+- Modelo y Tavily: credencial concreta entregada al cliente en esa invocación. En el modelo es evidencia del SDK, no una captura de cada intento HTTP.
+
+Los JWT se pueden leer decodificados; esa decodificación no verifica su firma. Cada valor pertenece al Trace ID y Span ID seleccionados: no se completan huecos con credenciales de otra llamada. Una respuesta denegada conserva el error recibido, sin inventar un secreto.
+
+El interruptor existente `LUMEN_TRACE_VAULT_RAW=1` habilita el visor. Los valores nuevos de OAuth, HTTP Basic, MySQL y cliente de modelo se conservan solo en memoria durante diez minutos, con límites de tamaño y capacidad; no se añaden al exportador de trazas ni a los resultados de herramientas. Los intercambios raw de Vault/SPIFFE ya capturados mantienen su retención existente en las trazas. La API exige una sesión vigente propietaria de la traza y responde con `Cache-Control: no-store`. Los valores se solicitan al abrir el visor y se ocultan al cambiar de paso, de pestaña o al caducar la sesión/captura; una copia manual permanece en el portapapeles.
+
+Genera una ejecución nueva después de actualizar o reiniciar Lumen. Las trazas anteriores no adquieren retroactivamente valores que no capturaron. Con el modo desactivado, el endpoint no entrega valores sensibles.
+
+[Verificación del visor sensible](docs/trace-sensitive-verification.json): llamadas reales de Verify, Vault, MySQL, OpenAI, Claude y xAI; cifrado, descifrado, destokenización y denegaciones. El informe conserva identificadores y comparaciones, sin credenciales.
+
+[Ampliación de HTTP Basic](docs/trace-basic-auth-verification.json): `client_secret` visible y cabecera completa comprobada contra las credenciales mostradas y las peticiones enviadas por HTTPX.
+
+![Visor del texto ficticio descifrado por Transit](docs/screenshots/trace-sensitive-values.png)
+
+Las operaciones locales y los spans contenedores se muestran aparte. `verify.token_exchange` mide la petición STS después de obtener el token del agente; `verify.obo_exchange` contiene ambos pasos y la validación local. En trazas anteriores, el diagrama sitúa OBO después de Client Credentials y señala que su duración es inclusiva. `vault.jwks` registra la lectura de claves públicas para validar el JWT-SVID. Las duraciones anidadas no se suman; `UNSET` no equivale a una autorización verificada. El retorno indica que el cliente registró una respuesta; su descripción explica el tipo de datos previsto, sin copiar credenciales al diagrama. Una llamada de modelo representa una invocación lógica del SDK, no cada intento HTTP.
+
+La llamada al modelo dentro de `guardrail.energy_scope` se identifica como **Clasificar la pregunta**, separada de las llamadas del agente. [Verificación del diagrama del 20/10/2026](docs/trace-flow-verification.json): consulta real a solicitudes, conversación con Claude, controles interactivos y acceso sin sesión bloqueado.
+
+![Flujo interactivo: Verify, Vault y MySQL](docs/screenshots/trace-flow.png)
+
+Con OpenAI, la rama de credenciales añade `spiffe.mint_jwt_svid` y `openai.token_exchange`; con Claude añade `spiffe.mint_jwt_svid` y `anthropic.token_exchange`. Las llamadas al modelo aparecen como `openai.chat` o `anthropic.chat`. La consulta del lector del 15/10, anterior al control de ámbito, tiene Trace ID `095ebb9e2bc0f1564f5e53cd328d31ed`, con 21 spans y auditoría correlacionada para SPIFFE y credenciales MySQL RO. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
 
 El login OIDC se registra aparte. Las operaciones directas del formulario o los botones de catálogo/Tavily no necesitan pasar por el LLM. Las trazas muestran llamadas del cliente; no instrumentan los procesos internos de Verify, Vault, MySQL, xAI, OpenAI o Tavily. El audit log de Vault aporta evidencia independiente de la autorización. No se captura razonamiento privado del modelo.
 
@@ -107,6 +143,7 @@ El modo raw solicitado para el laboratorio conserva en cada `vault.read` y `vaul
 | `spiffe.jwt_svid` | JWT-SVID completo emitido por Vault |
 | `spiffe.jwt_svid.decoded` | Cabecera/claims SPIFFE y validación local de firma |
 | `openai.exchange.subject_token` | JWT-SVID enviado al intercambio de OpenAI |
+| `anthropic.exchange.assertion` | JWT-SVID enviado al intercambio RFC 7523 de Claude |
 
 El decodificador visual no verifica la firma; la validación ocurre en el cliente OBO y en Vault. En un audit event autenticado, `auth.client_token` conserva el JWT; `request.client_token` puede ser el identificador derivado de Vault. Un rechazo antes de autenticar, por ejemplo por `nbf`, no tiene la misma estructura: no debe confundirse con una denegación de política.
 
@@ -117,7 +154,7 @@ En modo raw se configuran **seis dispositivos de auditoría**:
 - `lumen-protection-raw`: seis rutas exactas de Transit/Transform de solicitudes.
 - `lumen-xai-raw`: `verify/xai/creds/lumen`.
 - `lumen-xai-access-raw`: autorización de la clave xAI en caché, `verify/secrets/data/chatbot/xai-access`.
-- `lumen-spiffe-raw`: emisión del JWT-SVID, `verify/spiffe/role/lumen-openai/mintjwt`.
+- `lumen-spiffe-raw`: emisión del JWT-SVID en los roles `lumen-openai` y `lumen-anthropic`.
 
 Los filtros seleccionan rutas y namespace, no identidades. Alloy añade `audit_mode`, sin convertir tokens en etiquetas. Los eventos raw y spans contienen valores en claro por diseño; los informes públicos de verificación solo guardan metadatos, tamaños y booleanos.
 

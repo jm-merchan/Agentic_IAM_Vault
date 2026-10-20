@@ -1,0 +1,16 @@
+{
+  "namespaces": [
+    {
+      "name": "vault",
+      "uid": "fc3113ac-eb54-4fab-8dd4-f51c334a1710"
+    },
+    {
+      "name": "mysql",
+      "uid": "7e34039a-1619-45a0-afaa-e725826a58a5"
+    },
+    {
+      "name": "lumen-observability",
+      "uid": "b2b2f609-7be9-4d77-968c-d5b7672e87a9"
+    }
+  ]
+}

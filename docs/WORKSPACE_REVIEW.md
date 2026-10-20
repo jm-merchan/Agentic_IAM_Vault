@@ -50,11 +50,11 @@ La eliminación real se ejecutó dos veces: tres namespaces Kubernetes, diez PV 
 
 ## Validación y límites
 
-La evidencia original se concentra en el [informe del 14/10](E2E_VERIFICATION.md); la vigente está en el [informe OpenAI del 15/10](E2E_OPENAI_VERIFICATION.md). Describe los dos ciclos, las incidencias corregidas, el arranque posterior de reconciliación, los logins reales y sus resultados. No equivale a certificar un futuro estado: un nuevo `remove` elimina los datos y las trazas de esta ejecución.
+La evidencia original se concentra en el [informe del 14/10](E2E_VERIFICATION.md); la del ciclo siguiente está en el [informe OpenAI del 15/10](E2E_OPENAI_VERIFICATION.md). Las comprobaciones posteriores, incluido EN/ES del 20/10, se enlazan en [VALIDACION](manual/VALIDACION.md). Describe los dos ciclos, las incidencias corregidas, el arranque posterior de reconciliación, los logins reales y sus resultados. No equivale a certificar un futuro estado: un nuevo `remove` elimina los datos y las trazas de esta ejecución.
 
 ## Evidencia del recorrido completo
 
-Consultar [resultados y capturas históricos del 14/10](E2E_VERIFICATION.md) y el [directorio inmutable de ejecución](runs/20261014T162141Z/manifest.json). Los archivos anteriores bajo `chatbot/docs/screenshots` y los JSON con fechas previas son históricos; las guías activas enlazan la reconstrucción actual.
+Consultar [resultados y capturas históricos del 14/10](E2E_VERIFICATION.md) y el [directorio inmutable de ejecución](runs/20261014T162141Z/manifest.json). Cada captura e informe bajo `chatbot/docs/` acredita la ejecución fechada que lo generó. Las guías activas distinguen esas evidencias de los procedimientos para comprobar el estado actual.
 
 ## Fuentes de contraste
 

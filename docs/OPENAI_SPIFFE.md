@@ -1,6 +1,6 @@
 # OpenAI mediante SPIFFE JWT-SVID emitido por Vault
 
-Lumen puede arrancar con **xAI + Secret Engine** o **OpenAI + SPIFFE JWT-SVID**. El banner muestra el proveedor, el modelo y la integración activa. El login humano y las operaciones MySQL/Transit/Transform siguen usando Verify OIDC y OBO.
+Lumen permite elegir **OpenAI**, **xAI** o **Claude** en el banner y muestra el modelo seleccionado. OpenAI y Claude usan SPIFFE JWT-SVID; xAI usa su Secret Engine dinámico. El cambio se aplica a la siguiente consulta, sin reiniciar ni repetir el login. **EN / ES** selecciona independientemente el idioma de la interfaz y las respuestas. [Comprobación bilingüe](manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües). El login humano y las operaciones MySQL/Transit/Transform siguen usando Verify OIDC y OBO.
 
 ## Estado de validación — 15 de octubre de 2026
 
@@ -21,7 +21,7 @@ Completa los prerrequisitos comunes del [README](../README.md). Para OpenAI aña
 ```bash
 OPENAI_ADMIN_API_KEY='...'
 LUMEN_MODEL_PROVIDER=auto
-LUMEN_OPENAI_MODEL=gpt-4.1-mini
+LUMEN_OPENAI_MODEL=gpt-4.1-nano
 NGROK_DOMAIN=nondemanding-indistinguishably-claude.ngrok-free.dev
 NGROK_AUTHTOKEN='' # Opcional si ngrok ya está autenticado localmente
 SPIFFE_TRUST_DOMAIN=lumen.demo
@@ -125,13 +125,15 @@ El directorio público se mantiene separado de `.env`, las credenciales y los lo
 
 En **Ver última traza → Ver en Grafana** aparecen `verify.client_credentials`, `spiffe.mint_jwt_svid`, `vault.write`, `openai.token_exchange` y los spans del modelo/herramientas. Se registran el SPIFFE ID, issuer, audiencia, `kid`, `jti`, caducidad, IDs del mapping y estados HTTP. El modo raw de laboratorio captura el JWT-SVID en la respuesta de Vault y, desde la ampliación del 15/10, en `spiffe.jwt_svid` del span de emisión. `spiffe.jwt_svid.decoded` incluye los claims y su validación, y `openai.exchange.subject_token` identifica el token enviado a OpenAI. [Campos y control de ámbito](ENERGY_SCOPE_AND_SVID.md). La Admin key no forma parte del runtime ni de esas trazas.
 
-La ejecución con el control de ámbito y los campos JWT-SVID explícitos tiene Trace ID `a5a1c2a61667d24b87c40646847ef89b`, **17 spans**, decisión permitida y consulta real del catálogo mediante OBO. [Abrir esta traza actual en Grafana](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22a5a1c2a61667d24b87c40646847ef89b%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792069640942%22%2C%22to%22%3A%221792069772181%22%7D%7D%7D). [Pruebas y capturas del rechazo de meteorología](ENERGY_SCOPE_AND_SVID.md).
+La ejecución histórica del 15/10 con el control de ámbito y los campos JWT-SVID explícitos tiene Trace ID `a5a1c2a61667d24b87c40646847ef89b`, **17 spans**, decisión permitida y consulta real del catálogo mediante OBO. [Enlace histórico de Grafana](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22a5a1c2a61667d24b87c40646847ef89b%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792069640942%22%2C%22to%22%3A%221792069772181%22%7D%7D%7D). [Pruebas y capturas del rechazo de meteorología](ENERGY_SCOPE_AND_SVID.md).
 
 La consulta anterior al control de ámbito, de catálogo e inventario del lector, tiene Trace ID `095ebb9e2bc0f1564f5e53cd328d31ed`: **21 spans**, tres llamadas a Vault y sus seis eventos de auditoría. [Abrir en Grafana](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22095ebb9e2bc0f1564f5e53cd328d31ed%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792066846985%22%2C%22to%22%3A%221792066975691%22%7D%7D%7D). El visor local requiere la sesión que originó la traza; tras cambiar usuario o reiniciar, usar Grafana.
 
 ![SPIFFE, token exchange, modelo y dos herramientas SQL](runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
 
 Se detectó pérdida de cuatro copias raw al intercalar stdout/stderr con Alloy 1.20.1. La actualización de laboratorio a **1.21.0-rc.0** incorpora [la corrección oficial](https://github.com/grafana/alloy/pull/7080); al releer los logs originales se recuperaron los eventos y pasaron las comparaciones completas. También pasó una prueba nueva posterior. [Diagnóstico y verificación](E2E_OPENAI_VERIFICATION.md). Es una versión candidata fijada para esta demo.
+
+Las trazas anteriores pertenecen al despliegue del 15/10, ya retirado. Las [trazas del ciclo manual del 16/10](runs/20261016T064722Z-manual-script/TRAZAS.md) también son evidencia fechada. Para comprobar la instalación activa, genera una ejecución nueva; el [historial de validación](manual/VALIDACION.md) enlaza las comprobaciones posteriores de interfaz, proveedores e idiomas.
 
 ## Referencias
 

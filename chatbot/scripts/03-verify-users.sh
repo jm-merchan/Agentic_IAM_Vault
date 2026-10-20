@@ -4,6 +4,12 @@ source "$(dirname "$0")/../../verify/scripts/common.sh"
 CHATBOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 admin_login
 scim() { api "$@" --header 'Accept: application/scim+json' --header 'Content-Type: application/scim+json'; }
+# Validate every intended credential before any user/password/group write.
+for role in reader writer supervisor; do
+  kv_read "chatbot/users/$role" > "$TMP_WORK/credential-$role.json"
+  jq -e --arg username "lumen-$role" '.username==$username and (.password|type=="string" and length>0)' "$TMP_WORK/credential-$role.json" >/dev/null ||
+    fail "Credencial inválida para lumen-$role; revisa el paso credenciales."
+done
 printf '[]' > "$TMP_WORK/users-public.json"
 for role in reader writer supervisor; do
   created_user=false
@@ -11,10 +17,6 @@ for role in reader writer supervisor; do
   scim GET /v2.0/Users "$TMP_WORK/users.json" --get --data-urlencode "filter=userName eq \"$username\""
   uid=$(jq -r '.Resources|if length>1 then error("Duplicate user") else .[0].id//empty end' "$TMP_WORK/users.json")
   if [ -z "$uid" ]; then
-    if ! vault kv metadata get -mount=secrets "chatbot/users/$role" >/dev/null 2>&1; then
-      { printf 'Lu!7'; openssl rand -hex 18; } > "$TMP_WORK/password"
-      jq -n --arg username "$username" --rawfile password "$TMP_WORK/password" '{username:$username,password:($password|rtrimstr("\n")),provider:"Cloud Directory"}' | kv_write "chatbot/users/$role"
-    fi
     kv_read "chatbot/users/$role" > "$TMP_WORK/credential.json"
     # Use a disposable initial password; the activation PATCH installs the
     # intended credential from Vault/.env without triggering password reuse.
@@ -27,6 +29,14 @@ for role in reader writer supervisor; do
     jq --arg id "$uid" '.+{user_id:$id}' "$TMP_WORK/credential.json" | kv_write "chatbot/users/$role"
   fi
   scim GET "/v2.0/Users/$uid" "$TMP_WORK/user.json"
+  jq -e --arg username "$username" --arg id "$uid" '.userName==$username and .id==$id and .active==true' "$TMP_WORK/user.json" >/dev/null ||
+    fail "La respuesta SCIM no coincide con el usuario activo $username."
+  # A previous POST may have succeeded before the local user_id was saved.
+  kv_read "chatbot/users/$role" > "$TMP_WORK/credential.json"
+  if ! jq -e --arg id "$uid" '.user_id==$id' "$TMP_WORK/credential.json" >/dev/null; then
+    jq --arg id "$uid" '.+{user_id:$id}' "$TMP_WORK/credential.json" > "$TMP_WORK/credential-with-id.json"
+    kv_write "chatbot/users/$role" < "$TMP_WORK/credential-with-id.json"
+  fi
   if [ "$created_user" = true ] || jq -e '.["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"].pwdReset==true' "$TMP_WORK/user.json" >/dev/null; then
     # IBM uses this header on password updates; pwdReset in a PUT is ignored.
     kv_read "chatbot/users/$role" > "$TMP_WORK/credential.json"

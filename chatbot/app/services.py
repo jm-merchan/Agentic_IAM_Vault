@@ -12,11 +12,14 @@ import httpx
 import jwt
 import pymysql
 
+from .i18n import Translator
 from .security import AccessDenied, Identity, ISSUER, Session, role_for_groups
+from .model_config import model_config
 from .telemetry import headers, operation, span, trace_id
 from .trace_content import VaultTraceRecorder
+from . import lab_capture
 from .applications import ApplicationServices
-from .spiffe import SpiffeModelServices, OPENAI_RAR
+from .spiffe import SpiffeModelServices, OPENAI_RAR, ANTHROPIC_RAR
 from opentelemetry import trace
 
 
@@ -67,14 +70,17 @@ class Services(ApplicationServices, SpiffeModelServices):
         current.set_attribute('auth.flow', 'client_credentials')
         cred = self.config[credential_name]
         data = {'grant_type': 'client_credentials', 'scope': 'openid profile email'}
-        expected_rar = {'xai': XAI_RAR, 'openai': OPENAI_RAR}.get(credential_name)
+        expected_rar = {'xai': XAI_RAR, 'openai': OPENAI_RAR, 'anthropic': ANTHROPIC_RAR}.get(credential_name)
         if expected_rar is not None:
             data['authorization_details'] = json.dumps(expected_rar)
             current.set_attribute('auth.rar.required', True)
+        lab_capture.request(current, 'POST', ISSUER + '/token', data,
+                            basic_auth=(cred['client_id'], cred['client_secret']))
         async with httpx.AsyncClient(timeout=30) as client:
             response = await client.post(ISSUER + '/token', auth=(cred['client_id'], cred['client_secret']),
                                          data=data)
         current.set_attribute('http.response.status_code', response.status_code)
+        lab_capture.response(current, response)
         if response.status_code != 200:
             raise AccessDenied('No se ha podido autenticar al agente en Verify.')
         token = response.json()['access_token']
@@ -93,14 +99,20 @@ class Services(ApplicationServices, SpiffeModelServices):
         actor = await self.client_token('oidc')
         cred = self.config['sts']
         async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.post(ISSUER + '/token', auth=(cred['client_id'], cred['client_secret']), data={
-                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
-                'subject_token': session.access_token, 'subject_token_type': 'urn:ietf:params:oauth:token-type:access_token',
-                'actor_token': actor, 'actor_token_type': 'urn:ietf:params:oauth:token-type:access_token',
-                'requested_token_type': 'urn:ietf:params:oauth:token-type:access_token',
-                'authorization_details': json.dumps([{'type': 'vault:path_access', 'path': path,
-                                                     'capabilities': capabilities or ['read']}]),
-            })
+            with span('verify.token_exchange', **{'vault.path': path, 'auth.flow': 'obo'}) as exchange_span:
+                data = {
+                    'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                    'subject_token': session.access_token, 'subject_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+                    'actor_token': actor, 'actor_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+                    'requested_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+                    'authorization_details': json.dumps([{'type': 'vault:path_access', 'path': path,
+                                                         'capabilities': capabilities or ['read']}]),
+                }
+                lab_capture.request(exchange_span, 'POST', ISSUER + '/token', data,
+                                    basic_auth=(cred['client_id'], cred['client_secret']))
+                response = await client.post(ISSUER + '/token', auth=(cred['client_id'], cred['client_secret']), data=data)
+                exchange_span.set_attribute('http.response.status_code', response.status_code)
+                lab_capture.response(exchange_span, response)
         current.set_attribute('http.response.status_code', response.status_code)
         if response.status_code != 200:
             raise AccessDenied('Verify ha rechazado la delegación OBO. Vuelve a iniciar sesión.')
@@ -171,9 +183,11 @@ class Services(ApplicationServices, SpiffeModelServices):
     async def model_credentials(self, session: Session) -> tuple[dict, float | None]:
         """Reuse a dynamic key only while it covers the next run and expiry margin."""
         session.require_login()
-        config = dict(self.config['model'])
+        config = model_config(self.config, session.model_provider)
         if config.get('provider') == 'openai':
             return await self.openai_credentials(session)
+        if config.get('provider') == 'anthropic':
+            return await self.anthropic_credentials(session)
         if config.get('provider') != 'xai':
             return config, None
         if config.get('credential_source') != 'vault_dynamic':
@@ -266,15 +280,28 @@ class Services(ApplicationServices, SpiffeModelServices):
         try:
             with span('mysql.query', **{'db.system.name': 'mysql', 'db.namespace': 'scripting',
                                        'db.operation.name': 'INSERT' if write else 'SELECT',
-                                       'db.role': credential_role}):
+                                       'db.role': credential_role}) as current:
+                lab_capture.capture(current, 'connection', 'Credencial dinámica utilizada en MySQL', {
+                    'host': '127.0.0.1', 'port': 13306, 'database': 'scripting',
+                    'username': credential['data']['username'], 'password': credential['data']['password'],
+                    'lease_id': credential.get('lease_id'), 'lease_duration': credential.get('lease_duration'),
+                    'renewable': credential.get('renewable'),
+                })
+                lab_capture.capture(current, 'query', 'Consulta y parámetros enviados', {
+                    'statement': statement, 'parameters': params,
+                })
                 data = await asyncio.to_thread(execute)
+                lab_capture.capture(current, 'result', 'Resultado de MySQL', data)
         except pymysql.MySQLError:
             raise AccessDenied('MySQL no ha permitido completar la operación.') from None
         self.event(session, 'Datos ' + ('actualizados' if write else 'consultados'), 'MySQL · sesión cerrada al terminar')
         return data
 
     async def plans(self, session: Session):
-        return await self.database(session, 'SELECT id,name,description,price_kwh,renewable FROM energy_plans ORDER BY id')
+        session.catalogue_evidence = None
+        plans = await self.database(session, 'SELECT id,name,description,price_kwh,renewable FROM energy_plans ORDER BY id')
+        session.catalogue_evidence = {'checked_at': time.time(), 'trace_id': trace_id(), 'plans': plans}
+        return plans
 
     async def requests(self, session: Session):
         return await self.database(session, 'SELECT id,plan_id,note,status,created_at FROM service_requests WHERE subject_id=%s ORDER BY id DESC LIMIT 20', (session.subject,))
@@ -288,6 +315,8 @@ class Services(ApplicationServices, SpiffeModelServices):
         if plan_id not in {1, 2, 3} or not 1 <= len(note.strip()) <= 500:
             raise AccessDenied('Selecciona un plan válido y una nota de hasta 500 caracteres.')
         session.pending = {'plan_id': plan_id, 'note': note.strip(), 'created_at': time.time()}
+        if session.application_draft is not None:
+            session.application_draft['form'].update(plan_id=plan_id, note=note.strip())
         return {'status': 'awaiting_user_confirmation', 'plan_id': plan_id,
                 'note': note.strip(), 'message': 'Pulsa Continuar solicitud para completar los cinco pasos y revisar antes de guardar. No se contrata ningún suministro.'}
 
@@ -313,12 +342,16 @@ class Services(ApplicationServices, SpiffeModelServices):
         api_key = secret['data']['data']['TAVILY_API_KEY']
         self.event(session, 'Agente de investigación', 'Client Credentials → Agent Registry → secreto Tavily')
         with span('tavily.search', **{'search.topic': topic, 'server.address': 'api.tavily.com'}) as current:
+            payload = {'query': query, 'max_results': 4, 'search_depth': 'basic',
+                       'include_raw_content': False, 'include_answer': False}
+            lab_capture.request(current, 'POST', 'https://api.tavily.com/search', payload,
+                                headers={'Authorization': 'Bearer ' + api_key})
             async with httpx.AsyncClient(timeout=45) as client:
                 response = await client.post('https://api.tavily.com/search',
                                              headers={'Authorization': 'Bearer ' + api_key},
-                                             json={'query': query, 'max_results': 4, 'search_depth': 'basic',
-                                                   'include_raw_content': False, 'include_answer': False})
+                                             json=payload)
             current.set_attribute('http.response.status_code', response.status_code)
+            lab_capture.response(current, response)
         if response.status_code != 200:
             raise AccessDenied('La búsqueda web no está disponible en este momento.')
         self.event(session, 'Búsqueda web', 'Resultados públicos · credencial utilizada solo en el servidor')
@@ -326,8 +359,9 @@ class Services(ApplicationServices, SpiffeModelServices):
                 for r in response.json().get('results', [])]
 
     @operation('permissions.probe')
-    async def permission_probe(self, session: Session):
+    async def permission_probe(self, session: Session, language=None):
         """Exercise exact OBO routes with synthetic data; never return credentials."""
+        t = Translator(language or getattr(session, 'language', 'es'))
         role = self.role(session)
         reveal = self.can_reveal(session)
         fixture = self.config['runtime'].get('permission_probe', {})
@@ -392,16 +426,16 @@ class Services(ApplicationServices, SpiffeModelServices):
         self.event(session, 'Comprobación de límites',
                    f'{matches}/{len(checks)} resultados esperados · SQL, Transit y Transform · consulta la traza',
                    status='ok' if matches == len(checks) else 'error')
-        lines = ['**Comprobación de permisos en Vault**', '',
-                 f'{matches} de {len(checks)} comprobaciones coinciden con los permisos esperados de tu perfil.']
+        lines = ['**' + t('Comprobación de permisos en Vault') + '**', '',
+                 t('{matches} de {count} comprobaciones coinciden con los permisos esperados de tu perfil.', matches=matches, count=len(checks))]
         section = None
         for group, path, allowed, expected in checks:
             if group != section:
                 section = group
-                lines.extend(['', f'**{section}**', '',
-                              '| Ruta de Vault | Resultado | Esperado |', '|---|---|---|'])
-            lines.append(f'| `{path}` | {"Permitido" if allowed else "Denegado"} | {"Permitido" if expected else "Denegado"} |')
-        lines.extend(['', 'Peticiones OBO reales con datos ficticios. El chat no muestra credenciales ni valores recuperados. '
+                lines.extend(['', f'**{t(section)}**', '',
+                              '| ' + t('Ruta de Vault') + ' | ' + t('Resultado') + ' | ' + t('Esperado') + ' |', '|---|---|---|'])
+            lines.append(f'| `{path}` | {t("Permitido" if allowed else "Denegado")} | {t("Permitido" if expected else "Denegado")} |')
+        lines.extend(['', t('Peticiones OBO reales con datos ficticios. El chat no muestra credenciales ni valores recuperados. '
                       'Las credenciales SQL caducan según su lease; Transform registra tokens de prueba cuando se permite tokenizar. '
-                      'No se modifican solicitudes ni filas de MySQL.'])
+                      'No se modifican solicitudes ni filas de MySQL.')])
         return '\n'.join(lines)

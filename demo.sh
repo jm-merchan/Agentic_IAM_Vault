@@ -8,7 +8,7 @@ case "$action" in
   check|status|stop) [ "$#" -eq 0 ] || fail 'Argumentos inesperados'; exec bash "$DEMO_ROOT/scripts/demo/$action.sh" ;;
   start|verify|prepare-openai)
     if [ "$#" -ne 0 ]; then
-      [ "$#" -eq 2 ] && [ "$1" = --provider ] || fail 'Uso: ./demo.sh start|verify [--provider auto|xai|openai]'
+      [ "$#" -eq 2 ] && [ "$1" = --provider ] || fail 'Uso: ./demo.sh start|verify [--provider auto|xai|openai|anthropic]'
       export LUMEN_PROVIDER_OVERRIDE=$2
       shift 2
     fi
@@ -17,7 +17,7 @@ case "$action" in
     case "$1" in xai|database-read|database-write|decrypt) ;; *) fail 'Recurso de bloqueo inválido';; esac ;;
   blocks) [ "$#" -eq 0 ] || fail 'Uso: ./demo.sh blocks'; exec bash "$DEMO_ROOT/scripts/demo/block.sh" blocks ;;
   remove) [ "$#" -eq 0 ] || { [ "$#" -eq 1 ] && [ "$1" = --dry-run ]; } || fail 'Uso: ./demo.sh remove [--dry-run]';;
-  -h|--help) printf 'Uso: ./demo.sh start|verify [--provider auto|xai|openai]\n     ./demo.sh prepare-openai\n     ./demo.sh check|status|stop|remove [--dry-run]|blocks\n     ./demo.sh block|unblock xai|database-read|database-write|decrypt\nremove elimina datos y recursos locales/Verify; start los recrea desde .env.\n'; exit 0;;
+  -h|--help) printf 'Uso: ./demo.sh start|verify [--provider auto|xai|openai|anthropic]\n     ./demo.sh prepare-openai\n     ./demo.sh check|status|stop|remove [--dry-run]|blocks\n     ./demo.sh block|unblock xai|database-read|database-write|decrypt\nremove elimina datos y recursos locales/Verify; start los recrea desde .env.\n'; exit 0;;
   *) printf 'Uso: ./demo.sh [start|up|check|status|verify|stop|remove [--dry-run]|blocks]\n     ./demo.sh block|unblock xai|database-read|database-write|decrypt\n'; exit 2 ;;
 esac
 load_inputs
@@ -103,21 +103,21 @@ if [ "$action" = start ]; then
   step 'Transit, tokenización y solicitudes' bash "$DEMO_ROOT/chatbot/scripts/06-data-protection.sh"
   step 'Políticas, entidades y agentes registrados' bash "$DEMO_ROOT/chatbot/scripts/04-vault-agents.sh"
   step 'Asignaciones OIDC y grupos de Vault' bash "$DEMO_ROOT/chatbot/scripts/05-sync-groups.sh"
-  if [ "$LUMEN_SELECTED_PROVIDER" = xai ]; then
-    step 'Motor dinámico xAI' bash "$DEMO_ROOT/scripts/demo/xai.sh"
-    step 'Identidad xAI y configuración del modelo' bash "$DEMO_ROOT/chatbot/scripts/configure-xai.sh"
-    unload_managed ngrok
-    unload_managed jwks-publisher
-  else
-    step 'Vault SPIFFE JWT-SVID' bash "$DEMO_ROOT/scripts/demo/spiffe.sh"
-    step 'Discovery y JWKS públicos mediante ngrok' bash "$DEMO_ROOT/scripts/demo/ngrok.sh"
-    step 'Proyecto y cuenta de servicio OpenAI' bash "$DEMO_ROOT/scripts/demo/openai-admin.sh"
-    load_inputs
-    step 'Identidad OpenAI y configuración del modelo' bash "$DEMO_ROOT/chatbot/scripts/configure-openai.sh"
-  fi
+  step 'Motor dinámico xAI' bash "$DEMO_ROOT/scripts/demo/xai.sh"
+  step 'Identidad xAI' bash "$DEMO_ROOT/chatbot/scripts/configure-xai.sh"
+  step 'Vault SPIFFE JWT-SVID para OpenAI' env LUMEN_SELECTED_PROVIDER=openai bash "$DEMO_ROOT/scripts/demo/spiffe.sh"
+  step 'Vault SPIFFE JWT-SVID para Claude' env LUMEN_SELECTED_PROVIDER=anthropic bash "$DEMO_ROOT/scripts/demo/spiffe.sh"
+  step 'Discovery y JWKS públicos mediante ngrok' bash "$DEMO_ROOT/scripts/demo/ngrok.sh"
+  step 'Sincronizar claves públicas del emisor Claude' bash "$DEMO_ROOT/scripts/demo/claude-issuer.sh"
+  step 'Proyecto y cuenta de servicio OpenAI' bash "$DEMO_ROOT/scripts/demo/openai-admin.sh"
+  load_inputs
+  step 'Identidad OpenAI' bash "$DEMO_ROOT/chatbot/scripts/configure-openai.sh"
+  step 'Identidad Claude' bash "$DEMO_ROOT/chatbot/scripts/configure-anthropic.sh"
+  step 'Catálogo de proveedores para el selector' bash "$DEMO_ROOT/chatbot/scripts/configure-models.sh"
   step 'Auditoría correlacionada de Vault' bash "$DEMO_ROOT/chatbot/scripts/enable-audit.sh"
   step 'Grafana, Loki, Tempo y Alloy' bash "$DEMO_ROOT/chatbot/scripts/deploy-observability.sh"
   step 'Puertos locales y Lumen' bash "$DEMO_ROOT/scripts/demo/start.sh"
+  step 'Claude: federación SPIFFE e inferencia real' bash "$DEMO_ROOT/chatbot/scripts/verify-anthropic.sh"
 fi
 step 'Persistencia del runtime y aislamiento de secretos' bash "$DEMO_ROOT/scripts/demo/verify-runtime.sh"
 step 'Pruebas de aplicación' bash -c 'cd "$DEMO_ROOT/chatbot"; /tmp/vault-chatbot-venv/bin/python -m pytest -q tests'
@@ -127,8 +127,10 @@ if [ "$action" = verify ]; then
   select_model_provider
   if [ "$LUMEN_SELECTED_PROVIDER" = xai ]; then
     step 'xAI: inferencia, denegaciones y caducidad real' bash "$DEMO_ROOT/chatbot/scripts/verify-xai.sh"
-  else
+  elif [ "$LUMEN_SELECTED_PROVIDER" = openai ]; then
     step 'OpenAI: SPIFFE JWT-SVID, token exchange e inferencia' bash "$DEMO_ROOT/chatbot/scripts/verify-openai.sh"
+  else
+    step 'Claude: SPIFFE JWT-SVID, token RFC 7523 e inferencia' bash "$DEMO_ROOT/chatbot/scripts/verify-anthropic.sh"
   fi
 fi
 jq '.completed=true' "$report" > "$report.next"

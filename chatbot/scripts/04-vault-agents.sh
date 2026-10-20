@@ -2,6 +2,12 @@
 source "$(dirname "$0")/../../verify/scripts/common.sh"
 CHATBOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 source "$CHATBOT_DIR/scripts/access-controls.sh"
+# Fail before changing policies/entities if the preceding application step is incomplete.
+for suffix in oidc research; do
+  kv_read "chatbot/$suffix" > "$TMP_WORK/preflight-$suffix.json"
+  jq -e '.client_id|type=="string" and length>0' "$TMP_WORK/preflight-$suffix.json" >/dev/null ||
+    fail "Falta client_id en chatbot/$suffix; ejecuta el paso $suffix."
+done
 initialize_block_policies
 vault read -format=json sys/config/oauth-resource-server/verify > "$TMP_WORK/profile.json"
 jq -e '.data.actor_claim=="actor-token.sub" and .data.no_default_policy' "$TMP_WORK/profile.json" >/dev/null
@@ -49,7 +55,7 @@ for suffix in oidc research; do
   name="chatbot-$suffix"
   vault write "identity/entity/name/$name" external_id="$cid" policies="$policy" >/dev/null
   entity=$(vault read -field=id "identity/entity/name/$name")
-  alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" '.data.aliases[]?|select(.name==$name)|.id')
+  alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id] | if length>1 then error("Alias duplicado") else .[0]//empty end')
   if [ -z "$alias_id" ]; then
     vault write identity/entity-alias name="$name" canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$cid" >/dev/null
   fi
@@ -61,10 +67,7 @@ vault policy write chatbot-bootstrap "$CHATBOT_DIR/policies/bootstrap.hcl" >/dev
 if vault kv metadata get -mount=secrets chatbot/xai >/dev/null 2>&1; then
   bash "$CHATBOT_DIR/scripts/register-xai-agent.sh"
 fi
-if ! vault kv metadata get -mount=secrets chatbot/runtime >/dev/null 2>&1; then
-  openssl rand -hex 32 > "$TMP_WORK/session-key"
-  jq -n --rawfile key "$TMP_WORK/session-key" '{session_secret:($key|rtrimstr("\n")),groups:{readonly:["chatbot-readers"],readwrite:["chatbot-writers"]}}' | kv_write chatbot/runtime
-fi
+bash "$CHATBOT_DIR/scripts/configure-runtime.sh"
 bash "$CHATBOT_DIR/scripts/configure-permission-probe.sh"
 cp "$TMP_WORK/agents.json" "$CHATBOT_DIR/docs/agents.json"
 echo 'Two registered agents ready: OBO database and autonomous Tavily. Bootstrap policy has no database/Tavily access.'

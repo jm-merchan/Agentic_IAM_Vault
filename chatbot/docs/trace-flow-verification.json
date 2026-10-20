@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-20",
+  "runtime_matches_workspace": true,
+  "flows": {
+    "applications_list": {
+      "trace_id": "cb60da6128d66694337642deb994fe6e",
+      "calls": 4,
+      "sequence": ["verify.client_credentials", "verify.token_exchange", "vault.read", "mysql.query"],
+      "model_calls": 0
+    },
+    "claude_conversation": {
+      "trace_id": "28b9f2dc61a9c9ffba1c06f0868210b7",
+      "calls": 6,
+      "sequence": ["verify.client_credentials", "vault.write", "vault.jwks", "anthropic.token_exchange", "anthropic.chat", "anthropic.chat"],
+      "classification_distinguished_from_answer": true
+    }
+  },
+  "browser_checks": {
+    "select_call": true,
+    "next_call": true,
+    "filter_destination": true,
+    "toggle_return_arrows": true,
+    "technical_reference": true,
+    "console_errors": 0
+  },
+  "access_without_session": "blocked",
+  "cache_control": "no-store",
+  "tests": {
+    "trace_flow_passed": 17,
+    "related_regressions_passed": 52
+  },
+  "screenshot": "screenshots/trace-flow.png",
+  "limits": [
+    "Client-side spans do not instrument internal operations of remote services.",
+    "SDK model calls are logical invocations; individual HTTP retries are not shown.",
+    "Legacy OBO spans include client credentials and local validation; they are explicitly labeled.",
+    "Session trace links expire with the in-memory Lumen session."
+  ]
+}

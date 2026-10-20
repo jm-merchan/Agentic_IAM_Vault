@@ -215,7 +215,8 @@ async def test_agent_run_stops_before_lease_deadline(monkeypatch):
             cancelled.append(True)
     monkeypatch.setattr(agent, 'make_agent', lambda *args: SimpleNamespace(ainvoke=invoke))
     monkeypatch.setattr(agent, 'make_model', lambda *args: object())
-    monkeypatch.setattr(agent, 'assess_scope', AsyncMock(return_value=True))
+    from app.guardrails import ScopeDecision
+    monkeypatch.setattr(agent, 'assess_request', AsyncMock(return_value=ScopeDecision(category='conversation')))
     with pytest.raises(AccessDenied, match='tiempo permitido'):
         await agent.reply(services, session, 'hello')
     assert cancelled == [True]

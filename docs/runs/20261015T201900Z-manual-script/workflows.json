@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-10-15T20:19:13.840474+00:00",
+  "method": "scripted OIDC Authorization Code + PKCE; real application services; no browser",
+  "checks": [
+    {
+      "check": "reader oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "reader may_act",
+      "passed": true
+    },
+    {
+      "check": "reader nine Vault permissions",
+      "passed": false
+    }
+  ],
+  "traces": [
+    {
+      "name": "reader.permissions",
+      "trace_id": "6460524a6e2a45e112b87606109211d5"
+    }
+  ],
+  "all_passed": false,
+  "error_type": "AssertionError"
+}

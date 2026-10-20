@@ -1,5 +1,6 @@
 # Reconstrucción end-to-end — OpenAI SPIFFE
 
+> Histórico: este informe corresponde al ciclo automatizado anterior. El despliegue se retiró después para la [instalación manual](manual/VALIDACION.md); sus trazas y capturas no corresponden al clúster actual.
 Verificación real del **15 de octubre de 2026**, en Minikube `workshop`, Vault Enterprise `josemerchan/vault-xai:2.1.2-ent` e IBM Verify `merchan.verify.ibm.com`. Se eliminaron los recursos, se comprobó el estado vacío y se reconstruyó la demo desde `.env`. Las capturas de esta página pertenecen al despliegue nuevo.
 
 Referencia reproducible: [notebook 9 — OpenAI/Vault SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb). [Guía de integración](OPENAI_SPIFFE.md). Evidencias: `runs/20261015T114709Z-openai-clean/`.

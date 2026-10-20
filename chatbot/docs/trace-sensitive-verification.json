@@ -1,0 +1,73 @@
+{
+  "verified_at": "2026-10-20T15:07:38.464001+00:00",
+  "scope": "Visor sensible por Trace ID y Span ID en Lumen local; valores omitidos de este informe.",
+  "tests": {
+    "python_passed": 130,
+    "javascript_passed": 3
+  },
+  "live_checks": {
+    "mysql": {
+      "trace_id": "76ee3ed1ab8f0ec30f9451bf702a802a",
+      "oauth_token_present": true,
+      "obo_subject_and_actor_present": true,
+      "vault_mysql_username_password_lease_equal": true
+    },
+    "anthropic": {
+      "trace_id": "fa49a6112eb13cb0de2e32e5fceef418",
+      "issued_and_exchanged_svid_equal": true,
+      "exchanged_and_model_token_equal": true
+    },
+    "openai": {
+      "trace_id": "064c537f57959300815caf86e22998dc",
+      "issued_and_exchanged_svid_equal": true,
+      "exchanged_and_model_token_equal": true
+    },
+    "xai": {
+      "trace_id": "6aab487ac0af979892a7aa6f44323100",
+      "vault_and_classifier_credential_equal": true
+    },
+    "writer_crypto": {
+      "trace_id": "fb11a2c09debb6c04459a0a649a624f8",
+      "base64_and_displayed_plaintext_equal": true,
+      "ciphertext_present": true,
+      "denied_decrypt_shows_403_without_plaintext": true
+    },
+    "supervisor_crypto": {
+      "trace_id": "1a2724ade35ee921b3ff3486847369a5",
+      "permissions_matched": "9/9",
+      "decrypted_base64_and_displayed_plaintext_equal": true,
+      "transform_input_token_and_decoded_value_present": true
+    },
+    "anonymous_inspection_status": 404,
+    "inspection_cache_control": "no-store",
+    "changing_step_clears_display": true,
+    "synthetic_value_copy_works": true,
+    "browser_console_errors": 0
+  },
+  "capture_storage": {
+    "new_values": "server memory, ten-minute access TTL, maximum 500 spans and 64 KiB per field",
+    "existing_vault_spiffe": "unchanged raw trace retention",
+    "static_verify_client_secret": "not captured"
+  },
+  "session_note": "Las trazas son evidencia de las ejecuciones registradas; la vista local requiere su sesión original. Las comprobaciones de los proveedores preceden al último reinicio.",
+  "screenshot": "screenshots/trace-sensitive-values.png",
+  "screenshot_content": "Solo el texto fijo lumen-permission-probe, sin tokens ni contraseñas.",
+  "source_sha256": {
+    "app/lab_capture.py": "2c3471742dc2bf977d5393a2c611d2d1e88586612e5c5b50bc45108074aea2ba",
+    "app/trace_inspection.py": "c6b2999e9583e7dd18908f9e51e48c1c05489dcbcca5fdec51ccea1484344283",
+    "app/trace_flow.js": "f7a967e6cfc516c05f107510d6df5ff5169c4a2131696f79e89126276d9cf74b",
+    "app/trace_flow_ui.py": "9c6cbfb71c253ffca4215dcf8cdcf750fc8adc1b768f749f5cc14d0823744c61",
+    "app/services.py": "16777ee995639a4542b97f8dc5557911677419716ec27ae89424b336ea99427d",
+    "app/spiffe.py": "526e9ed78bbec099eac908c8782a43198e60ac0931c71f80110da4e8f31b4aae",
+    "app/telemetry.py": "80abcfff7672a41a9935e602653e73176f19e0c76e765b0181cabb63fe96cab4",
+    "app/main.py": "ab677e8bf93c45b26dc96940ac41ab633d969389cd5e1a3d2c9869032f1fd48e",
+    "static/trace_flow.css": "1e67ebaad14b57302ddee4083f8d5f2a34d399ec147a1df1f81156d5c27a0957"
+  },
+  "ready_trace_id": "bc531107a511c6ec1b41f081cb135b22",
+  "restored_ui": {
+    "user": "writer",
+    "provider": "anthropic",
+    "sensitive_values_initially_hidden": true
+  },
+  "follow_up": "trace-basic-auth-verification.json: captura completa de HTTP Basic, incluido client_secret, habilitada despues de esta verificacion inicial."
+}

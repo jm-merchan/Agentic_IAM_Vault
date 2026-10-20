@@ -13,7 +13,7 @@ add_cell() {
 add_cell markdown <<'MD'
 # Lumen — solicitudes protegidas con tres perfiles
 
-Referencia de solicitudes protegidas; `./demo.sh` incluye estas etapas. Formulario en cinco pasos, OBO, Transit y Transform tokenization; mantiene MySQL KMIP. Aprovisionamiento **Bash + Vault CLI + API Verify**, sin Terraform ni Python para configurar los proveedores. La aplicación continúa en NiceGUI/Python y Deep Agents/xAI.
+Referencia de solicitudes protegidas; `./demo.sh` incluye estas etapas. Formulario en cinco pasos, OBO, Transit y Transform tokenization; mantiene MySQL KMIP. Aprovisionamiento **Bash + Vault CLI + API Verify**, sin Terraform ni Python para configurar los proveedores. La aplicación continúa en NiceGUI/Python con Deep Agents y selección OpenAI/xAI/Claude.
 
 Ejecutar desde la raíz del repositorio. Los notebooks 1–6 deben estar preparados; la observabilidad del 7 permite ver las trazas de esta extensión. Este notebook se entrega sin salidas ni credenciales.
 
@@ -100,6 +100,8 @@ LUMEN_TRACE_VAULT_RAW=1 bash chatbot/scripts/run.sh
 CODE
 add_cell markdown <<'MD'
 ## 6. Recorrido interactivo
+
+Las etiquetas siguientes están en español: selecciona **ES** para seguirlas literalmente. **EN** cambia el formulario, validaciones y bandeja a inglés; el idioma inicial procede del navegador si no hay elección guardada. **Take the next step**, **Use test data**, **Save application** y **Reveal data** son las equivalencias de **Da el siguiente paso**, **Usar datos de prueba**, **Guardar solicitud** y **Revelar datos**. Cambiar EN/ES mantiene el paso y los datos escritos durante la sesión, con los mismos permisos y validaciones de DNI/IBAN españoles. [Prueba de conservación sin guardar una solicitud](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
 1. **Gestor**: entrar con `lumen-writer`. «Da el siguiente paso» → aceptar sugerencias aleatorias con Tab (o «Usar datos de prueba») → recorrer tarifa, vivienda, titular, pago y revisión. Probar una letra incorrecta del DNI o modificar los dígitos de control del IBAN: el avance queda bloqueado. Revisar, marcar confirmación y guardar.
 2. **Gestor**: en «Solicitudes», pulsar «Revelar datos». Se lee ciphertext con SQL RW, pero Vault deniega Transit decrypt con HTTP 403. Abrir el enlace de traza del diálogo.

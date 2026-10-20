@@ -22,8 +22,8 @@ def setup(monkeypatch, allowed=True):
     factory = Mock(return_value=graph)
     monkeypatch.setattr(agent, 'make_agent', factory)
     monkeypatch.setattr(agent, 'make_model', Mock(return_value=object()))
-    gate = AsyncMock(return_value=allowed)
-    monkeypatch.setattr(agent, 'assess_scope', gate)
+    gate = AsyncMock(return_value=ScopeDecision(category='energy' if allowed else 'out_of_scope'))
+    monkeypatch.setattr(agent, 'assess_request', gate)
     return session, config, services, graph, factory, gate
 
 

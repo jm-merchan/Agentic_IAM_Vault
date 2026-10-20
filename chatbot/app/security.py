@@ -15,6 +15,7 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 from .telemetry import operation, trace_id
+from . import lab_capture
 from opentelemetry import trace
 
 TENANT = os.environ.get('VERIFY_TENANT', 'https://merchan.verify.ibm.com').rstrip('/')
@@ -43,7 +44,10 @@ class Session:
     events: list[dict] = field(default_factory=list)
     traces: list[str] = field(default_factory=list)
     pending: dict | None = None
+    catalogue_evidence: dict | None = field(default=None, repr=False)
     application_draft: dict | None = field(default=None, repr=False)
+    model_provider: str = ''
+    language: str = 'es'
 
     def require_login(self):
         if not self.subject or time.time() >= self.expires_at:
@@ -97,11 +101,15 @@ class Identity:
             raise AccessDenied('La solicitud de inicio de sesión no es válida o ha caducado.')
         pending.state = ''  # single use, including failed exchanges
         credential = self.config['oidc']
+        data = dict(grant_type='authorization_code', code=code, redirect_uri=CALLBACK,
+                    code_verifier=pending.verifier)
+        lab_capture.request(trace.get_current_span(), 'POST', ISSUER + '/token', data,
+                            basic_auth=(credential['client_id'], credential['client_secret']))
         async with httpx.AsyncClient(timeout=30) as client:
             result = await client.post(ISSUER + '/token', auth=(credential['client_id'], credential['client_secret']),
-                                       data=dict(grant_type='authorization_code', code=code, redirect_uri=CALLBACK,
-                                                 code_verifier=pending.verifier))
+                                       data=data)
         trace.get_current_span().set_attribute('http.response.status_code', result.status_code)
+        lab_capture.response(trace.get_current_span(), result)
         if result.status_code != 200:
             raise AccessDenied('Verify no ha aceptado el código de autorización.')
         token = result.json()
@@ -147,15 +155,29 @@ def load_config() -> dict:
             res = client.get(addr + '/v1/secrets/data/chatbot/model',
                              headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
             config['model'] = res.json()['data']['data'] if res.status_code == 200 else {}
-            provider = config['model'].get('provider')
-            if provider in {'xai', 'openai'}:
-                # Inference credentials are acquired at execution time, never loaded from KV.
-                config['model'].pop('api_key', None)
+            from .model_config import PROVIDER_LABELS
+            profiles = config['model'].pop('providers', None)
+            if profiles is None:
+                provider = config['model'].get('provider')
+                profiles = {provider: dict(config['model'])} if provider in PROVIDER_LABELS else {}
+            if not isinstance(profiles, dict) or any(p not in PROVIDER_LABELS for p in profiles):
+                raise RuntimeError('El catálogo de proveedores no es válido.')
+            config['models'] = profiles
+            config['model'].pop('api_key', None)
+            for provider, profile in profiles.items():
+                if not isinstance(profile, dict) or profile.get('provider') != provider:
+                    raise RuntimeError('Perfil de proveedor no válido: ' + provider)
+                profile.pop('api_key', None)
                 res = client.get(addr + '/v1/secrets/data/chatbot/' + provider,
                                  headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
                 if res.status_code != 200:
-                    raise RuntimeError('Configura el agente del proveedor seleccionado: ' + provider)
+                    raise RuntimeError('Configura el agente del proveedor: ' + provider)
                 config[provider] = res.json()['data']['data']
+            if profiles:
+                default = config['model'].get('provider')
+                if default not in profiles:
+                    raise RuntimeError('El proveedor inicial no está en el catálogo.')
+                config['model'] = dict(profiles[default])
         finally:
             client.post(addr + '/v1/auth/token/revoke-self',
                         headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})

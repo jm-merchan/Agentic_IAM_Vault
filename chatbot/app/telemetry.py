@@ -17,6 +17,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcessor, SpanExporter, SpanExportResult
 from opentelemetry.trace import Status, StatusCode
 from .trace_content import CURRENT, ContentRecorder, message_document
+from .lab_capture import capture
 
 RECORDS = deque(maxlen=3000)
 LOCK = threading.Lock()
@@ -114,13 +115,14 @@ def records_for(ids):
 
 class ModelSpans(AsyncCallbackHandler):
     """One span per model invocation. Tool spans come from explicit wrappers."""
-    def __init__(self, model, recorder=None, provider='xai'):
+    def __init__(self, model, recorder=None, provider='xai', *, credential=None):
         self.model = model
         self.provider = provider
         self.recorder = recorder or ContentRecorder()
         self.sequence = 0
         self.context = trace.set_span_in_context(trace.get_current_span())
         self.active = {}
+        self.credential = credential
 
     async def on_chat_model_start(self, serialized, messages, *, run_id, **kwargs):
         self.sequence += 1
@@ -131,6 +133,12 @@ class ModelSpans(AsyncCallbackHandler):
             'lumen.content.source': 'langchain_callback',
         })
         self.active[run_id] = current
+        if self.credential:
+            capture(current, 'authentication', 'Credencial utilizada por el cliente del modelo', {
+                'provider': self.provider, 'model': self.model,
+                'Authorization': 'Bearer ' + self.credential,
+                'source': 'Credencial entregada al SDK para esta invocación',
+            })
         if self.recorder.enabled:
             documents = [message_document(m) for batch in messages for m in batch]
             self.recorder.capture(current, 'gen_ai.input.messages', documents)
@@ -194,3 +202,4 @@ class ModelSpans(AsyncCallbackHandler):
             current.set_status(Status(StatusCode.ERROR))
             current.end()
         self.active.clear()
+        self.credential = None

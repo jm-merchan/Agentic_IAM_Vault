@@ -4,10 +4,16 @@
 remove_api() {
   local method=$1 path=$2 out=$3; shift 3
   local accept=application/json
+  local retry_args=(--retry 0)
+  # Inventory/detail GETs are safe to retry after a transient timeout. Mutations
+  # retain a single attempt: their outcome must be inspected before repeating.
+  if [ "$method" = GET ]; then
+    retry_args=(--max-time 30 --retry 2 --retry-all-errors --retry-delay 2 --retry-max-time 95)
+  fi
   [[ "$path" != /v2.0/* ]] || accept=application/scim+json
   REMOVE_HTTP_STATUS=$(curl --silent --show-error --connect-timeout 15 --max-time 90 \
     --request "$method" --header "@$REMOVE_WORK/verify.headers" --header "Accept: $accept" \
-    --output "$out" --write-out '%{http_code}' "$VERIFY_TENANT$path" "$@") || fail "Red no disponible: Verify $method $path"
+    --output "$out" --write-out '%{http_code}' "${retry_args[@]}" "$VERIFY_TENANT$path" "$@") || fail "Red no disponible: Verify $method $path"
   case "$REMOVE_HTTP_STATUS" in 200|201|204|404) ;; *) fail "Verify devolvió HTTP $REMOVE_HTTP_STATUS para $method $path; respuesta privada, retirada interrumpida.";; esac
 }
 remove_verify_login() {
@@ -35,7 +41,7 @@ remove_verify_inventory() {
   remove_add_target sts vault-chatbot-sts "$id" /v1.0/sts/oauth/clients
   remove_api GET /v1.0/applications "$REMOVE_WORK/apps.json"
   jq -e '(._embedded.applications|type=="array") and (.totalCount == (._embedded.applications|length))' "$REMOVE_WORK/apps.json" >/dev/null || fail 'Inventario de aplicaciones incompleto; no se elimina una lista paginada parcialmente'
-  for name in vault-chatbot-oidc vault-chatbot-research vault-chatbot-xai vault-chatbot-openai; do
+  for name in vault-chatbot-oidc vault-chatbot-research vault-chatbot-xai vault-chatbot-openai vault-chatbot-anthropic; do
     id=$(jq -r --arg name "$name" '[._embedded.applications[]|select(.name==$name)|._links.self.href|split("/")[-1]]|if length>1 then error("Duplicate app") else .[0]//empty end' "$REMOVE_WORK/apps.json")
     remove_add_target app "$name" "$id" /v1.0/applications
   done

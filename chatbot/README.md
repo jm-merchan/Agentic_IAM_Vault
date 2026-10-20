@@ -1,16 +1,53 @@
 # Lumen · tu energía, con claridad
 
-Chatbot de energía en Python con **NiceGUI + LangChain Deep Agents + xAI/OpenAI**, autenticación **OIDC con IBM Verify**, acceso a MySQL mediante **Vault IAM OBO** y búsqueda **Tavily con un agente autónomo registrado**. xAI obtiene claves dinámicas del Secret Engine; OpenAI intercambia un SPIFFE JWT-SVID de Vault por un token temporal. [Preparación, selección y estado de OpenAI](../docs/OPENAI_SPIFFE.md).
+Chatbot de energía en Python con **NiceGUI + LangChain Deep Agents + xAI/OpenAI/Claude**, autenticación **OIDC con IBM Verify**, acceso a MySQL mediante **Vault IAM OBO** y búsqueda **Tavily con un agente autónomo registrado**. xAI obtiene claves dinámicas del Secret Engine; OpenAI y Claude intercambian un SPIFFE JWT-SVID de Vault por un token temporal. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
 
-Desde la raíz, ejecutar **`./demo.sh`** y abrir **http://localhost:8088**. [Instalación y `.env`](../README.md). Los notebooks 1–4 y 6–9 son documentación por etapas y llaman a los mismos scripts. [Notebook OpenAI/SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb) y [reconstrucción verificada del 15 de octubre](../docs/E2E_OPENAI_VERIFICATION.md).
+Desde la raíz, ejecutar **`./demo.sh`** y abrir **http://localhost:8088**. [Instalación y `.env`](../README.md). Los notebooks 1–4 y 6–9 son documentación por etapas y llaman a los mismos scripts. [Notebook OpenAI/SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb) y [reconstrucción manual verificada del 16 de octubre](../docs/runs/20261016T064722Z-manual-script/README.md).
 
 El nuevo [recorrido de solicitudes protegidas](#solicitudes-en-cinco-pasos) añade Transit, tokenización y tres perfiles. Aprovisionamiento y comprobaciones en el [notebook 8](../8_Lumen_Protected_Applications.ipynb).
 
+La interfaz y las respuestas admiten **español e inglés**, con detección del navegador y botones **EN / ES**. [Selección, alcance y pruebas](#idioma-español-e-inglés).
+
 ![Lumen: catálogo obtenido por OBO con permisos de lectura](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg)
+
+## Idioma español e inglés
+
+La preferencia se decide al cargar cada página, antes y después del login:
+
+| Prioridad | Comportamiento |
+|---|---|
+| Elección manual | Los botones **EN / ES**, arriba a la derecha del chat, formulario, bandeja y trazas, guardan `lumen_language` durante un año. La cookie es de este navegador y origen; no del usuario de Verify. |
+| Navegador | Sin una elección guardada, se interpreta `Accept-Language`, incluidas variantes como `en-US`, `en-GB`, `es-ES` o `es-MX` y sus prioridades `q`. Se elige la preferencia admitida con mayor prioridad. |
+| Sin coincidencia | Se usa inglés si el navegador solo pide idiomas no admitidos. Si no envía `Accept-Language`, se usa español. |
+
+El cambio recarga la página actual y actualiza textos, etiquetas accesibles, validaciones, formatos numéricos, tablas y diagrama. Conserva la conversación y el paso y los datos del formulario durante la sesión. Si hay una operación en curso, hay que esperar a que termine. La elección persiste al recargar y al volver a iniciar sesión; para probar otra vez la detección automática, elimina solo la cookie `lumen_language` de `localhost` o usa un perfil de navegador sin esa cookie. Una pestaña ya abierta mantiene su idioma hasta recargarla.
+
+Las siguientes respuestas del asistente usan el idioma elegido con OpenAI, xAI o Claude. Las respuestas de catálogo y propuestas construidas por el servidor, así como los rechazos de ámbito, también están traducidas. El historial ya escrito, los nombres de planes, datos introducidos, citas de fuentes y valores capturados conservan su contenido original. **EN/ES no cambia los permisos**, el proveedor seleccionado ni la autenticación. El portal externo de IBM Verify y Grafana conservan sus propios ajustes de idioma.
+
+| Español | English |
+|---|---|
+| Entrar con Verify | Sign in with Verify |
+| Solicitudes | Applications |
+| Continuar solicitud | Continue application |
+| Usar datos de prueba | Use test data |
+| Guardar solicitud | Save application |
+| Ver última traza | View latest trace |
+| Ver valores sensibles | View sensitive values |
+| Autenticación HTTP Basic | HTTP Basic authentication |
+
+### Mantener y actualizar las traducciones
+
+El catálogo [translations_en.json](app/translations_en.json) traduce los textos españoles de la aplicación. [i18n.py](app/i18n.py) resuelve la preferencia; el idioma se pasa explícitamente a la respuesta y a cada página. Al añadir textos, conserva los mismos marcadores `{nombre}` en ambos idiomas. Las traducciones de trazas se aplican a títulos y explicaciones, nunca a `section.value`, JWT, secretos, cuerpos HTTP o parámetros SQL. La tabla técnica y las capturas permiten inspeccionar los datos originales.
+
+La instalación copia el catálogo junto con `chatbot/app/`; no necesita variables de idioma en `.env` ni cambios de políticas o recursos. En una instalación gestionada ya activa, `bash scripts/demo/start.sh` publica el código local en su runtime y reinicia Lumen. Para un proceso manual, detenerlo y repetir [10, sección 3](../docs/manual/10-aplicacion.md#3-crear-bootstrap-y-arrancar-sin-credenciales-administrativas). El reinicio descarta sesiones, conversaciones, formularios no guardados y capturas en memoria; eso es distinto de pulsar EN/ES.
+
+La [guía de comprobación bilingüe](../docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües) cubre navegador, cambio manual, formulario, chat y trazas. El [informe del 20/10/2026](docs/language-verification.json) conserva los resultados y el alcance: respuestas en inglés con los tres proveedores y regreso a español con Claude. Las pruebas locales están en [test_i18n.py](tests/test_i18n.py), [test_trace_inspection.py](tests/test_trace_inspection.py) y [trace_flow_ui.test.mjs](tests/trace_flow_ui.test.mjs).
+
+![Lumen en inglés con EN/ES en la cabecera](docs/screenshots/lumen-en.png)
 
 ## Identidades y flujos del agente
 
-Este diagrama muestra la rama xAI. La [rama OpenAI SPIFFE](../docs/OPENAI_SPIFFE.md#flujo-de-una-consulta) sustituye solo la obtención de la credencial del modelo; conserva OIDC, OBO y las herramientas. El banner identifica la rama y el modelo activos.
+Este diagrama muestra la rama xAI. La [rama OpenAI SPIFFE](../docs/OPENAI_SPIFFE.md#flujo-de-una-consulta) sustituye solo la obtención de la credencial del modelo; conserva OIDC, OBO y las herramientas. El banner permite elegir OpenAI, xAI o Claude para la siguiente consulta, sin reiniciar y conservando la conversación. Cada sesión tiene su propia selección. Los modelos básicos por defecto son `gpt-4.1-nano`, `grok-4.3` y `claude-haiku-5-5`.
 
 ```mermaid
 sequenceDiagram
@@ -50,6 +87,10 @@ sequenceDiagram
 ```
 
 El LLM interpreta peticiones y utiliza herramientas. **La autorización está en el backend, Vault y MySQL**, fuera del modelo. No recibe contraseñas, JWT ni la clave de Tavily en el prompt. El proveedor seleccionado recibe el texto de la conversación y los datos devueltos por herramientas para responder. El catálogo y las solicitudes de esta demo son ficticios. Las herramientas de archivos, shell y delegación genérica de Deep Agents están excluidas.
+
+Las consultas del catálogo y la preparación de propuestas tienen una respuesta construida por el servidor a partir de una lectura OBO actual de MySQL. El modelo clasifica la intención y la tarifa elegida; el servidor valida esa elección y los permisos. Solo anuncia una propuesta después de crear `session.pending`, que muestra el botón **Continuar solicitud**. Para lectores explica la limitación. La sesión conserva evidencia de las consultas del catálogo para no confundir respuestas anteriores con operaciones reales.
+
+Para reproducir el recorrido con Claude, OpenAI y xAI: `bash chatbot/scripts/verify-catalogue.sh` desde la raíz. Usa los usuarios de prueba lector y escritor, hace inferencias reales y consultas OBO, y prepara propuestas en memoria sin guardar solicitudes. El resultado y las trazas quedan en `chatbot/docs/catalogue-verification.json`.
 
 Para Tavily, el agente elige entre temas públicos de energía (`autoconsumo`, `tarifas`, `ahorro`, `movilidad`); el backend construye la consulta. No se incorporan filas de MySQL ni texto privado a esas búsquedas. No se utiliza la búsqueda nativa de xAI: la búsqueda pasa por Tavily y Vault.
 
@@ -130,7 +171,7 @@ La clave xAI dinámica se conserva en memoria y se reutiliza mientras su vigenci
 
 ## xAI con claves dinámicas
 
-`./demo.sh start --provider xai` configura el motor y el agente xAI. Para revisar únicamente esta parte con Vault ya disponible:
+`./demo.sh start` prepara los tres proveedores. `--provider xai` solo cambia la selección inicial del banner. Para revisar únicamente esta parte con Vault ya disponible:
 
 ```bash
 bash scripts/demo/xai.sh
@@ -222,7 +263,7 @@ En la reconstrucción del 15/10 se verificaron los temas claro/oscuro, la acepta
 
 114 pruebas de aplicación y dos subcasos, 18 de infraestructura, 12 de xAI dinámico, ocho del bloqueo/RAR de xAI y cinco del intercambio/inferencia OpenAI. Las pruebas unitarias escriben trazas en un temporal aislado y no las exportan a Tempo. Los 20 checks OBO se obtienen entrando realmente en Chrome con los tres perfiles cuando se inicia con `CHATBOT_VERIFY_ACCESS=1 ./demo.sh start`.
 
-Informes actuales, capturas, correlación con audit logs y límites comprobados: [verificación end-to-end](../docs/E2E_OPENAI_VERIFICATION.md). Para inspeccionar JWT, mensajes del modelo y cada petición de Vault: [guía de observabilidad](OBSERVABILITY.md).
+La [verificación manual por script del 16/10](../docs/runs/20261016T064722Z-manual-script/README.md) pasó 102 comprobaciones con OIDC/PKCE real para los tres perfiles, sin navegador. Incluye modelos, permisos, bloqueos y correlación con audit. Para repetirla: `bash scripts/manual/rehearse.sh rebuild` desde la raíz ([guía](../docs/manual/13-repeticion-script.md)). Las capturas y la revisión visual del 15/10 se conservan como [histórico](../docs/E2E_OPENAI_VERIFICATION.md). Para inspeccionar JWT, mensajes del modelo y cada petición de Vault: [guía de observabilidad](OBSERVABILITY.md).
 
 ## Límites y adaptación
 
@@ -232,4 +273,4 @@ El notebook base de Verify es un ejercicio histórico separado; `start` crea las
 
 ## Ámbito del asistente y JWT-SVID
 
-Las consultas fuera de energía o del uso de esta demo se rechazan antes de ejecutar herramientas. Un seguimiento como «venga» conserva el rechazo; una pregunta nueva de energía puede continuar. [Control, evidencias y campos JWT-SVID de las trazas](../docs/ENERGY_SCOPE_AND_SVID.md). La suite actual pasa **123 tests y dos subcasos**; los recuentos anteriores pertenecen al ciclo fechado de reconstrucción.
+Las consultas fuera de energía o del uso de esta demo se rechazan antes de ejecutar herramientas. Un seguimiento como «venga» conserva el rechazo; una pregunta nueva de energía puede continuar. [Control, evidencias y campos JWT-SVID de las trazas](../docs/ENERGY_SCOPE_AND_SVID.md). La validación del 15/10 registró **123 tests y dos subcasos**. La reinstalación por script del 16/10 pasó **102 comprobaciones funcionales** y se verificaron además las nueve pruebas unitarias de la retirada; son suites y alcances distintos.

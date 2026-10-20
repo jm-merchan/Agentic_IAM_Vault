@@ -1,0 +1,156 @@
+{
+  "checked_at": "2026-10-15T17:06:33.080117+00:00",
+  "method": "Manual Bash/Vault CLI/curl guide commands; no demo.sh start",
+  "checks": [
+    {
+      "check": "reader OIDC+PKCE access token",
+      "passed": true
+    },
+    {
+      "check": "reader rar denied",
+      "passed": true
+    },
+    {
+      "check": "reader decrypt denied",
+      "passed": true
+    },
+    {
+      "check": "reader admin denied",
+      "passed": true
+    },
+    {
+      "check": "reader Transform decode DNI and IBAN denied",
+      "passed": true
+    },
+    {
+      "check": "reader SQL SELECT",
+      "passed": true
+    },
+    {
+      "check": "writer OIDC+PKCE access token",
+      "passed": true
+    },
+    {
+      "check": "writer rar denied",
+      "passed": true
+    },
+    {
+      "check": "writer decrypt denied",
+      "passed": true
+    },
+    {
+      "check": "writer admin denied",
+      "passed": true
+    },
+    {
+      "check": "writer Transform decode DNI and IBAN denied",
+      "passed": true
+    },
+    {
+      "check": "writer SQL SELECT",
+      "passed": true
+    },
+    {
+      "check": "reader RW credential denied",
+      "passed": true
+    },
+    {
+      "check": "reader INSERT denied by MySQL",
+      "passed": true
+    },
+    {
+      "check": "writer INSERT allowed and rolled back",
+      "passed": true
+    },
+    {
+      "check": "writer encrypt allowed",
+      "passed": true
+    },
+    {
+      "check": "writer encode-dni allowed",
+      "passed": true
+    },
+    {
+      "check": "writer encode-iban allowed",
+      "passed": true
+    },
+    {
+      "check": "dbwrite old denied",
+      "passed": true
+    },
+    {
+      "check": "dbwrite new denied",
+      "passed": true
+    },
+    {
+      "check": "dbwrite restored",
+      "passed": true
+    },
+    {
+      "check": "dbread ro-old denied",
+      "passed": true
+    },
+    {
+      "check": "dbread rw-old denied",
+      "passed": true
+    },
+    {
+      "check": "dbread new denied",
+      "passed": true
+    },
+    {
+      "check": "dbread restored",
+      "passed": true
+    },
+    {
+      "check": "xai old-lumen denied",
+      "passed": true
+    },
+    {
+      "check": "xai old-xai-access denied",
+      "passed": true
+    },
+    {
+      "check": "xai new denied",
+      "passed": true
+    },
+    {
+      "check": "xai restored",
+      "passed": true
+    },
+    {
+      "check": "database-write keeps RO",
+      "passed": true
+    },
+    {
+      "check": "OpenAI requires RAR",
+      "passed": true
+    },
+    {
+      "check": "autonomous Tavily returned results",
+      "passed": true
+    },
+    {
+      "check": "reader trace and audit correlation",
+      "passed": true
+    }
+  ],
+  "all_completed_checks_passed": true,
+  "reader_trace": {
+    "trace_id": "e8088316f06a99fd6371054797866a7e",
+    "span_count": 29,
+    "audit_events": 36,
+    "unique_vault_request_ids": 9
+  },
+  "pending": [
+    "supervisor OIDC/OBO and decrypt deny",
+    "writer/supervisor UI form workflows",
+    "model/Tavily/guardrail traces through the UI"
+  ],
+  "browser_blocker": "Computer Use reports cgWindowNotFound; user asked to open Chrome",
+  "cleanup": {
+    "temporary_oidc_callback_removed": true,
+    "callback_listener_stopped": true,
+    "access_blocks_inactive": true
+  }
+}

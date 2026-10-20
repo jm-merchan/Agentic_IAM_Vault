@@ -1,0 +1,9 @@
+{
+  "token_exchange": true,
+  "token_type": "Bearer",
+  "expires_in": 299,
+  "expires_at": 1792082934,
+  "inference": "SPIFFE OK",
+  "model": "gpt-4.1-mini-2025-04-14",
+  "external_project_service_account_mapping": "reused"
+}

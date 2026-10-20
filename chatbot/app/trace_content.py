@@ -9,7 +9,7 @@ from contextvars import ContextVar
 
 REDACTED = '[REDACTED]'
 VAULT_CONTENT_KEYS = {'vault.http.request', 'vault.http.response', 'vault.auth.jwt', 'vault.auth.jwt.decoded'}
-SPIFFE_CONTENT_KEYS = {'spiffe.jwt_svid', 'spiffe.jwt_svid.decoded', 'openai.exchange.subject_token'}
+SPIFFE_CONTENT_KEYS = {'spiffe.jwt_svid', 'spiffe.jwt_svid.decoded', 'openai.exchange.subject_token', 'anthropic.exchange.assertion'}
 CONTENT_KEYS = {
     'gen_ai.input.messages', 'gen_ai.output.messages', 'gen_ai.tool.definitions',
     'gen_ai.tool.call.arguments', 'gen_ai.tool.call.result',

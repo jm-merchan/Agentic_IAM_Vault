@@ -5,7 +5,7 @@ load_inputs
 dry_run=false
 case "${1:-}" in '') ;; --dry-run) dry_run=true;; *) fail 'Uso: ./demo.sh remove [--dry-run]';; esac
 [ "$#" -le 1 ] || fail 'Demasiados argumentos para remove'
-for command in jq curl kubectl helm vault lsof plutil launchctl; do command -v "$command" >/dev/null || fail "Falta $command"; done
+for command in jq curl kubectl helm vault lsof plutil launchctl rg; do command -v "$command" >/dev/null || fail "Falta $command"; done
 state=$(cd "$LUMEN_STATE_DIR" && pwd -P)
 case "$state" in /|/tmp|/private/tmp|/Users|"$HOME"|"$DEMO_ROOT"|"$HOME/.local/state") fail 'LUMEN_STATE_DIR demasiado amplio para remove';; esac
 case "$DEMO_ROOT/" in "$state/"*) fail 'El estado no puede contener el workspace';; esac
@@ -35,14 +35,14 @@ remove_verify_login
 remove_verify_inventory
 jq -n --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg tenant "$VERIFY_TENANT" --arg state "$state" --argjson dry_run "$dry_run" \
   --slurpfile targets "$REMOVE_WORK/targets.json" --slurpfile volumes "$REMOVE_WORK/volumes.json" \
-  '{created_at:$date,dry_run:$dry_run,context:"workshop",namespaces:["mysql","lumen-observability","vault"],verify_tenant:$tenant,verify_resources:$targets[0],volumes:$volumes[0],local_state:$state,preserved:[".env","OpenAI project, service account and WIF provider/mapping","Verify administrative API client","vault:path_access RAR schema","non-Lumen Verify resources","Minikube profile and image cache","workspace documentation and historical reports"]}' > "$LUMEN_STATE_DIR/remove-plan.json"
+  '{created_at:$date,dry_run:$dry_run,context:"workshop",namespaces:["mysql","lumen-observability","vault"],verify_tenant:$tenant,verify_resources:$targets[0],volumes:$volumes[0],local_state:$state,preserved:[".env","OpenAI project, service account and WIF provider/mapping","Claude issuer, federation rule and service account","Verify administrative API client","vault:path_access RAR schema","non-Lumen Verify resources","Minikube profile and image cache","workspace documentation and historical reports"]}' > "$LUMEN_STATE_DIR/remove-plan.json"
 printf 'Retirada completa en workshop: namespaces mysql, lumen-observability y vault, TODO su contenido y PVC.\n'
 printf 'Esto incluye todos los secretos/namespaces internos de este Vault y las filas de MySQL.\n'
 jq -r '.[]|"  Volumen: \(.namespace)/\(.name)"' "$REMOVE_WORK/volumes.json"
 printf 'Verify: %s\n' "$VERIFY_TENANT"
 jq -r '.[]|"  \(.kind): \(.name) (\(.id))"' "$REMOVE_WORK/targets.json"
 printf 'Estado operativo local: %s/{vault,mysql,runtime,vault-chatbot-storage,services,pids,ngrok,openai}\n' "$state"
-printf 'Se conservan .env, recursos OpenAI, cliente administrativo, RAR compartido, otros recursos Verify, perfil Minikube y documentación.\n'
+printf 'Se conservan .env, recursos WIF externos de OpenAI/Claude, cliente administrativo, RAR compartido, otros recursos Verify, perfil Minikube y documentación.\n'
 printf 'Plan sin credenciales: %s/remove-plan.json\n' "$LUMEN_STATE_DIR"
 if [ "$dry_run" = true ]; then echo 'Simulación: no se han detenido ni eliminado recursos.'; exit 0; fi
 
@@ -68,20 +68,18 @@ if [ -n "$vault_sts" ]; then
     jq -e '.sealed|not' "$REMOVE_WORK/vault-status.json" >/dev/null || fail 'Desella Vault antes de remove para revocar las claves xAI pendientes'
     load_vault
     start_forward vault vault pod/vault-0 8443 8200
-    printf 'X-Vault-Token: %s\n' "$VAULT_TOKEN" > "$REMOVE_WORK/vault.headers"
-    code=$(curl --silent --show-error --max-time 30 --cacert "$VAULT_CACERT" --header "@$REMOVE_WORK/vault.headers" --output "$REMOVE_WORK/namespace.json" --write-out '%{http_code}' "$VAULT_ADDR/v1/sys/namespaces/verify")
-    case "$code" in
-      200)
+    if vault namespace lookup -format=json verify > "$REMOVE_WORK/namespace.json" 2> "$REMOVE_WORK/namespace.err"; then
         export VAULT_NAMESPACE=verify
         vault secrets list -format=json > "$REMOVE_WORK/mounts.json"
         if jq -e 'has("xai/")' "$REMOVE_WORK/mounts.json" >/dev/null; then
           vault lease revoke -sync -prefix xai/creds/lumen/ >/dev/null
           echo 'Leases xAI de Lumen revocados antes de eliminar Vault.'
         fi
-        unset VAULT_NAMESPACE;;
-      404) ;; # A deployment interrupted before creating verify.
-      *) fail "No se pudo comprobar verify en Vault (HTTP $code); se conserva el estado";;
-    esac
+        unset VAULT_NAMESPACE
+    elif ! rg -qx 'Namespace not found' "$REMOVE_WORK/namespace.err"; then
+      cat "$REMOVE_WORK/namespace.err" >&2
+      fail 'No se pudo comprobar verify en Vault; se conserva el estado'
+    fi # An absent verify namespace is valid for an interrupted installation.
   fi
 fi
 remove_verify_apply

@@ -1,0 +1,28 @@
+{
+  "checked_at": "2026-10-16T08:04:36.940810+00:00",
+  "checks": [
+    {
+      "provider": "openai",
+      "model": "gpt-4.1-nano",
+      "credential_flow": "vault_spiffe",
+      "inference": true,
+      "tool_call": true
+    },
+    {
+      "provider": "xai",
+      "model": "grok-4.3",
+      "credential_flow": "vault_dynamic",
+      "inference": true,
+      "tool_call": true
+    },
+    {
+      "provider": "anthropic",
+      "model": "claude-haiku-5-5",
+      "credential_flow": "vault_spiffe",
+      "inference": true,
+      "tool_call": true
+    }
+  ],
+  "shared_configuration_unchanged": true,
+  "all_passed": true
+}

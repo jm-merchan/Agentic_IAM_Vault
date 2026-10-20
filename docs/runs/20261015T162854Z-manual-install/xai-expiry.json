@@ -1,0 +1,9 @@
+{
+  "lease_duration": 60,
+  "renewable": false,
+  "created_at": 1792083630.183572,
+  "checked_at": 1792083705.305189,
+  "elapsed_s": 75.12161993980408,
+  "after_expiry_http": "400",
+  "expired_key_rejected": true
+}

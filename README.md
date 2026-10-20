@@ -1,6 +1,8 @@
 # Lumen · Vault Agentic IAM
 
-Demo con **NiceGUI, LangChain Deep Agents y selección xAI/OpenAI**, login OIDC en IBM Verify, **OBO**, MySQL Enterprise con **KMIP**, protección **Transit/Transform** y trazas en **Grafana, Loki y Tempo**. xAI utiliza un Secret Engine dinámico; OpenAI utiliza **SPIFFE JWT-SVID emitidos por Vault** y token exchange. [Configuración OpenAI y estado de validación](docs/OPENAI_SPIFFE.md).
+Demo con **NiceGUI, LangChain Deep Agents y selección xAI/OpenAI/Claude**, login OIDC en IBM Verify, **OBO**, MySQL Enterprise con **KMIP**, protección **Transit/Transform** y trazas en **Grafana, Loki y Tempo**. xAI utiliza un Secret Engine dinámico; OpenAI y Claude utilizan **SPIFFE JWT-SVID emitidos por Vault** y tokens de corta duración. [Configuración manual de Claude](docs/manual/08-claude-spiffe.md).
+
+Lumen admite **español e inglés**: toma el idioma inicial del navegador y ofrece **EN / ES** arriba a la derecha. La elección se recuerda y se aplica a la interfaz, los formularios, las trazas y las siguientes respuestas del asistente. [Funcionamiento y mantenimiento](chatbot/README.md#idioma-español-e-inglés) · [Comprobación paso a paso](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
 ## Prerrequisitos
 
@@ -9,15 +11,15 @@ Para una instalación desde cero, prepara las herramientas, cuentas y credencial
 ### Herramientas y recursos locales
 
 - **macOS**: los procesos locales se mantienen con `launchd`.
-- Bash, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube, uv, rsync y lsof, además de `plutil` y `launchctl`, incluidos en macOS.
+- Bash, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube, uv, rsync, lsof y ripgrep (`rg`; `brew install ripgrep` — no el binario embebido de Cursor), además de `plutil` y `launchctl`, incluidos en macOS.
 - **Podman o Docker instalado y arrancado**. La plantilla usa Podman; para Docker, cambia tanto `CONTAINER_ENGINE` como `MINIKUBE_DRIVER` a `docker` en `.env`.
 - Recursos disponibles para Minikube: la configuración predeterminada asigna **4 CPU y 8 GiB de memoria**. La VM del motor de contenedores debe disponer de esa capacidad.
 - Conectividad con los proveedores y los registros de imágenes. Vault utiliza [`josemerchan/vault-xai:2.1.2-ent`](https://hub.docker.com/r/josemerchan/vault-xai), que incluye el plugin xAI para AMD64 y ARM64; Kubernetes descarga la imagen al desplegarlo.
 
 ### Cuentas, licencias y credenciales externas
 
-- **IBM Verify:** un tenant activo. En su consola administrativa, crea un cliente API para el aprovisionamiento y asígnale `manageAppAccessAdmin`, `manageAuthDetailTypes`, `manageSTSClients`, `readUsers`, `manageUserStandardGroups` y `manageUsersPwdReset`. Conserva su client ID y client secret para `.env`. El lanzador creará las aplicaciones OIDC/STS, usuarios y grupos de Lumen; los agentes no reciben estos permisos administrativos.
-- **Proveedor de modelo, uno o ambos:** xAI con Management API key para emitir claves dinámicas, u OpenAI con Admin API key y un Workload Identity Provider/mapping para SPIFFE. Para OpenAI se requiere ngrok y un dominio propio de esa cuenta; completa la [preparación inicial](docs/OPENAI_SPIFFE.md) antes del primer `start` de ese proveedor.
+- **IBM Verify:** un tenant activo y un cliente API de aprovisionamiento con seis autorizaciones administrativas. Pasos de consola (Security → API access), tabla de permisos y valores de `.env` en [00 · Entorno](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). El lanzador o el capítulo 03 crearán las aplicaciones OIDC/STS, usuarios y grupos de Lumen; los agentes no reciben esos permisos administrativos.
+- **Proveedores de modelo:** prepara los tres: xAI con Management API key, OpenAI con Admin API key y WIF, y Claude con una organización con acceso API y permiso para crear WIF. Claude no usa API key estática: crea el emisor, regla y cuenta siguiendo [08](docs/manual/08-claude-spiffe.md), e inicia el perfil OAuth `lumen-admin` de la CLI `ant` para que el instalador sincronice las claves. El issuer usa el dominio ngrok configurado y Claude almacena las claves públicas de Vault en línea.
 - **Tavily:** una cuenta y una API key para las búsquedas.
 - **Oracle Container Registry:** una cuenta con acceso habilitado a la imagen de MySQL Enterprise. Completa previamente los requisitos de acceso del proveedor; el lanzador no crea cuentas ni acepta contratos.
 - **Vault Enterprise:** una licencia válida con **Agentic IAM, KMIP y Transform**.
@@ -41,7 +43,8 @@ Abre `.env` en tu editor, sustituye `VERIFY_TENANT` por la URL de tu organizaci�
 | `XAI_MANAGEMENT_API_KEY`, `XAI_TEAM_ID` opcional | Management API de xAI; nunca una clave de inferencia |
 | `OPENAI_ADMIN_API_KEY` | Aprovisionamiento OpenAI; nunca se usa para inferencia |
 | `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID`, `OPENAI_IDENTITY_PROVIDER_ID` | Proyecto, cuenta y proveedor WIF; ver preparación OpenAI |
-| `LUMEN_MODEL_PROVIDER`, `LUMEN_OPENAI_MODEL`, `LUMEN_XAI_MODEL` | Selección `auto`, `openai` o `xai` y modelos |
+| `ANTHROPIC_FEDERATION_ISSUER_ID`, `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`, `ANTHROPIC_SERVICE_ACCOUNT_ID`, `ANTHROPIC_WORKSPACE_ID` | IDs no secretos de la federación Claude |
+| `LUMEN_MODEL_PROVIDER`, `LUMEN_OPENAI_MODEL`, `LUMEN_XAI_MODEL`, `LUMEN_ANTHROPIC_MODEL` | Proveedor inicial (`auto`, `openai`, `xai` o `anthropic`) y modelos; los tres quedan disponibles en la interfaz |
 | `NGROK_DOMAIN`, `NGROK_AUTHTOKEN` opcional | Discovery/JWKS públicos de SPIFFE; token opcional si ngrok ya está autenticado |
 | `TAVILY_API_KEY` | API de búsqueda |
 | `ORACLE_REG_EMAIL`, `ORACLE_REG_PASSWORD` | Descarga de MySQL Enterprise |
@@ -49,7 +52,7 @@ Abre `.env` en tu editor, sustituye `VERIFY_TENANT` por la URL de tu organizaci�
 | `MYSQL_ROOT_PASSWORD` | Contraseña inicial; debe coincidir al adoptar MySQL existente |
 | `LUMEN_READER_PASSWORD`, `LUMEN_WRITER_PASSWORD`, `LUMEN_SUPERVISOR_PASSWORD` | Usuarios de demo; se importan al crear su secreto en Vault |
 
-`.env` usa sintaxis Bash, permisos `600` y está excluido en `.gitignore`. Contiene las entradas externas y las contraseñas iniciales de la demo. **`VAULT_TOKEN`, `VAULT_ADDR` y `VAULT_CACERT` los genera el despliegue; no se rellenan en `.env`.** Las claves xAI se generan dinámicamente; los tokens OpenAI se obtienen mediante SPIFFE y no se guardan aquí. Los secretos OAuth y Grafana se generan y guardan en Vault. El proceso Python elimina de su entorno las credenciales administrativas importadas.
+`.env` usa sintaxis Bash, permisos `600` y está excluido en `.gitignore`. Contiene las entradas externas y las contraseñas iniciales de la demo. **`VAULT_TOKEN`, `VAULT_ADDR` y `VAULT_CACERT` los genera el despliegue; no se rellenan en `.env`.** Las claves xAI se generan dinámicamente; los tokens OpenAI y Claude se obtienen mediante SPIFFE y no se guardan aquí. Los secretos OAuth y Grafana se generan y guardan en Vault. El proceso Python elimina de su entorno las credenciales administrativas importadas.
 
 Comprueba la preparación antes de desplegar:
 
@@ -59,6 +62,12 @@ Comprueba la preparación antes de desplegar:
 
 Este comando comprueba las herramientas, las variables obligatorias, el motor de contenedores y el discovery de Verify. La validez y los permisos de las demás credenciales se comprueban al usarlas durante `start`.
 
+## Configuración manual paso a paso
+
+Ejecuta `bash scripts/manual/paso-a-paso.sh` para recorrer la instalación **un paso cada vez**, ver el código y reanudar tras un error. Para continuar desde Verify: `bash scripts/manual/paso-a-paso.sh desde verify-base`. [Uso y alcance del script](docs/manual/PASO-A-PASO.md).
+
+Para ver y reproducir cada operación sin ejecutar notebooks ni el lanzador, consulta el [manual de configuración](docs/manual/README.md). Incluye entorno, Vault, MySQL/KMIP, Verify/OIDC, Agent Registry/OBO/RAR, Transit/Transform, xAI, OpenAI/SPIFFE, Claude/SPIFFE, observabilidad y bloqueos. Las operaciones de Vault están expresadas con **Vault CLI**; las APIs externas, con **curl**.
+
 ## Arranque en un paso
 
 Una vez completados los prerrequisitos y `.env`, desde esta carpeta:
@@ -67,7 +76,30 @@ Una vez completados los prerrequisitos y `.env`, desde esta carpeta:
 ./demo.sh start
 ```
 
-`auto` selecciona por presencia de la credencial administrativa; si están ambas, elige OpenAI. Para forzar un proveedor: `./demo.sh start --provider xai` o `./demo.sh start --provider openai`. El banner de Lumen identifica el modelo y la integración cargada.
+El arranque prepara **OpenAI, xAI y Claude a la vez**. El banner permite cambiar de proveedor sin reiniciar, conservando la conversación. La elección es por sesión y se aplica a la siguiente consulta; durante una respuesta el selector queda bloqueado. `LUMEN_MODEL_PROVIDER` y `--provider` solo indican la selección inicial (`auto` usa OpenAI).
+
+Modelos básicos preconfigurados: OpenAI `gpt-4.1-nano`, xAI `grok-4.3` y Claude `claude-haiku-5-5`; se pueden ajustar con las variables `LUMEN_*_MODEL`. Las identidades y credenciales temporales de Vault siguen separadas por proveedor.
+
+Para actualizar el **catálogo de proveedores** de una instalación que ya tiene las tres identidades, ejecuta `bash chatbot/scripts/configure-models.sh` y reinicia Lumen. El catálogo se publica en `secrets/chatbot/model` de Vault y la aplicación carga las tres integraciones al arrancar.
+
+Para incorporar **solo los cambios de interfaz, EN/ES y visor**, basta actualizar el código y reiniciar Lumen; no hay nuevas variables de `.env`, permisos o recursos de Verify/Vault. Si lo arrancaste con el lanzador y la infraestructura sigue activa, ejecuta `bash scripts/demo/start.sh` desde la raíz: copia `chatbot/app/` y `chatbot/static/` al runtime gestionado, renueva los forwards de observabilidad y reinicia la aplicación. En ejecución manual, sigue [10 · Actualizar una instalación existente](docs/manual/10-aplicacion.md#actualizar-una-instalación-existente). El reinicio termina las sesiones y descarta los borradores y capturas que solo estaban en memoria; cambiar EN/ES durante una sesión conserva la conversación y el formulario.
+
+`start` sincroniza las claves públicas actuales de Vault con el emisor Claude existente y vuelve a leerlo para comprobar el resultado. Después comprueba la federación y una inferencia breve antes de dar la demo por lista. Usa la API oficial; conserva la URL, la protección JTI, la regla, la cuenta y los permisos.
+
+Para habilitar esa sincronización, realiza una vez el inicio de sesión administrativo de la [CLI oficial de Claude](https://platform.claude.com/docs/en/manage-claude/wif-admin-api). El alcance `org:admin` da permisos de organización; queda en un perfil local exclusivo para el instalador, fuera de Vault y del proceso Lumen:
+
+```bash
+brew install anthropics/tap/ant
+ant auth login --profile lumen-admin --scope org:admin
+```
+
+La CLI renueva ese token cuando el instalador lo necesita. `LUMEN_CLAUDE_ADMIN_PROFILE` permite indicar otro perfil. Si falta la sesión, los prerrequisitos detienen el arranque con el comando de acceso. No se usa una Admin API key, pues estos endpoints de Claude no la aceptan.
+
+```bash
+./demo.sh start
+```
+
+Cada arranque vuelve a comprobar las claves, también después de recrear Vault. Para sincronizarlas sin reinstalar: `bash scripts/demo/claude-issuer.sh`. El informe queda en `~/.local/state/lumen-vault-demo/claude/issuer-sync.json` y el array público en `claude/issuer-keys.json`. Con el modo de claves en línea, una rotación que ocurra mientras la demo permanece encendida requiere volver a sincronizar; este script no instala un servicio periódico.
 
 El comando despliega e inicializa Vault antes de configurar las integraciones. **No requiere un cluster de Vault previo, un root token en `.env` ni ejecutar notebooks.**
 
@@ -79,9 +111,13 @@ El comando despliega e inicializa Vault antes de configurar las integraciones. *
 
 Usar exactamente `localhost` para Lumen: el callback OIDC es `http://localhost:8088/auth/callback`. En Verify, elegir **Cloud Directory**.
 
-Verificación real desde retirada completa, instalación y recorridos en Chrome: [informe end-to-end y capturas actuales](docs/E2E_OPENAI_VERIFICATION.md).
+La [reinstalación manual por script del 16/10](docs/runs/20261016T064722Z-manual-script/README.md) completó la retirada, la instalación y 102 comprobaciones correctas, sin navegador ni notebooks. Incluye los tres perfiles, OBO/RAR, protección de datos, OpenAI/SPIFFE, xAI dinámico y correlación de trazas con audit. Para repetirla: `bash scripts/manual/rehearse.sh rebuild` ([alcance y prerrequisitos](docs/manual/13-repeticion-script.md)). El [ciclo automatizado anterior](docs/E2E_OPENAI_VERIFICATION.md) queda como referencia histórica.
 
-![Lumen disponible después de reconstruir la demo](docs/runs/20261015T114709Z-openai-clean/screenshots/final-openai-home.jpg)
+Las comprobaciones posteriores de la interfaz y los idiomas están en [VALIDACION](docs/manual/VALIDACION.md). El [informe bilingüe del 20/10/2026](chatbot/docs/language-verification.json) registra 194 pruebas Python y 4 JavaScript, detección del navegador, conservación de conversación/formulario y respuestas reales de los tres proveedores; no es una nueva reinstalación completa.
+
+Captura histórica del 15/10. Las [capturas de EN/ES](chatbot/docs/screenshots/lumen-en.png) y [móvil](chatbot/docs/screenshots/lumen-en-mobile.png) corresponden a la comprobación del 20/10.
+
+![Comprobación del lector en la instalación del 15/10](docs/runs/20261015T162854Z-manual-install/screenshots/reader-permissions.png)
 
 | Usuario | Grupo | Puede | No puede |
 |---|---|---|---|
@@ -137,9 +173,9 @@ Pega la contraseña y abre el [dashboard de Lumen](http://localhost:3000/d/lumen
 4. Prepara el namespace Vault **verify**, KV v2 y las entradas estáticas.
 5. Configura RAR, perfil OAuth, aplicaciones OIDC/STS, usuarios, grupos, entidades, políticas y agentes registrados.
 6. Crea roles MySQL RO/RW, catálogo, inventario de ejemplo, Transit, tokenización y tabla de solicitudes.
-7. Configura el proveedor elegido: xAI dinámico con TTL 5 min / máximo 10 min, u OpenAI con JWT-SVID de Vault, discovery/JWKS por ngrok y token exchange. Conserva los recursos externos OpenAI de la preparación inicial.
+7. Configura los tres proveedores: xAI dinámico con TTL 5 min / máximo 10 min, OpenAI con JWT-SVID de Vault y discovery/JWKS por ngrok, y Claude con su identidad SPIFFE y federación propias. Conserva los recursos externos OpenAI de la preparación inicial.
 8. Activa auditoría, aplica Grafana/Loki/Tempo/Alloy, abre puertos locales e inicia Lumen.
-9. Ejecuta pruebas de aplicación, permisos SQL, límites del agente y búsqueda real Tavily. Un fallo devuelve código distinto de cero e identifica la etapa fallida.
+9. Comprueba la federación SPIFFE y una inferencia real de Claude, y ejecuta pruebas de aplicación, permisos SQL, límites del agente y búsqueda real Tavily. Un fallo devuelve código distinto de cero e identifica la etapa fallida.
 
 Se puede repetir: reutiliza recursos por nombre, no elimina perfiles/PVC, no reinicializa Vault ni regenera secretos de clientes existentes. Actualiza configuración gestionada y reinicia Lumen para cargarla; las sesiones del chatbot se pierden en ese reinicio. Reconcilia el catálogo de tres planes y conserva las solicitudes.
 
@@ -195,7 +231,7 @@ En Verify elimina exclusivamente estos nombres, resolviendo y comprobando sus ID
 
 | Tipo | Recursos eliminados |
 |---|---|
-| Aplicaciones | `vault-chatbot-oidc`, `vault-chatbot-research`, `vault-chatbot-xai`, `vault-chatbot-openai` |
+| Aplicaciones | `vault-chatbot-oidc`, `vault-chatbot-research`, `vault-chatbot-xai`, `vault-chatbot-openai`, `vault-chatbot-anthropic` |
 | Cliente STS | `vault-chatbot-sts` |
 | Usuarios ficticios | `lumen-reader`, `lumen-writer`, `lumen-supervisor` |
 | Grupos | `chatbot-readers`, `chatbot-writers`, `chatbot-supervisors` |
@@ -210,7 +246,7 @@ Tras comprobar la eliminación remota, borra del directorio de estado `vault/`, 
 
 El inventario se guarda en `~/.local/state/lumen-vault-demo/remove-plan.json`; una retirada completada genera `last-remove.json`. `start` y `remove` comparten el bloqueo del lanzador para no ejecutarse simultáneamente. El siguiente `start` crea una nueva CA, claves de desellado/root token, datos y clientes OAuth; las contraseñas iniciales externas se conservan en `.env`.
 
-Validación del **15 de octubre**: retirada real de 11 recursos Lumen de Verify y 10 volúmenes, comprobación del estado vacío y reconstrucción desde `.env`, con nuevas claves SPIFFE. Pasaron 114 pruebas de aplicación y dos subcasos, 18 comprobaciones de infraestructura, 20 checks OBO, los recorridos de los tres perfiles y la inferencia con OpenAI y xAI. Se correlacionaron 16 trazas de interfaz con 55 operaciones de Vault. El [informe actual](docs/E2E_OPENAI_VERIFICATION.md) incluye incidencias, correcciones, capturas y alcance de los recursos externos conservados; el [ciclo del 14 de octubre](docs/E2E_VERIFICATION.md) queda como histórico.
+Validación automatizada anterior del **15 de octubre**: retirada real de 11 recursos Lumen de Verify y 10 volúmenes, comprobación del estado vacío y reconstrucción desde `.env`, con nuevas claves SPIFFE. Pasaron 114 pruebas de aplicación y dos subcasos, 18 comprobaciones de infraestructura, 20 checks OBO, los recorridos de los tres perfiles y la inferencia con OpenAI y xAI. Se correlacionaron 16 trazas de interfaz con 55 operaciones de Vault. El [informe de ese ciclo](docs/E2E_OPENAI_VERIFICATION.md) incluye incidencias, correcciones, capturas y alcance de los recursos externos conservados; el [ciclo del 14 de octubre](docs/E2E_VERIFICATION.md) queda como histórico.
 
 Referencias de las operaciones utilizadas: [baja de aplicaciones](https://docs.verify.ibm.com/verify/reference/deleteapplication), [cliente STS](https://docs.verify.ibm.com/verify/v2.0/reference/deletestsclient), [usuarios](https://docs.verify.ibm.com/verify/reference/deleteuser_0), [grupos](https://docs.verify.ibm.com/verify/reference/deletegroup) y [revocación síncrona de leases](https://developer.hashicorp.com/vault/api-docs/system/leases).
 
@@ -248,7 +284,9 @@ El perfil OAuth de Vault y el cliente aplican **15 segundos de tolerancia** al v
 - [Aplicación, flujos y capturas](chatbot/README.md).
 - [Recorrido por usuario y observabilidad](chatbot/OBSERVABILITY.md).
 - [Revisión y validación del workspace](docs/WORKSPACE_REVIEW.md).
-- [Reconstrucción y casos de uso con OpenAI, 15 de octubre](docs/E2E_OPENAI_VERIFICATION.md). [Histórico xAI, 14 de octubre](docs/E2E_VERIFICATION.md).
+- [Instalación manual y validación más reciente](docs/manual/VALIDACION.md).
+- [Validación Claude con Vault SPIFFE JWT-SVID](docs/runs/20261016-claude-spiffe/README.md).
+- [Reconstrucción automatizada con OpenAI, 15 de octubre (histórico)](docs/E2E_OPENAI_VERIFICATION.md). [Histórico xAI, 14 de octubre](docs/E2E_VERIFICATION.md).
 - Notebooks de consulta: [1 Vault](1_Deploy_Vault_minikube.ipynb), [2 MySQL/KMIP](2_vault-demo-kmip-mysql.ipynb), [3 roles SQL](3_Database_Secret_Engine.ipynb), [4 xAI](4_XAI_Secret_Engine.ipynb), [6 Lumen](6_Lumen_Chatbot_Vault_IAM.ipynb), [7 observabilidad](7_Lumen_Observability.ipynb), [8 solicitudes](8_Lumen_Protected_Applications.ipynb), [9 OpenAI/SPIFFE](9_OpenAI_Vault_SPIFFE.ipynb).
 - [Verify base, bootstrap UI y creación de usuarios](verify/README.md) conserva el ejercicio histórico `verify-agent`. Lumen configura su propio OIDC/STS y no requiere el login guardado de aquel ejercicio.
 - [Okta](okta/README.md) permanece aparcado y fuera del comando. Las conexiones/static roles de pagos del namespace raíz tampoco son dependencias de Lumen.

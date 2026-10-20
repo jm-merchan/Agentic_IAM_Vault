@@ -1,0 +1,74 @@
+{
+  "verified_at": "2026-10-20T15:39:38.989945+00:00",
+  "application": "http://localhost:8088",
+  "automated": {
+    "python_passed": 194,
+    "javascript_passed": 4
+  },
+  "live_http": {
+    "browser_headers": [
+      "en-US,en;q=0.8",
+      "es-ES,es;q=0.9",
+      "fr-FR,en;q=0.8",
+      "es-MX"
+    ],
+    "parallel_requests_isolated": true,
+    "manual_cookie_overrides_browser": true,
+    "safe_return_redirect": true,
+    "invalid_language_rejected": true
+  },
+  "browser": {
+    "english_interface": true,
+    "spanish_interface": true,
+    "preference_survives_reload_and_login": true,
+    "form_validation_in_english": true,
+    "form_step_and_entered_value_survive_es_en_switch": true,
+    "conversation_preserved_on_switch": true,
+    "application_list_in_english": true,
+    "trace_diagram_and_table_pagination_in_english": true,
+    "sensitive_capture_titles_in_english": true,
+    "http_basic_secret_still_available": true,
+    "catalogue_descriptions_in_english": true,
+    "actual_model_responses": {
+      "claude": [
+        "en",
+        "es"
+      ],
+      "openai": [
+        "en"
+      ],
+      "xai": [
+        "en"
+      ]
+    },
+    "mobile_width": 390,
+    "mobile_no_horizontal_overflow": true,
+    "final_preference": "es",
+    "final_provider": "anthropic"
+  },
+  "runtime_source_sha256": {
+    "app/i18n.py": "544829228a7ccd260490006d1e811d8fa2d22b816ca3c7978929083b840fac89",
+    "app/translations_en.json": "be7a6ed3648b291b0794a4142cbdb1087c7bf12bb642aa14791b28d4a9663f76",
+    "app/main.py": "9403800b0ce9a03ae88e2dce7d0093aa122ffe12859c0a9852a10d70a255da01",
+    "app/application_ui.py": "2242612d235ecbc8bd9617b7f9e8009f4e55fe56e168e7997690e2029390bff0",
+    "app/agent.py": "7cbb297a3864b85979b81bc7671af3dd5d6f98ad2ffd263612d46b7c6eb6138f",
+    "app/catalogue.py": "817d6de1486b21181feadab2786bc6e8cd4d07e3b503684f4d25a8ae57c4dc05",
+    "app/security.py": "07b94c530c18272173092f05d02492c4abf2d6bb64a43e8d1e998ae225c6db36",
+    "app/guardrails.py": "3681d17f05be6cefa70cf91edfddd7273fb6eb2abd07a3e84b3e451401f5a505",
+    "app/services.py": "2facbd3d7ec9326fe04ce38a5bfa1f3e99ec2f137af008b2137db84374ff48cd",
+    "app/trace_flow_ui.py": "6f8bbeae8a28742c99399ca9cf55600eb7041cf39231654dfc05ecff3b737847",
+    "app/trace_flow.js": "ec1b41f20184e82fa8b99712a31b56bdf38db695df9c047e6ba38950794eb5e7",
+    "app/trace_inspection.py": "e8d5d2e1cfdb4a2f89b5be5ddc564ca44b624716e9c57424640585325070b758",
+    "static/style.css": "fd5044343f3d745e3eac995f6049b646ab0831811fe58d4a2242af8b33f0e64a"
+  },
+  "runtime_matches_source": true,
+  "screenshots": [
+    "screenshots/lumen-en.png",
+    "screenshots/lumen-en-mobile.png"
+  ],
+  "scope_notes": [
+    "The external IBM Verify portal keeps its own language preference.",
+    "Existing messages, personal data and raw captured values are not translated.",
+    "UI verification did not persist a new application."
+  ]
+}

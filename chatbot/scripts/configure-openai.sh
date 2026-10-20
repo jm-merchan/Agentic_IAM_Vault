@@ -45,7 +45,7 @@ fi
 jq -n --arg entity "$entity" '{display_name:"chatbot-openai",entity_id:$entity,ceiling_policies:["chatbot-openai"],no_default_ceiling_policy:true,optional_authorization_details:false,description:"Lumen workload: Vault SPIFFE JWT-SVID to OpenAI WIF"}' | vault write agent-registry/register - >/dev/null
 vault policy write chatbot-bootstrap "$CHATBOT_DIR/policies/bootstrap.hcl" >/dev/null
 [ "$identity_only" = false ] || { echo 'Identidad chatbot-openai preparada; proveedor activo sin cambios.'; exit 0; }
-jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-4.1-mini}" --arg provider "$OPENAI_IDENTITY_PROVIDER_ID" --arg service_account "$OPENAI_SERVICE_ACCOUNT_ID" \
+jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-4.1-nano}" --arg provider "$OPENAI_IDENTITY_PROVIDER_ID" --arg service_account "$OPENAI_SERVICE_ACCOUNT_ID" \
   --arg issuer "https://$NGROK_DOMAIN/v1/verify/spiffe" --arg sub "spiffe://${SPIFFE_TRUST_DOMAIN:-lumen.demo}/ns/verify/agent/lumen-openai" \
   '{provider:"openai",model:$model,credential_source:"vault_spiffe",credential_path:"spiffe/role/lumen-openai/mintjwt",auth_flow:"spiffe_jwt_svid",identity_provider_id:$provider,service_account_id:$service_account,issuer:$issuer,spiffe_id:$sub,audience:"https://api.openai.com/v1"}' | kv_write chatbot/model
 echo 'OpenAI configurado: SPIFFE JWT-SVID y token exchange; sin API key de inferencia estática.'

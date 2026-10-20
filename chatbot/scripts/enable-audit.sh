@@ -13,12 +13,16 @@ AGENT_FILTER='namespace == "verify/" and operation == "read" and (path == "datab
 PROTECTION_FILTER='namespace == "verify/" and (path == "transit/encrypt/lumen-applications" or path == "transit/decrypt/lumen-applications" or path == "transform/encode/lumen-dni" or path == "transform/decode/lumen-dni" or path == "transform/encode/lumen-iban" or path == "transform/decode/lumen-iban")'
 XAI_FILTER='namespace == "verify/" and path == "xai/creds/lumen"'
 XAI_ACCESS_FILTER='namespace == "verify/" and path == "secrets/data/chatbot/xai-access"'
-SPIFFE_FILTER='namespace == "verify/" and path == "spiffe/role/lumen-openai/mintjwt"'
+SPIFFE_FILTER='namespace == "verify/" and (path == "spiffe/role/lumen-openai/mintjwt" or path == "spiffe/role/lumen-anthropic/mintjwt")'
 case "$AUDIT_MODE" in
   raw)
+    if vault audit list -format=json | jq -e --arg filter "$SPIFFE_FILTER" \
+      'has("lumen-spiffe-raw/") and .["lumen-spiffe-raw/"].options.filter!=$filter' >/dev/null; then
+      vault audit disable lumen-spiffe-raw
+    fi
     if ! vault audit list -format=json | jq -e 'has("lumen-spiffe-raw/")' >/dev/null; then
       vault audit enable -path=lumen-spiffe-raw \
-        -description='Lumen lab: Vault-issued SPIFFE JWT-SVID for OpenAI' \
+        -description='Lumen lab: Vault-issued SPIFFE JWT-SVID for model providers' \
         file file_path=/proc/self/fd/2 mode=0000 log_raw=true hmac_accessor=false filter="$SPIFFE_FILTER"
     fi
     vault audit list -format=json | jq -e --arg filter "$SPIFFE_FILTER" \

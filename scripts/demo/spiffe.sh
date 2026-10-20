@@ -13,9 +13,14 @@ fi
 jq -n --arg domain "$trust_domain" --arg issuer "https://$NGROK_DOMAIN/v1/verify/spiffe" \
   '{trust_domain:$domain,jwt_issuer_url:$issuer,jwt_oidc_compatibility_mode:true,jwt_signing_algorithm:"RS256",key_lifetime:"24h",bundle_refresh_hint:"1h"}' |
   vault write spiffe/config - >/dev/null
-jq -n --arg sub "spiffe://$trust_domain/ns/verify/agent/lumen-openai" \
+case "${LUMEN_SELECTED_PROVIDER:-openai}" in
+  openai) role=lumen-openai; audience=https://api.openai.com/v1;;
+  anthropic) role=lumen-anthropic; audience=https://api.anthropic.com;;
+  *) fail 'SPIFFE solo se configura para openai o anthropic';;
+esac
+jq -n --arg sub "spiffe://$trust_domain/ns/verify/agent/$role" \
   '{template:({sub:$sub,application:"lumen",environment:"demo"}|tojson),ttl:"5m",use_jti_claim:true}' |
-  vault write spiffe/role/lumen-openai - >/dev/null
+  vault write "spiffe/role/$role" - >/dev/null
 mkdir -p "$LUMEN_STATE_DIR/openai"
 vault read -format=json spiffe/.well-known/openid-configuration > "$LUMEN_STATE_DIR/openai/discovery-vault.json"
-echo 'SPIFFE preparado en verify/spiffe; JWT-SVID con TTL 5 minutos.'
+echo "SPIFFE preparado en verify/spiffe para $role ($audience); JWT-SVID con TTL 5 minutos."

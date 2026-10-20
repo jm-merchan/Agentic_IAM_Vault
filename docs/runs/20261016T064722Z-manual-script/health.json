@@ -1,0 +1,1 @@
+{"status":"ok","service":"lumen","model":{"provider":"openai","model":"gpt-4.1-mini","credential_source":"vault_spiffe"}}

@@ -29,6 +29,12 @@ if cmd=='plutil': sys.exit(1)
 if cmd=='helm': sys.exit(0)
 if cmd=='vault':
     if a[:2]==['secrets','list']: out({'xai/':{'type':'vault-plugin-secrets-xai'}})
+    elif a[:2]==['namespace','lookup']:
+        if s.get('namespace_error'):
+            print('Error reading namespace: permission denied (403)',file=sys.stderr);sys.exit(2)
+        if s.get('namespace_absent'):
+            print('Namespace not found',file=sys.stderr);sys.exit(2)
+        out({'data':{'id':'fixture'}})
     elif a[:2]==['lease','revoke']:
         if s.get('fail_revoke'): sys.exit(1)
     else: sys.exit('unexpected vault command')
@@ -62,7 +68,7 @@ elif cmd=='curl':
     code=200; body={}
     resources=s['resources']
     if base=='/oauth2/token': body={'access_token':'synthetic-access-token'}
-    elif base=='/v1/sys/namespaces/verify': body={'data':{'id':'fixture'}}
+    elif base=='/v1/sys/namespaces/verify': sys.exit('Vault must be accessed through CLI')
     elif method=='DELETE':
         assert base in resources
         assert resources[base]['fixture_lumen']
@@ -169,11 +175,27 @@ def test_remove_is_scoped_ordered_and_repeatable(lab):
     revoke=next(i for i,e in enumerate(log) if e[0]=='vault' and 'revoke' in e[1])
     assert revoke < next(i for i,e in enumerate(log) if is_delete(e))
     for cmd,args in log:
+        if cmd=='curl':
+            method=args[args.index('--request')+1]
+            assert args[args.index('--retry')+1] == ('2' if method=='GET' else '0')
         if cmd=='curl' and 'DELETE' in args:
             url=next(a for a in args if a.startswith('https://'))
             if '/v2.0/' in url: assert url.endswith('?notifyType=NONE')
     result=run(lab)
     assert result.returncode==0,result.stderr+result.stdout
+
+
+def test_namespace_lookup_error_is_not_treated_as_absence(lab):
+    change(lab,namespace_error=True); result=run(lab)
+    assert result.returncode!=0
+    assert (lab['state']/'vault/cluster-keys.json').exists()
+    assert not any(is_delete(e) for e in events(lab))
+
+
+def test_interrupted_install_without_verify_can_be_removed(lab):
+    change(lab,namespace_absent=True); result=run(lab)
+    assert result.returncode==0,result.stderr+result.stdout
+    assert not any(e[0]=='vault' and 'revoke' in e[1] for e in events(lab))
 
 
 @pytest.mark.parametrize('failure',['fail_delete','fail_revoke','pv_stuck'])

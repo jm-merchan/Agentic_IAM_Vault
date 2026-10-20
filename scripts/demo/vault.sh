@@ -47,9 +47,6 @@ CONF
   helm upgrade --install vault hashicorp/vault --version "${VAULT_HELM_VERSION:-0.34.1}" --kube-context workshop -n vault -f "$VSTATE/values.yaml" \
     --set-string "server.image.repository=$image_repo" --set-string "server.image.tag=$image_tag" --server-side=false
 else
-  if [ "${LUMEN_SELECTED_PROVIDER:-xai}" = xai ] && [ "${LUMEN_PROVIDER_OVERRIDE:-}" != openai ]; then
-    "${K[@]}" -n vault exec vault-0 -- test -x /vault/plugins/vault-plugin-secrets-xai || fail 'La imagen existente no incluye el plugin xAI; no se reemplaza automáticamente.'
-  fi
   helm --kube-context workshop -n vault status vault -o json > "$VSTATE/helm-status.json"
   if jq -e '.info.status=="failed"' "$VSTATE/helm-status.json" >/dev/null; then
     # Helm 4 SSA conflicts with the injector's self-managed caBundle.
@@ -58,7 +55,17 @@ else
     helm upgrade vault hashicorp/vault --version "${VAULT_HELM_VERSION:-0.34.1}" --kube-context workshop -n vault --reuse-values --server-side=false
   fi
 fi
+# Helm can return before the StatefulSet controller creates the pods. Waiting
+# only for Running fails immediately with NotFound on a clean installation.
+# Wait separately: kubectl can also fail immediately when several named pods
+# are missing, even with --for=create.
+"${K[@]}" -n vault wait --for=create pod/vault-0 --timeout=450s
+"${K[@]}" -n vault wait --for=create pod/vault-1 --timeout=450s
+"${K[@]}" -n vault wait --for=create pod/vault-2 --timeout=450s
 "${K[@]}" -n vault wait --for=jsonpath='{.status.phase}'=Running pod/vault-0 pod/vault-1 pod/vault-2 --timeout=450s
+if [ "${LUMEN_SELECTED_PROVIDER:-xai}" = xai ] && [ "${LUMEN_PROVIDER_OVERRIDE:-}" != openai ]; then
+  "${K[@]}" -n vault exec vault-0 -- test -x /vault/plugins/vault-plugin-secrets-xai || fail 'La imagen existente no incluye el plugin xAI; no se reemplaza automáticamente.'
+fi
 "${K[@]}" -n vault get secret vault-ha-tls -o json | jq -r '.data["vault.ca"]|@base64d' > "$VSTATE/vault.ca"
 "${K[@]}" -n vault exec vault-0 -- vault status -format=json > "$VSTATE/status.json" || [ "$?" -eq 2 ]
 if jq -e '.initialized==false' "$VSTATE/status.json" >/dev/null; then

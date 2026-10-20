@@ -2,6 +2,7 @@ path "secrets/data/chatbot/oidc" { capabilities = ["read"] }
 path "secrets/data/chatbot/research" { capabilities = ["read"] }
 path "secrets/data/chatbot/xai" { capabilities = ["read"] }
 path "secrets/data/chatbot/openai" { capabilities = ["read"] }
+path "secrets/data/chatbot/anthropic" { capabilities = ["read"] }
 path "secrets/data/chatbot/sts" { capabilities = ["read"] }
 path "secrets/data/chatbot/runtime" { capabilities = ["read"] }
 path "secrets/data/chatbot/model" { capabilities = ["read"] }

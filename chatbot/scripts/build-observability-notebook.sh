@@ -53,11 +53,15 @@ Para el despliegue completo desde la raíz:
 
 El lanzador mantiene port-forwards y aplicación mediante servicios de usuario. Los scripts individuales son para mantenimiento; no hacen falta terminales adicionales. La configuración se lee de `.env`.
 
-`run.sh` usa `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4318/v1/traces`. Los tokens de bootstrap siguen siendo temporales y limitados. El modelo continúa usando xAI desde Vault.
+`run.sh` usa `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4318/v1/traces`. Los tokens de bootstrap siguen siendo temporales y limitados. El proveedor se elige en el banner entre los perfiles OpenAI/xAI/Claude cargados; cada uno usa su identidad de Vault.
 
 La captura LLM está habilitada por defecto con `LUMEN_TRACE_CONTENT=1`: mensajes, respuestas, herramientas, argumentos y resultados, con ocultación de credenciales. Independientemente, `LUMEN_TRACE_VAULT_RAW=1` guarda el intercambio con Vault, JWT y credenciales en claro. Límite por campo: 65.536 bytes, con truncamiento indicado; Tempo usa `distributor.max_attribute_bytes=131072`. Para volver a metadatos de nuevas trazas: `LUMEN_TRACE_CONTENT=0 LUMEN_TRACE_VAULT_RAW=0 bash chatbot/scripts/run.sh`. El audit log tiene su propio interruptor (sección 8).
 
-En Grafana abre un span `xai.chat` y revisa `lumen.user.message`, `gen_ai.input.messages`, `gen_ai.output.messages` y `gen_ai.tool.definitions`. En `tool.*`, revisa `gen_ai.tool.call.arguments` y `gen_ai.tool.call.result`. El enlace **Ver última traza** del chat ofrece paneles legibles por llamada. Las trazas anteriores no contienen mensajes. Se captura el contenido del callback LangChain, no el cuerpo HTTP exacto ni razonamiento interno del modelo.
+En Grafana abre un span `xai.chat`, `openai.chat` o `anthropic.chat` y revisa `lumen.user.message`, `gen_ai.input.messages`, `gen_ai.output.messages` y `gen_ai.tool.definitions`. En `tool.*`, revisa `gen_ai.tool.call.arguments` y `gen_ai.tool.call.result`. El enlace **Ver última traza** del chat ofrece paneles legibles por llamada. Las trazas anteriores no contienen mensajes. Se captura el contenido del callback LangChain, no el cuerpo HTTP exacto ni razonamiento interno del modelo.
+
+El visor local ofrece un diagrama interactivo con iconos por servicio, filtros de destino, flechas de petición/retorno y detalles de cada llamada. En laboratorio, **Ver valores sensibles / View sensitive values** abre los valores de OAuth y HTTP Basic (incluido `client_secret`), JWT-SVID, credenciales MySQL y cuerpos de cifrado/descifrado. Las nuevas capturas permanecen en memoria diez minutos; las capturas raw de Vault/SPIFFE mantienen la retención de trazas. [Alcance completo](chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
+
+**EN / ES** cambia títulos, explicaciones, formatos y paginación según la preferencia de Lumen; los valores originales nunca se traducen. El idioma inicial procede del navegador, salvo elección manual guardada. Grafana conserva su propio idioma. [Comprobación bilingüe](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües) · [Evidencia del 20/10](chatbot/docs/language-verification.json).
 
 - Chat: <http://localhost:8088>
 - Dashboard: <http://localhost:3000/d/lumen-iam>
@@ -102,7 +106,7 @@ cell markdown <<'MD'
 
 Copiar **Trace ID** del panel Actividad y pegarlo en el dashboard. Cada petición a Vault produce `request` y `response`, con el mismo `request.id`. El header `traceparent` contiene el `trace_id` y `span_id` de `vault.read`, también para las respuestas 403.
 
-En un log: menú → **Show log details** → campo **TraceID** → **Abrir traza**. En Tempo: abrir el span `vault.read` → **Related logs**. El árbol muestra `deepagents.run`, llamadas `xai.chat` u `openai.chat`, herramientas, STS, Vault y consultas SQL o Tavily. OpenAI añade `spiffe.mint_jwt_svid` y `openai.token_exchange`. El login OIDC genera una traza aparte, con usuario y rol, una vez validada su firma.
+En un log: menú → **Show log details** → campo **TraceID** → **Abrir traza**. En Tempo: abrir el span `vault.read` → **Related logs**. El árbol muestra `deepagents.run`, llamadas `xai.chat`, `openai.chat` o `anthropic.chat`, herramientas, STS, Vault y consultas SQL o Tavily. OpenAI y Claude añaden `spiffe.mint_jwt_svid` y su intercambio `openai.token_exchange` o `anthropic.token_exchange`. El login OIDC genera una traza aparte, con usuario y rol, una vez validada su firma.
 
 ![Auditoría del supervisor: cuatro operaciones permitidas](docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg)
 ![SPIFFE, OpenAI y OBO](docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
@@ -148,7 +152,7 @@ TRACE_ID=''
 [ -n "$TRACE_ID" ] || { echo 'Pega un Trace ID reciente y repite la celda.'; exit 0; }
 curl -fsS "http://127.0.0.1:3200/api/traces/$TRACE_ID" | jq '
   [.batches[]?.scopeSpans[]?.spans[]?
-   | select(.name == "xai.chat" or (.name | startswith("tool.")))
+   | select(.name == "xai.chat" or .name == "openai.chat" or .name == "anthropic.chat" or (.name | startswith("tool.")))
    | {name,attributes:[.attributes[]?
        | select(.key | test("^(gen_ai\\.(input.messages|output.messages|tool.definitions|tool.call.arguments|tool.call.result)|lumen\\.(user.message|model.parameters))$"))
        | {field:.key,content:(.value.stringValue|fromjson)}]}]'

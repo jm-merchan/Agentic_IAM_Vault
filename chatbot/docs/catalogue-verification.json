@@ -1,0 +1,141 @@
+{
+  "checked_at": "2026-10-20T13:33:23.814996+00:00",
+  "all_passed": true,
+  "checks": [
+    {
+      "provider": "anthropic",
+      "writer_proposal_backed_by_catalogue": true
+    },
+    {
+      "provider": "anthropic",
+      "reader_cannot_prepare": true
+    },
+    {
+      "provider": "openai",
+      "writer_proposal_backed_by_catalogue": true
+    },
+    {
+      "provider": "openai",
+      "reader_cannot_prepare": true
+    },
+    {
+      "provider": "xai",
+      "writer_proposal_backed_by_catalogue": true
+    },
+    {
+      "provider": "xai",
+      "reader_cannot_prepare": true
+    }
+  ],
+  "turns": [
+    {
+      "provider": "anthropic",
+      "role": "writer",
+      "request": "Compara los planes del catálogo",
+      "answer": "**Catálogo de demostración**\n\n| Plan | €/kWh | Descripción |\n|---|---:|---|\n| Luz Equilibrio | 0,145 | Precio estable durante todo el día\\. Datos ficticios de demostración\\. |\n| Luz Noche | 0,119 | Plan de ejemplo orientado al consumo nocturno\\. |\n| Solar Contigo | 0,132 | Plan ficticio para hogares con autoconsumo\\. |\n\nPrecios ficticios consultados ahora en el catálogo.",
+      "trace_id": "dee2f73174cb4fe41f8f4236334c7d43",
+      "operation": "catalog",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "anthropic",
+      "role": "writer",
+      "request": "Continuar solicitud",
+      "answer": "Elige el plan para tu solicitud:\n\n| Plan | €/kWh | Descripción |\n|---|---:|---|\n| Luz Equilibrio | 0,145 | Precio estable durante todo el día\\. Datos ficticios de demostración\\. |\n| Luz Noche | 0,119 | Plan de ejemplo orientado al consumo nocturno\\. |\n| Solar Contigo | 0,132 | Plan ficticio para hogares con autoconsumo\\. |\n\nTodavía no hay ninguna propuesta preparada. Son planes ficticios de demostración.",
+      "trace_id": "3ee6483d316c5dc0c242a627090a527f",
+      "operation": "prepare_request",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "anthropic",
+      "role": "writer",
+      "request": "Luz Equilibrio",
+      "answer": "**Propuesta preparada: Luz Equilibrio**\n\n- Precio: **0,145 €/kWh**.\n- Energía renovable: Sí.\n- Precio estable durante todo el día\\. Datos ficticios de demostración\\..\n\nPulsa **Continuar solicitud** en la tarjeta para abrir el formulario. Allí podrás completar tus datos y revisar antes de guardar.\n\nTodavía no se ha guardado ninguna solicitud. Es una demostración, sin contratación real.",
+      "trace_id": "e5d0c8b4300eef6ea640f7eec0027a5e",
+      "operation": "prepare_request",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "anthropic",
+      "role": "reader",
+      "request": "Prepara una solicitud con Luz Equilibrio",
+      "answer": "Tu perfil permite consultar los planes, pero no preparar ni guardar solicitudes. Para tramitar una solicitud de demostración, entra con el usuario escritor.",
+      "trace_id": "674f242e4b1dd56bc123f63db9ca5710",
+      "operation": "prepare_request",
+      "mysql_selects": 0
+    },
+    {
+      "provider": "openai",
+      "role": "writer",
+      "request": "Compara los planes del catálogo",
+      "answer": "**Catálogo de demostración**\n\n| Plan | €/kWh | Descripción |\n|---|---:|---|\n| Luz Equilibrio | 0,145 | Precio estable durante todo el día\\. Datos ficticios de demostración\\. |\n| Luz Noche | 0,119 | Plan de ejemplo orientado al consumo nocturno\\. |\n| Solar Contigo | 0,132 | Plan ficticio para hogares con autoconsumo\\. |\n\nPrecios ficticios consultados ahora en el catálogo.",
+      "trace_id": "b18c12fe007e7ef0ae4541d41462fe26",
+      "operation": "catalog",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "openai",
+      "role": "writer",
+      "request": "Continuar solicitud",
+      "answer": "Elige el plan para tu solicitud:\n\n| Plan | €/kWh | Descripción |\n|---|---:|---|\n| Luz Equilibrio | 0,145 | Precio estable durante todo el día\\. Datos ficticios de demostración\\. |\n| Luz Noche | 0,119 | Plan de ejemplo orientado al consumo nocturno\\. |\n| Solar Contigo | 0,132 | Plan ficticio para hogares con autoconsumo\\. |\n\nTodavía no hay ninguna propuesta preparada. Son planes ficticios de demostración.",
+      "trace_id": "ff20de700283bece6bba4ae8fcf21862",
+      "operation": "prepare_request",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "openai",
+      "role": "writer",
+      "request": "Luz Equilibrio",
+      "answer": "**Propuesta preparada: Luz Equilibrio**\n\n- Precio: **0,145 €/kWh**.\n- Energía renovable: Sí.\n- Precio estable durante todo el día\\. Datos ficticios de demostración\\..\n\nPulsa **Continuar solicitud** en la tarjeta para abrir el formulario. Allí podrás completar tus datos y revisar antes de guardar.\n\nTodavía no se ha guardado ninguna solicitud. Es una demostración, sin contratación real.",
+      "trace_id": "f2366fe352010ead8aade315a6218dce",
+      "operation": "prepare_request",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "openai",
+      "role": "reader",
+      "request": "Prepara una solicitud con Luz Equilibrio",
+      "answer": "Tu perfil permite consultar los planes, pero no preparar ni guardar solicitudes. Para tramitar una solicitud de demostración, entra con el usuario escritor.",
+      "trace_id": "5836b8973313ed65795e24b85bb5c750",
+      "operation": "prepare_request",
+      "mysql_selects": 0
+    },
+    {
+      "provider": "xai",
+      "role": "writer",
+      "request": "Compara los planes del catálogo",
+      "answer": "**Catálogo de demostración**\n\n| Plan | €/kWh | Descripción |\n|---|---:|---|\n| Luz Equilibrio | 0,145 | Precio estable durante todo el día\\. Datos ficticios de demostración\\. |\n| Luz Noche | 0,119 | Plan de ejemplo orientado al consumo nocturno\\. |\n| Solar Contigo | 0,132 | Plan ficticio para hogares con autoconsumo\\. |\n\nPrecios ficticios consultados ahora en el catálogo.",
+      "trace_id": "4de7b5fe2298f98780373f36b85266ac",
+      "operation": "catalog",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "xai",
+      "role": "writer",
+      "request": "Continuar solicitud",
+      "answer": "Elige el plan para tu solicitud:\n\n| Plan | €/kWh | Descripción |\n|---|---:|---|\n| Luz Equilibrio | 0,145 | Precio estable durante todo el día\\. Datos ficticios de demostración\\. |\n| Luz Noche | 0,119 | Plan de ejemplo orientado al consumo nocturno\\. |\n| Solar Contigo | 0,132 | Plan ficticio para hogares con autoconsumo\\. |\n\nTodavía no hay ninguna propuesta preparada. Son planes ficticios de demostración.",
+      "trace_id": "d29da4925deec0b91c8861fdb81e8b0d",
+      "operation": "prepare_request",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "xai",
+      "role": "writer",
+      "request": "Luz Equilibrio",
+      "answer": "**Propuesta preparada: Luz Equilibrio**\n\n- Precio: **0,145 €/kWh**.\n- Energía renovable: Sí.\n- Precio estable durante todo el día\\. Datos ficticios de demostración\\..\n\nPulsa **Continuar solicitud** en la tarjeta para abrir el formulario. Allí podrás completar tus datos y revisar antes de guardar.\n\nTodavía no se ha guardado ninguna solicitud. Es una demostración, sin contratación real.",
+      "trace_id": "cb54108cae4f9402e778703cfdaf7c99",
+      "operation": "prepare_request",
+      "mysql_selects": 1
+    },
+    {
+      "provider": "xai",
+      "role": "reader",
+      "request": "Prepara una solicitud con Luz Equilibrio",
+      "answer": "Tu perfil permite consultar los planes, pero no preparar ni guardar solicitudes. Para tramitar una solicitud de demostración, entra con el usuario escritor.",
+      "trace_id": "10d272c0950b19f42c95cbd054f8ecf0",
+      "operation": "prepare_request",
+      "mysql_selects": 0
+    }
+  ],
+  "stored_requests": 0
+}

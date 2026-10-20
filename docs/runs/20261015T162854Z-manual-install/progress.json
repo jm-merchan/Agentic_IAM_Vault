@@ -1,0 +1,34 @@
+{
+  "run": "20261015T162854Z-manual-install",
+  "installation": "Bash blocks copied from Markdown guides; no demo.sh start or provisioning scripts",
+  "remove_completed": true,
+  "external_preserved": [
+    ".env",
+    "Verify admin client",
+    "shared RAR schema",
+    "OpenAI project/service account/WIF mapping"
+  ],
+  "completed_chapters": [
+    "00",
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08"
+  ],
+  "current": "09 UI validation, 10 supervisor OBO, 11 decrypt block pending browser availability",
+  "fixes": [
+    "Check running Minikube before start",
+    "Use JSON audit inventory on empty Vault",
+    "Require SCIM Accept header on activation and group creation",
+    "RAR creation conditional on inventory",
+    "Vault read direct for RAR-scoped KV access",
+    "Bash 3.2 ngrok argument array",
+    "xAI revoked key explicit HTTP 400 authentication error",
+    "Full SQL INSERT/rollback and Transform checks"
+  ],
+  "runtime_started": true
+}

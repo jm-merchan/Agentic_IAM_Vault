@@ -1,0 +1,18 @@
+[
+  {
+    "table": "scripting/test_encryption",
+    "encryption": "Y"
+  },
+  {
+    "table": "scripting/energy_plans",
+    "encryption": "Y"
+  },
+  {
+    "table": "scripting/service_requests",
+    "encryption": "Y"
+  },
+  {
+    "table": "scripting/energy_applications",
+    "encryption": "Y"
+  }
+]

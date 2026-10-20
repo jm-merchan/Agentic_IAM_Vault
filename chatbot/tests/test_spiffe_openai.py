@@ -99,6 +99,11 @@ async def test_exchange_uses_svid_without_api_key_and_requires_usable_lifetime(m
         attrs = next(r['attributes'] for r in records_for({tid}) if r['name'] == 'openai.token_exchange')
         assert json.loads(attrs['openai.exchange.subject_token']) == 'signed-svid'
         assert 'temporary-test-token' not in json.dumps(records_for({tid}))
+        from app.lab_capture import STORE
+        record = next(r for r in records_for({tid}) if r['name'] == 'openai.token_exchange')
+        evidence = STORE.get(tid, record['span_id'])['sections']
+        assert evidence['request']['value']['body']['subject_token'] == 'signed-svid'
+        assert evidence['response']['value']['body']['access_token'] == token
 
 
 def test_svid_capture_disabled_excludes_raw_token_and_claims(monkeypatch):

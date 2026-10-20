@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-10-15T13:15:03.993050+00:00",
-  "local_links_checked": 344,
+  "checked_at": "2026-10-16T07:52:22.782081+00:00",
+  "local_links_checked": 559,
   "notebooks_checked": 10,
   "bash_cells_checked": 62,
-  "shell_scripts_checked": 57,
+  "shell_scripts_checked": 66,
   "missing_local_links": [],
   "notebooks_with_outputs": [],
   "invalid_notebooks": [],

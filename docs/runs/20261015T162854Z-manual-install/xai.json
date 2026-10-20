@@ -1,0 +1,9 @@
+{
+  "dynamic_lease": true,
+  "lease_duration": 300,
+  "renewable": false,
+  "inference": "XAI OK",
+  "after_revocation_http": 400,
+  "after_revocation_error": "Incorrect API key provided. You can obtain an API key from https://console.x.ai.",
+  "revocation_verified": true
+}

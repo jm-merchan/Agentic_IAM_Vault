@@ -34,7 +34,7 @@ for path in secrets/data/xai secrets/data/xai_mgmt xai/creds/lumen; do
   record "bootstrap_denied_$path" "$([ "$status" = 403 ] && echo true || echo false)"
 done
 curl -fsS --max-time 15 --cacert "$VAULT_CACERT" -X POST --header "@$TMP_WORK/bootstrap.headers" "$VAULT_ADDR/v1/auth/token/revoke-self" >/dev/null
-kv_read chatbot/model > "$TMP_WORK/model.json"
+kv_read chatbot/model | jq '.providers.xai // .' > "$TMP_WORK/model.json"
 jq '{model,messages:[{role:"user",content:"Responde solamente OK."}],max_tokens:128,reasoning_effort:"low"}' "$TMP_WORK/model.json" > "$TMP_WORK/prompt.json"
 jq -jr '"Authorization: Bearer "+.data.api_key+"\nContent-Type: application/json\n"' "$TMP_WORK/credential.json" > "$TMP_WORK/xai.headers"
 http POST https://api.x.ai/v1/chat/completions "$TMP_WORK/answer.json" "$TMP_WORK/xai.headers" --data-binary "@$TMP_WORK/prompt.json"

@@ -1,0 +1,28 @@
+{
+  "verified_at": "2026-10-20T15:14:08.180608+00:00",
+  "scope": "Ampliacion de la captura de laboratorio a client_secret y Authorization Basic completos.",
+  "tests": {
+    "python_passed": 83,
+    "checks": [
+      "Cabecera capturada igual a la enviada por HTTPX",
+      "Client Credentials, STS y login OIDC",
+      "Secretos con Unicode y secreto vacio",
+      "Modo desactivado y aislamiento del exportador"
+    ]
+  },
+  "live_check": {
+    "trace_id": "8df86646846c33af8d079056d25318a2",
+    "client_id_visible": true,
+    "client_secret_visible": true,
+    "authorization_basic_visible": true,
+    "basic_decodes_to_displayed_client_id_and_secret": true,
+    "old_omission_message_absent": true
+  },
+  "runtime_matches_workspace": true,
+  "source_sha256": {
+    "app/lab_capture.py": "b44f9f984ac8008b9324f248a678da6aa432c49d54bc66fe109b92e4217d8fcf",
+    "app/services.py": "1cb7780a033c08145443524f59da7de1ba0efc6799a4158c4e5e6e3c77417dba",
+    "app/security.py": "9883d7d4e2ed437504e09c36c04a690a97c76933130fefe7c03f52a775472e32"
+  },
+  "note": "Los valores reales se muestran en el visor; este informe registra las comprobaciones sin copiar credenciales."
+}

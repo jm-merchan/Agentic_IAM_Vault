@@ -21,14 +21,16 @@ from pathlib import Path
 from langchain_openai import ChatOpenAI
 from app.security import load_config, Identity, Session
 from app.services import Services
+from app.model_config import model_config
 from app.telemetry import span, trace_id
 
 async def main():
     config = load_config()
+    config['model'] = model_config(config, 'openai')
     if config['model'].get('credential_source') != 'vault_spiffe':
         raise SystemExit('El proveedor activo no es OpenAI SPIFFE.')
     services = Services(config, Identity(config))
-    session = Session('verification', subject='verification', expires_at=time.time()+600)
+    session = Session('verification', model_provider='openai', subject='verification', expires_at=time.time()+600)
     with span('lumen.verify.openai_spiffe'):
         tid = trace_id()
         first, deadline = await services.model_credentials(session)
