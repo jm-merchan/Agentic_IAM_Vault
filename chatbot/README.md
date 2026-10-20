@@ -4,6 +4,8 @@ Chatbot de energía en Python con **NiceGUI + LangChain Deep Agents + xAI/OpenAI
 
 Desde la raíz, ejecutar **`./demo.sh`** y abrir **http://localhost:8088**. [Instalación y `.env`](../README.md). Los notebooks 1–4 y 6–9 son documentación por etapas y llaman a los mismos scripts. [Notebook OpenAI/SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb) y [reconstrucción manual verificada del 16 de octubre](../docs/runs/20261016T064722Z-manual-script/README.md).
 
+El [notebook 10 · oauth2c](../10_OAuth2c_Verify_Vault.ipynb) permite seguir la emisión de tokens de Verify sin usar el chat: humano PKCE, actor Client Credentials y delegado OBO/RAR, con una lectura autorizada y una denegación en Vault. Reutiliza los clientes de Lumen y prepara un callback temporal independiente del puerto 8088.
+
 El nuevo [recorrido de solicitudes protegidas](#solicitudes-en-cinco-pasos) añade Transit, tokenización y tres perfiles. Aprovisionamiento y comprobaciones en el [notebook 8](../8_Lumen_Protected_Applications.ipynb).
 
 La interfaz y las respuestas admiten **español e inglés**, con detección del navegador y botones **EN / ES**. [Selección, alcance y pruebas](#idioma-español-e-inglés).

@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-10-20T15:56:10.592198+00:00",
+  "checked_at": "2026-10-20T16:17:07.164517+00:00",
   "documents": 17,
   "bash_blocks": 212,
-  "shell_scripts": 73,
-  "local_links": 205,
+  "shell_scripts": 75,
+  "local_links": 210,
   "errors": [],
   "all_passed": true,
   "scope": "Static syntax and local links only. No provisioning, credentials issuance, inference, revocation or deletion."

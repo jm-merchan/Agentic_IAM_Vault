@@ -2,6 +2,14 @@
 
 [Índice](README.md) · [Evidencias de esta ejecución](../runs/20261016T064722Z-manual-script/README.md)
 
+## Notebook oauth2c · 20 de octubre de 2026
+
+El [notebook 10](../../10_OAuth2c_Verify_Vault.ipynb) adapta la obtención e intercambio de tokens de HashiCorp a los clientes existentes de Lumen. Incluye PKCE, Client Credentials, OBO con RAR, lectura/denegación en Vault y refresh condicional; Lumen conserva ROPC y refresh desactivados.
+
+Pasaron **57 pruebas locales**: 13 del [notebook](../../chatbot/tests/test_oauth2c_notebook.py) y 44 de configuración manual. Se ejecutaron las celdas Bash con **oauth2c 1.21.1 real contra un servidor OAuth local simulado**, con credenciales sintéticas. Se comprobaron Basic, los scopes, desafío/verifier PKCE, subject/actor, RAR, respuestas JSON y la repetición del recorrido. La preparación/retirada del callback conserva una URI preexistente y otros cambios en la aplicación; también se comprobaron puerto ocupado, token caducado, issuer incorrecto y fallos que no deben contarse como denegaciones.
+
+El [informe](../../verify/docs/oauth2c-notebook-validation.json) recoge las pruebas y la validación del archivo. **No se ejecutó contra el tenant real ni se emitieron credenciales reales de MySQL.** Las respuestas de Vault y la API administrativa de Verify fueron simuladas. Al ejecutar el notebook sobre el laboratorio sí se solicitan tokens reales, se añade/retira el callback indicado y la lectura positiva emite una credencial temporal.
+
 ## Interfaz bilingüe y trazas · 20 de octubre de 2026
 
 El [informe de idiomas](../../chatbot/docs/language-verification.json) corresponde a la implementación y despliegue de EN/ES sobre el laboratorio existente. La revisión documental posterior enlaza esa evidencia; no repite ni sustituye la instalación completa.

@@ -35,6 +35,8 @@ Completa 00–05, prepara **los tres proveedores en 06–08** y continúa con 09
 
 El idioma inicial se toma del navegador; **EN / ES** guarda una elección explícita. La [comprobación bilingüe de 10](10-aplicacion.md#idioma-y-comprobaciones-bilingües) explica la prioridad, conservación del formulario y equivalencias de botones. No requiere entradas nuevas de instalación.
 
+Como alternativa didáctica al capítulo 11, el [notebook 10 · oauth2c](../../10_OAuth2c_Verify_Vault.ipynb) obtiene tokens de usuario, actor y delegado con los clientes ya instalados. Incluye preparación y retirada del callback local 9876, RAR, inspección y pruebas de acceso con Vault CLI. No forma parte del aprovisionamiento ni requiere ejecutar de nuevo `start`.
+
 Para una instalación ya preparada, sigue [la actualización sin reconstrucción](10-aplicacion.md#actualizar-una-instalación-existente). Las evidencias anteriores al selector siguen identificadas como históricas en [VALIDACION](VALIDACION.md); actualizar estas guías no equivale a haber repetido una retirada completa.
 
 ## Cómo leer y ejecutar los ejemplos

@@ -1,0 +1,50 @@
+{
+  "checked_at": "2026-10-20T16:16:48.965558+00:00",
+  "notebook": "10_OAuth2c_Verify_Vault.ipynb",
+  "oauth2c": "oauth2c version 1.21.1 (commit ddf1a127dadae78fe23a32923881eaa66540fcd8, built at 2026-09-23T16:55:19Z)",
+  "scope": "Local synthetic OAuth server and Vault CLI fixture. Actual oauth2c executable and published Bash cells. No calls to the real Verify tenant, no infrastructure changes, no real token issuance or MySQL credentials.",
+  "tests": {
+    "command": "/tmp/vault-chatbot-venv/bin/python -m pytest -q chatbot/tests/test_oauth2c_notebook.py chatbot/tests/test_manual_configuration.py",
+    "passed": 57,
+    "failed": 0,
+    "skipped": 0,
+    "suites": {
+      "chatbot.tests.test_oauth2c_notebook": 13,
+      "chatbot.tests.test_manual_configuration": 44
+    }
+  },
+  "coverage": [
+    "client_credentials Basic and scopes",
+    "authorization_code PKCE S256 verifier and callback",
+    "STS subject_token actor_token requested_token_type and RAR",
+    "token response JSON and private file modes",
+    "delegated JWT passed to Vault instead of bootstrap token",
+    "HTTP 403 versus TLS failure",
+    "conditional refresh absent and present",
+    "callback idempotence and removal ownership",
+    "preservation of unrelated application edits",
+    "expired or wrong-issuer token",
+    "occupied callback port",
+    "missing credential and failed issuance remove stale results"
+  ],
+  "notebook_checks": {
+    "cells": 24,
+    "bash_cells": 11,
+    "empty_outputs": true,
+    "bash_3_2_syntax": true,
+    "nbformat_validation": true,
+    "reproducible_generation": true,
+    "local_links": 208
+  },
+  "source_sha256": {
+    "10_OAuth2c_Verify_Vault.ipynb": "e5d2a8f97260cc0b55f7cec3212eb6c2c94112e68e37382471cc4c60997e550f",
+    "verify/scripts/build-oauth2c-notebook.sh": "f075b8893b3dc907c8739fdb1b2b6f6c2822d40d164b0b5a048614836ec10ac4",
+    "verify/scripts/oauth2c-common.sh": "cb253e33a314ff31271146065d5b8e1fe57704164343f727f3c5b77758ffd3a4",
+    "chatbot/tests/test_oauth2c_notebook.py": "56552a03698fa94a492e69c60f7a0a1fe287decbb054c5645adc56741e78aea5"
+  },
+  "sources": [
+    "https://developer.hashicorp.com/vault/ai/iam/providers/verify",
+    "https://github.com/SecureAuthCorp/oauth2c/tree/v1.21.1"
+  ],
+  "all_passed": true
+}

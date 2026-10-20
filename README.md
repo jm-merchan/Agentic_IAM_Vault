@@ -287,7 +287,8 @@ El perfil OAuth de Vault y el cliente aplican **15 segundos de tolerancia** al v
 - [Instalación manual y validación más reciente](docs/manual/VALIDACION.md).
 - [Validación Claude con Vault SPIFFE JWT-SVID](docs/runs/20261016-claude-spiffe/README.md).
 - [Reconstrucción automatizada con OpenAI, 15 de octubre (histórico)](docs/E2E_OPENAI_VERIFICATION.md). [Histórico xAI, 14 de octubre](docs/E2E_VERIFICATION.md).
-- Notebooks de consulta: [1 Vault](1_Deploy_Vault_minikube.ipynb), [2 MySQL/KMIP](2_vault-demo-kmip-mysql.ipynb), [3 roles SQL](3_Database_Secret_Engine.ipynb), [4 xAI](4_XAI_Secret_Engine.ipynb), [6 Lumen](6_Lumen_Chatbot_Vault_IAM.ipynb), [7 observabilidad](7_Lumen_Observability.ipynb), [8 solicitudes](8_Lumen_Protected_Applications.ipynb), [9 OpenAI/SPIFFE](9_OpenAI_Vault_SPIFFE.ipynb).
+- Notebooks de consulta: [1 Vault](1_Deploy_Vault_minikube.ipynb), [2 MySQL/KMIP](2_vault-demo-kmip-mysql.ipynb), [3 roles SQL](3_Database_Secret_Engine.ipynb), [4 xAI](4_XAI_Secret_Engine.ipynb), [6 Lumen](6_Lumen_Chatbot_Vault_IAM.ipynb), [7 observabilidad](7_Lumen_Observability.ipynb), [8 solicitudes](8_Lumen_Protected_Applications.ipynb), [9 OpenAI/SPIFFE](9_OpenAI_Vault_SPIFFE.ipynb), [10 tokens con oauth2c](10_OAuth2c_Verify_Vault.ipynb).
+- [Ejemplos oauth2c sobre Lumen instalado](10_OAuth2c_Verify_Vault.ipynb): Client Credentials, login PKCE, intercambio OBO con RAR y uso del JWT delegado con Vault. Incluye callback temporal 9876 y su retirada, inspección de tokens y ejemplo condicional de refresh. [Alcance de las pruebas locales](verify/docs/oauth2c-notebook-validation.json).
 - [Verify base, bootstrap UI y creación de usuarios](verify/README.md) conserva el ejercicio histórico `verify-agent`. Lumen configura su propio OIDC/STS y no requiere el login guardado de aquel ejercicio.
 - [Okta](okta/README.md) permanece aparcado y fuera del comando. Las conexiones/static roles de pagos del namespace raíz tampoco son dependencias de Lumen.
 

@@ -4,6 +4,8 @@
 
 Esta prueba reproduce el protocolo sin pedir al LLM que lo haga. El usuario inicia sesión en el navegador; Bash recibe el código, usa PKCE y solicita el token delegado. **No se habilita ROPC** ni se intercambia la contraseña humana por un token desde curl.
 
+El [notebook 10 · tokens con oauth2c](../../10_OAuth2c_Verify_Vault.ipynb) ofrece un recorrido alternativo con la herramienta utilizada por HashiCorp: actor Client Credentials, humano PKCE y token exchange con el STS y RAR. Carga el entorno en cada celda y obtiene credenciales administrativas nuevas para preparar/retirar su callback. Usa este recorrido o el notebook por separado: ambos emplean el puerto 9876.
+
 Para el ensayo completamente por script, [13](13-repeticion-script.md) usa el mismo grant Authorization Code + PKCE: curl envía el formulario de login de Cloud Directory, conserva sus cookies, acepta únicamente el consentimiento de `openid profile email` e intercepta el callback registrado de Lumen. El código se canjea por tokens con el verifier y se validan firma y nonce. No necesita el callback temporal 9876 de este capítulo. Se empieza con un cookie jar vacío para cada usuario, sin `prompt=login`; en este tenant, añadir ese parámetro produjo una segunda pantalla de login tras autenticaciones rápidas.
 
 ## 1. Añadir un callback local solo para esta prueba
