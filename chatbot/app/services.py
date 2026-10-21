@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 import httpx
+from .http_capture import request_hook
 import jwt
 import pymysql
 
@@ -19,7 +20,10 @@ from .telemetry import headers, operation, span, trace_id
 from .trace_content import VaultTraceRecorder
 from . import lab_capture
 from .applications import ApplicationServices
+from .task_agents import actor_credential, task_allows
+from .agent_details import AgentInspector, agent_markdown, token_agent
 from .spiffe import SpiffeModelServices, OPENAI_RAR, ANTHROPIC_RAR
+from .rar import authorization_details
 from opentelemetry import trace
 
 
@@ -31,6 +35,13 @@ XAI_RAR = [
 
 class VaultPermissionDenied(AccessDenied):
     """An actual HTTP 403 from Vault, distinct from network or service errors."""
+
+
+class VaultResponseError(AccessDenied):
+    """Preserve the HTTP status without exposing an upstream response body."""
+    def __init__(self, status_code):
+        self.status_code = status_code
+        super().__init__('El servicio de credenciales no está disponible para esta operación.')
 
 
 @dataclass(frozen=True)
@@ -50,6 +61,7 @@ class Services(ApplicationServices, SpiffeModelServices):
         self.vault_tls = ssl.create_default_context(cafile=config['vault_ca'])
         self._xai_credential: ModelCredential | None = None
         self._xai_lock = asyncio.Lock()
+        self.agent_inspector = AgentInspector(config, self.vault_tls)
 
     def role(self, session: Session) -> str:
         session.require_login()
@@ -76,7 +88,7 @@ class Services(ApplicationServices, SpiffeModelServices):
             current.set_attribute('auth.rar.required', True)
         lab_capture.request(current, 'POST', ISSUER + '/token', data,
                             basic_auth=(cred['client_id'], cred['client_secret']))
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, timeout=30) as client:
             response = await client.post(ISSUER + '/token', auth=(cred['client_id'], cred['client_secret']),
                                          data=data)
         current.set_attribute('http.response.status_code', response.status_code)
@@ -91,22 +103,29 @@ class Services(ApplicationServices, SpiffeModelServices):
         return token
 
     @operation('verify.obo_exchange')
-    async def exchange(self, session: Session, path: str, capabilities=None) -> str:
+    async def exchange(self, session: Session, path: str, capabilities=None, *, parameters=None) -> str:
         current = trace.get_current_span()
         current.set_attribute('vault.path', path)
         current.set_attribute('auth.flow', 'obo')
         session.require_login()
-        actor = await self.client_token('oidc')
+        expected_rar = authorization_details(path, capabilities, parameters)
+        current.set_attribute('auth.rar.requested', json.dumps(expected_rar))
+        credential_name = actor_credential(self.config, session.task_agent)
+        current.set_attribute('agent.identity', 'chatbot-' + credential_name)
+        current.set_attribute('agent.mode', session.task_agent)
+        actor = await self.client_token(credential_name)
         cred = self.config['sts']
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, timeout=30) as client:
             with span('verify.token_exchange', **{'vault.path': path, 'auth.flow': 'obo'}) as exchange_span:
+                exchange_span.set_attribute('agent.identity', 'chatbot-' + credential_name)
+                exchange_span.set_attribute('agent.mode', session.task_agent)
+                exchange_span.set_attribute('auth.rar.requested', json.dumps(expected_rar))
                 data = {
                     'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
                     'subject_token': session.access_token, 'subject_token_type': 'urn:ietf:params:oauth:token-type:access_token',
                     'actor_token': actor, 'actor_token_type': 'urn:ietf:params:oauth:token-type:access_token',
                     'requested_token_type': 'urn:ietf:params:oauth:token-type:access_token',
-                    'authorization_details': json.dumps([{'type': 'vault:path_access', 'path': path,
-                                                         'capabilities': capabilities or ['read']}]),
+                    'authorization_details': json.dumps(expected_rar),
                 }
                 lab_capture.request(exchange_span, 'POST', ISSUER + '/token', data,
                                     basic_auth=(cred['client_id'], cred['client_secret']))
@@ -120,11 +139,11 @@ class Services(ApplicationServices, SpiffeModelServices):
         # The Verify STS profile has no audience support in this lab. Validate signature,
         # issuer, expiry, subject, actor AND exact RAR before presenting the JWT to Vault.
         claims = await asyncio.to_thread(self.identity.validate, token, None)
-        expected_rar = [{'type': 'vault:path_access', 'path': path, 'capabilities': capabilities or ['read']}]
         if (claims['sub'] != session.subject
-                or claims.get('actor-token', {}).get('sub') != self.config['oidc']['client_id']
+                or claims.get('actor-token', {}).get('sub') != self.config[credential_name]['client_id']
                 or claims.get('authorization_details') != expected_rar):
             raise AccessDenied('La delegación recibida no coincide con la operación solicitada.')
+        current.set_attribute('auth.rar.validated', json.dumps(claims['authorization_details']))
         self.event(session, 'Delegación OBO', 'Usuario → Verify STS → agente · permiso para una ruta')
         return token
 
@@ -141,10 +160,19 @@ class Services(ApplicationServices, SpiffeModelServices):
         current.set_attribute('vault.path', path)
         current.set_attribute('vault.namespace', 'verify')
         current.set_attribute('http.request.method', method)
+        if agent := token_agent(token, self.config):
+            current.set_attribute('agent.identity', agent)
         recorder = VaultTraceRecorder()
         current.set_attribute('vault.capture.raw', recorder.enabled)
         url = str(httpx.URL(self.config['vault_addr'] + '/v1/' + path).copy_merge_params(params or {}))
         request_headers = {'X-Vault-Token': token, 'X-Vault-Namespace': 'verify', **headers()}
+        # Observability only; Vault remains the authority for this token.
+        try:
+            presented = jwt.decode(token, options={'verify_signature': False}).get('authorization_details')
+            if isinstance(presented, list):
+                current.set_attribute('auth.rar.presented', json.dumps(presented))
+        except jwt.InvalidTokenError:
+            pass
         recorder.capture(current, 'vault.http.request', {
             'method': method, 'url': url, 'headers': request_headers, 'body': payload,
         })
@@ -160,9 +188,10 @@ class Services(ApplicationServices, SpiffeModelServices):
                 })
             except jwt.InvalidTokenError:
                 current.set_attribute('vault.auth.jwt.decode_error', 'InvalidTokenError')
-        async with httpx.AsyncClient(verify=self.vault_tls, timeout=30) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, verify=self.vault_tls, timeout=30) as client:
             response = await client.request(method, url, headers=request_headers, json=payload)
         current.set_attribute('http.response.status_code', response.status_code)
+        lab_capture.response(current, response)
         if recorder.enabled:
             try:
                 body = response.json()
@@ -171,12 +200,14 @@ class Services(ApplicationServices, SpiffeModelServices):
             recorder.capture(current, 'vault.http.response', {
                 'status_code': response.status_code, 'headers': dict(response.headers), 'body': body,
             })
-        if response.status_code == 200:
+        try:
             current.set_attribute('vault.request_id', response.json().get('request_id', ''))
+        except (ValueError, AttributeError):
+            pass
         if response.status_code == 403:
             raise VaultPermissionDenied(f'Vault ha denegado esta operación (HTTP 403): {path}. Revisa los permisos o los bloqueos activos.')
         if response.status_code != 200:
-            raise AccessDenied('El servicio de credenciales no está disponible para esta operación.')
+            raise VaultResponseError(response.status_code)
         return response.json()
 
     @operation('model.credentials')
@@ -280,7 +311,8 @@ class Services(ApplicationServices, SpiffeModelServices):
         try:
             with span('mysql.query', **{'db.system.name': 'mysql', 'db.namespace': 'scripting',
                                        'db.operation.name': 'INSERT' if write else 'SELECT',
-                                       'db.role': credential_role}) as current:
+                                       'db.role': credential_role,
+                                       'agent.identity': 'chatbot-' + actor_credential(self.config, session.task_agent)}) as current:
                 lab_capture.capture(current, 'connection', 'Credencial dinámica utilizada en MySQL', {
                     'host': '127.0.0.1', 'port': 13306, 'database': 'scripting',
                     'username': credential['data']['username'], 'password': credential['data']['password'],
@@ -310,6 +342,8 @@ class Services(ApplicationServices, SpiffeModelServices):
         return await self.database(session, 'SELECT ID,server_name FROM test_encryption ORDER BY ID DESC LIMIT 20')
 
     def prepare_request(self, session: Session, plan_id: int, note: str) -> dict:
+        if not task_allows(session, 'write'):
+            raise AccessDenied('Este agente no puede crear solicitudes. Selecciona Creación de solicitudes.')
         if self.role(session) != 'readwrite':
             raise AccessDenied('Tu grupo solo permite lectura.')
         if plan_id not in {1, 2, 3} or not 1 <= len(note.strip()) <= 500:
@@ -341,12 +375,12 @@ class Services(ApplicationServices, SpiffeModelServices):
         secret = await self.vault_get('secrets/data/tavily', token)
         api_key = secret['data']['data']['TAVILY_API_KEY']
         self.event(session, 'Agente de investigación', 'Client Credentials → Agent Registry → secreto Tavily')
-        with span('tavily.search', **{'search.topic': topic, 'server.address': 'api.tavily.com'}) as current:
+        with span('tavily.search', **{'search.topic': topic, 'server.address': 'api.tavily.com', 'agent.identity': 'chatbot-research'}) as current:
             payload = {'query': query, 'max_results': 4, 'search_depth': 'basic',
                        'include_raw_content': False, 'include_answer': False}
             lab_capture.request(current, 'POST', 'https://api.tavily.com/search', payload,
                                 headers={'Authorization': 'Bearer ' + api_key})
-            async with httpx.AsyncClient(timeout=45) as client:
+            async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, timeout=45) as client:
                 response = await client.post('https://api.tavily.com/search',
                                              headers={'Authorization': 'Bearer ' + api_key},
                                              json=payload)
@@ -364,6 +398,7 @@ class Services(ApplicationServices, SpiffeModelServices):
         t = Translator(language or getattr(session, 'language', 'es'))
         role = self.role(session)
         reveal = self.can_reveal(session)
+        write = role == 'readwrite' and task_allows(session, 'write')
         fixture = self.config['runtime'].get('permission_probe', {})
         try:
             if fixture['version'] != 1 or not all(isinstance(value, str) and value for value in (
@@ -373,6 +408,10 @@ class Services(ApplicationServices, SpiffeModelServices):
                 raise ValueError('Invalid probe fixture')
         except (ValueError, KeyError, TypeError):
             raise AccessDenied('La comprobación de protección no está preparada. Revisa la instalación de la demo.') from None
+        agent_name = 'chatbot-' + actor_credential(self.config, getattr(session, 'task_agent', 'legacy'))
+        trace.get_current_span().set_attribute('agent.identity', agent_name)
+        inspector = getattr(self, 'agent_inspector', None)
+        agent_detail = await inspector.describe(agent_name) if inspector else None
         checks = []
         for suffix in ('readonly', 'readwrite'):
             path = 'database/creds/chatbot-' + suffix
@@ -382,7 +421,7 @@ class Services(ApplicationServices, SpiffeModelServices):
                 allowed = True
             except VaultPermissionDenied:
                 allowed = False
-            expected = suffix == 'readonly' or role == 'readwrite'
+            expected = suffix == 'readonly' or write
             checks.append(('Base de datos y administración', path, allowed, expected))
         # Correct RAR for the forbidden path: agent ceiling + user ACL must still deny it.
         token = await self.exchange(session, 'secrets/data/verify-admin')
@@ -394,7 +433,7 @@ class Services(ApplicationServices, SpiffeModelServices):
         checks.append(('Base de datos y administración', 'secrets/data/verify-admin', allowed, False))
         probes = [
             ('Transit · cifrar y descifrar el perfil', 'transit/encrypt/lumen-applications',
-             {'plaintext': fixture['profile_plaintext']}, role == 'readwrite', 'ciphertext', None),
+             {'plaintext': fixture['profile_plaintext']}, write, 'ciphertext', None),
             ('Transit · cifrar y descifrar el perfil', 'transit/decrypt/lumen-applications',
              {'ciphertext': fixture['profile_ciphertext']}, reveal, 'plaintext', fixture['profile_plaintext']),
         ]
@@ -402,7 +441,7 @@ class Services(ApplicationServices, SpiffeModelServices):
             name = 'lumen-' + field
             probes.extend([
                 ('Transform · tokenizar y recuperar DNI e IBAN', 'transform/encode/' + name,
-                 {'value': fixture[field]['value'], 'transformation': name}, role == 'readwrite', 'encoded_value', None),
+                 {'value': fixture[field]['value'], 'transformation': name}, write, 'encoded_value', None),
                 ('Transform · tokenizar y recuperar DNI e IBAN', 'transform/decode/' + name,
                  {'value': fixture[field]['token'], 'transformation': name}, reveal, 'decoded_value', fixture[field]['value']),
             ])
@@ -428,6 +467,8 @@ class Services(ApplicationServices, SpiffeModelServices):
                    status='ok' if matches == len(checks) else 'error')
         lines = ['**' + t('Comprobación de permisos en Vault') + '**', '',
                  t('{matches} de {count} comprobaciones coinciden con los permisos esperados de tu perfil.', matches=matches, count=len(checks))]
+        if agent_detail:
+            lines.extend(['', agent_markdown(agent_detail, t), ''])
         section = None
         for group, path, allowed, expected in checks:
             if group != section:

@@ -62,6 +62,8 @@ Se utiliza `verify/config/oidc-template.json`, una plantilla sin secretos ni ID 
 
 `lumen-reader` pertenece a `chatbot-readers`; `lumen-writer`, a `chatbot-writers`; `lumen-supervisor`, a `chatbot-supervisors`. Son usuarios locales Cloud Directory. Sus contraseñas están en `verify/secrets/chatbot/users/reader`, `writer` y `supervisor`. El script activa las cuentas por API sin enviar correos.
 
+También se preparan tres identidades opcionales: Consulta, Creación de solicitudes y Revelado de datos. Se eligen en **Agentes por tarea** y cada cambio comienza una sesión nueva con PKCE. **Modo actual** conserva el flujo previo. El techo del agente nunca amplía los permisos del usuario. [Guía y límites](docs/manual/14-agentes-por-tarea.md).
+
 El último script asigna la aplicación a los tres grupos y sincroniza sus miembros con grupos internos de Vault. Ejecutarlo tras cambiar membresías; reiniciar la aplicación y volver a iniciar sesión. El script 06 prepara Transit, tokenización y la tabla adicional de solicitudes: requiere Transform en la licencia. Ver [notebook 8](8_Lumen_Protected_Applications.ipynb).
 MD
 add_cell code <<'CODE'
@@ -71,6 +73,7 @@ bash chatbot/scripts/02-verify-apps.sh
 bash chatbot/scripts/03-verify-users.sh
 bash chatbot/scripts/06-data-protection.sh
 bash chatbot/scripts/04-vault-agents.sh
+bash chatbot/scripts/configure-task-agents.sh
 bash chatbot/scripts/05-sync-groups.sh
 CODE
 add_cell markdown <<'MD'
@@ -117,6 +120,10 @@ add_cell markdown <<'MD'
 ## 6. Iniciar Lumen
 
 La siguiente celda permanece ejecutándose. Abrir **http://localhost:8088** en Chrome; usar exactamente `localhost` por el callback OIDC. Elegir Cloud Directory y uno de los usuarios de prueba. La contraseña puede consultarse en la UI de Vault.
+
+**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
+
+**Identidad en Vault:** la comprobación de límites y cada paso de la traza muestran el agente correspondiente, con enlaces al registro, entidad, alias y políticas. Los metadatos se consultan con una credencial separada de sólo lectura y muestran la fecha de consulta. [Detalles y operación](docs/manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault).
 
 **Idioma:** Lumen detecta el idioma del navegador y ofrece **EN / ES** arriba a la derecha. La elección guardada prevalece, se conserva al volver a entrar y afecta al chat, formularios, trazas y siguientes respuestas. El historial y los valores capturados permanecen originales. No requiere variables de `.env` ni cambios de identidades. [Uso y mantenimiento](chatbot/README.md#idioma-español-e-inglés).
 

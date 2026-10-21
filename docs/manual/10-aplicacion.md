@@ -65,6 +65,9 @@ export CHATBOT_BOOTSTRAP_TOKEN
 CHATBOT_BOOTSTRAP_TOKEN=$(vault token create -format=json \
   -policy=chatbot-bootstrap -no-default-policy -ttl=5m -explicit-max-ttl=5m \
   -display-name=lumen-bootstrap | jq -er .auth.client_token)
+vault policy write chatbot-agent-inspector "$LUMEN_ROOT/chatbot/policies/agent-inspector.hcl"
+export CHATBOT_AGENT_INSPECTOR_TOKEN
+CHATBOT_AGENT_INSPECTOR_TOKEN=$(vault token create -format=json -policy=chatbot-agent-inspector -no-default-policy -period=1h -display-name=lumen-agent-inspector | jq -er .auth.client_token)
 unset VAULT_TOKEN
 unset VERIFY_ADMIN_CLIENT_SECRET XAI_MANAGEMENT_API_KEY XAI_TEAM_ID TAVILY_API_KEY
 unset OPENAI_ADMIN_API_KEY OPENAI_API_KEY NGROK_AUTHTOKEN
@@ -83,7 +86,7 @@ cd "$LUMEN_ROOT/chatbot"
 /tmp/vault-chatbot-venv/bin/python -m app.main
 ```
 
-La app carga su configuración y revoca el bootstrap en `load_config()`. El resto de accesos usa JWT de Verify, OBO o identidad SPIFFE según el recurso. No recargar `session.sh` dentro del proceso de la app después de limpiar sus variables.
+La app carga su configuración y revoca el bootstrap en `load_config()`. Las operaciones de negocio usan JWT de Verify, OBO o identidad SPIFFE según el recurso. La ficha de agentes utiliza un token independiente de sólo lectura de metadatos, renovado por Lumen y revocado al cerrar; [alcance y enlaces](14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault). No recargar `session.sh` dentro del proceso de la app después de limpiar sus variables.
 
 Esta ejecución en primer plano se mantiene mientras la terminal esté abierta; Ctrl+C la detiene. El lanzador automatizado utiliza launchd y copia el runtime fuera de Google Drive por las restricciones de macOS. Esa supervisión no es necesaria para entender el arranque manual.
 
@@ -177,3 +180,5 @@ No hace falta recrear Vault, usuarios, MySQL ni las federaciones para incorporar
 6. Comprobar la salud y probar los tres botones según la sección 6. Si falta una identidad, preparar antes su capítulo correspondiente.
 
 La aplicación carga el catálogo al arrancar: cambiar modelos/IDs en Vault requiere reiniciar Lumen; cambiar entre perfiles ya cargados desde el banner no. La selección inicial se usa cuando el navegador todavía no tiene una preferencia guardada. El arranque sincroniza las claves públicas de Claude con el perfil administrativo descrito en [08](08-claude-spiffe.md).
+
+**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](../../chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).

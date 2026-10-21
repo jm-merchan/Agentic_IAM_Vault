@@ -15,3 +15,58 @@
 .tf-inspector-grid{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px}.tf-inspector nav{display:flex;flex-direction:column;gap:6px}.tf-inspector nav button{padding:12px;text-align:left;font:inherit;font-size:12px;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}.tf-inspector nav small{display:block;color:var(--muted);font-size:10px;margin-top:5px}.tf-inspector nav .tf-section-active{border-color:var(--accent-ink);background:color-mix(in srgb,var(--accent) 30%,var(--surface))}
 .tf-value{min-width:0}.tf-value-heading strong{font-size:13px;overflow-wrap:anywhere}.tf-value pre{margin:12px 0 0;padding:18px;max-height:480px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:9px;font-size:12px;line-height:1.7}.tf-value code{font-family:ui-monospace,SFMono-Regular,monospace}.tf-value-note,.tf-inspection-note{font-size:11px;color:var(--muted);line-height:1.7;margin:14px 0 0}
 @media(max-width:700px){.tf-inspector{padding:14px}.tf-inspector-grid{grid-template-columns:minmax(0,1fr)}.tf-inspector nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.tf-inspector-heading{align-items:start}.tf-value-heading{flex-wrap:wrap}.tf-value pre{padding:12px}}
+
+/* Agent identity is independent of the service destination in the sequence. */
+.tf-agent { margin: 20px 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow-wrap: anywhere; }
+.tf-agent > strong { display: block; margin: 6px 0; font-size: 16px; }
+.tf-agent-context, .tf-agent p { font-size: 12px; line-height: 1.6; }
+.tf-agent-links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0; }
+.tf-agent a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; font-size: 12px; }
+.tf-agent small { display: block; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.tf-agent-details { margin: 16px 0; }
+.tf-agent summary { cursor: pointer; font-size: 13px; padding: 8px 0; }
+.tf-agent h4 { margin-top: 20px; font-size: 13px; }
+.tf-agent dl { margin: 12px 0; }
+.tf-agent dt { margin-top: 12px; }
+.tf-agent dd { font-size: 12px; }
+.tf-policy { border-top: 1px solid var(--line); }
+.tf-policy pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; line-height: 1.5; max-height: 300px; overflow: auto; padding: 10px; background: var(--soft); }
+
+@media(min-width:1051px){.tf-detail{max-height:690px;overflow:auto;scrollbar-width:thin}}
+
+/* Editable request workbench, scoped to the trace component. */
+.tf-workbench fieldset { border: 0; padding: 0; margin: 18px 0; min-width: 0; }
+.tf-workbench label { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.tf-workbench input, .tf-workbench textarea, .tf-workbench select {
+  background: var(--surface, #fffefa); color: var(--ink, #292c26); border: 1px solid var(--line, #dfdfd7);
+  border-radius: 8px; padding: 10px 12px; font: inherit; width: 100%; box-sizing: border-box;
+}
+.tf-workbench textarea { font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.65; resize: vertical; }
+.tf-workbench textarea:focus, .tf-workbench input:focus { outline: 2px solid var(--olive, #394e2b); outline-offset: 2px; }
+.tf-http-address { display: grid; grid-template-columns: 115px 1fr; gap: 14px; margin: 16px 0; }
+.tf-request-headers { margin: 18px 0; }
+.tf-workbench-toolbar, .tf-workbench-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.tf-workbench-toolbar label { min-width: 200px; flex: 1; }
+.tf-workbench-actions .tf-reveal { width: auto; margin: 0; padding-inline: 24px; }
+.tf-workbench details { margin: 16px 0; }
+.tf-workbench summary { cursor: pointer; margin-bottom: 10px; }
+.tf-workbench pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 460px; overflow: auto; padding: 16px;
+  border: 1px solid var(--line, #dfdfd7); border-radius: 10px; background: var(--surface, #fffefa); font-size: 12px; }
+.tf-replay-result { margin-top: 24px; border-top: 1px solid var(--line, #dfdfd7); padding-top: 16px; }
+.tf-mysql-auth { margin: 18px 0 24px; padding: 18px; border: 1px solid var(--line, #dfdfd7); border-radius: 12px; }
+.tf-mysql-auth h4 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
+.tf-mysql-connection { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 14px 0; }
+.tf-mysql-connection input { font-family: ui-monospace, monospace; font-size: 13px; }
+.tf-mysql-password { grid-column: span 2; }
+.tf-mysql-lease { font-size: 12px; overflow-wrap: anywhere; }
+.tf button:disabled { opacity: .55; cursor: wait; }
+@media (max-width: 600px) {
+  .tf-http-address, .tf-mysql-connection { grid-template-columns: 1fr; }
+  .tf-mysql-password { grid-column: auto; }
+}
+.tf-rar-summary{margin:18px 0;padding:14px;border-radius:10px;background:var(--soft,#f0f0ea);font-size:12px;line-height:1.6}
+.tf-rar-panel{margin-top:22px;padding:24px;border:1px solid var(--line,#dedfd8);border-radius:16px;min-width:0}
+.tf-rar-panel h3{font-size:20px;margin:12px 0}.tf-rar-panel p{font-size:13px;line-height:1.7}
+.tf-rar-json{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.tf-rar-json>div{min-width:0}.tf-rar-json h4{font-size:13px}
+.tf-rar-json pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;padding:16px;background:var(--soft,#f0f0ea);border-radius:10px;font-size:12px}
+@media(max-width:760px){.tf-rar-json{grid-template-columns:1fr}.tf-rar-panel{padding:16px}}

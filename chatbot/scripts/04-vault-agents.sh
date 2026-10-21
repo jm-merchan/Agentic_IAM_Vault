@@ -69,5 +69,9 @@ if vault kv metadata get -mount=secrets chatbot/xai >/dev/null 2>&1; then
 fi
 bash "$CHATBOT_DIR/scripts/configure-runtime.sh"
 bash "$CHATBOT_DIR/scripts/configure-permission-probe.sh"
+bash "$CHATBOT_DIR/scripts/configure-rar-fixtures.sh"
+if vault kv metadata get -mount=secrets chatbot/personal-spaces >/dev/null 2>&1; then
+  bash "$CHATBOT_DIR/scripts/configure-personal-spaces.sh"
+fi
 cp "$TMP_WORK/agents.json" "$CHATBOT_DIR/docs/agents.json"
 echo 'Two registered agents ready: OBO database and autonomous Tavily. Bootstrap policy has no database/Tavily access.'

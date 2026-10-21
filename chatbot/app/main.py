@@ -20,15 +20,23 @@ from .services import Services
 from .telemetry import records_for, span, trace_id
 from .trace_content import CONTENT_KEYS, VAULT_CONTENT_KEYS, SPIFFE_CONTENT_KEYS
 from .trace_inspection import inspection_router
+from .request_workbench import workbench_router
 from .trace_links import grafana_trace_url
 from .trace_flow_ui import TraceFlow
 from .application_ui import render_wizard, render_applications
+from .task_agents import actor_credential, task_agents_ready, task_allows
+from .task_agent_ui import task_agent_selector
+from .rar_lab_ui import render_rar_lab
+from .personal_spaces_ui import render_personal_spaces
 
 CONFIG = load_config()
 IDENTITY = Identity(CONFIG)
 SERVICES = Services(CONFIG, IDENTITY)
+app.on_startup(SERVICES.agent_inspector.start)
+app.on_shutdown(SERVICES.agent_inspector.close)
 COOKIE = 'lumen_session'
 app.include_router(inspection_router(IDENTITY, records_for, COOKIE))
+app.include_router(workbench_router(IDENTITY, records_for, COOKIE, vault_origin=CONFIG['vault_addr'], vault_tls=SERVICES.vault_tls))
 LOCKS: dict[str, asyncio.Lock] = {}
 STYLE = (Path(__file__).parents[1] / 'static/style.css').read_text()
 # Inline SVG gives the browser a new icon URL when the brand asset changes.
@@ -38,7 +46,7 @@ FAVICON = (Path(__file__).parents[1] / 'static/favicon.svg').read_text()
 @app.middleware('http')
 async def private_headers(request: Request, call_next):
     response = await call_next(request)
-    if request.url.path == '/' or request.url.path.startswith(('/auth/', '/traces/', '/solicitud')):
+    if request.url.path == '/' or request.url.path.startswith(('/auth/', '/traces/', '/solicitud', '/laboratorio-rar', '/mi-espacio')):
         response.headers['Cache-Control'] = 'no-store'
         response.headers['Referrer-Policy'] = 'no-referrer'
     return response
@@ -49,7 +57,8 @@ def health():
     return {'status': 'ok', 'service': 'lumen', 'model': {key: CONFIG['model'].get(key) for key in
              ('provider', 'model', 'credential_source')},
             'models': [{key: profile.get(key) for key in ('provider', 'model', 'credential_source')}
-                       for profile in model_profiles(CONFIG).values()]}
+                       for profile in model_profiles(CONFIG).values()],
+            'task_agents_available': task_agents_ready(CONFIG)}
 
 
 @app.get('/language/{language}')
@@ -70,9 +79,18 @@ def change_language(language: str, request: Request):
 @app.get('/auth/login')
 def login(request: Request):
     old = request.cookies.get(COOKIE)
+    if old and LOCKS.setdefault(old, asyncio.Lock()).locked():
+        return HTMLResponse(Translator(request_language(request))(
+            'Espera a que termine la operación para cambiar de agente.'), status_code=409)
+    try:
+        # Validate before invalidating the existing session. A query parameter
+        # can choose a new login, but cannot change an authenticated actor.
+        session, url = IDENTITY.start(request.query_params.get('agent', 'legacy'))
+    except AccessDenied as exc:
+        return HTMLResponse(Translator(request_language(request))(str(exc)), status_code=400)
     if old:
         IDENTITY.sessions.pop(old, None)
-    session, url = IDENTITY.start()
+        LOCKS.pop(old, None)
     session.language = request_language(request)
     response = RedirectResponse(url, status_code=303)
     response.set_cookie(COOKIE, session.sid, httponly=True, samesite='lax', max_age=600)
@@ -328,6 +346,9 @@ def home(request: Request):
         await perform(t('Buscar información pública sobre autoconsumo'), action)
 
     async def draft_dialog():
+        if session and not task_allows(session, 'write'):
+            ui.notify(t('Este agente no puede crear solicitudes. Selecciona Creación de solicitudes.'), type='warning')
+            return
         try:
             ensure_session()
             if SERVICES.role(session) != 'readwrite':
@@ -340,6 +361,8 @@ def home(request: Request):
             return
         ui.navigate.to('/solicitud')
 
+    agent_controls = task_agent_selector(CONFIG, session, t, lambda: busy or bool(
+        session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()))
     with ui.element('div').classes('shell'):
         with ui.element('aside').classes('rail'):
             ui.html(t('<div class="brand"><span class="brand-mark"></span>lumen<span style="font-size:14px;align-self:flex-start">®</span></div>'))
@@ -348,13 +371,11 @@ def home(request: Request):
                 ui.button(t('Conversación'), icon='chat_bubble_outline').props('flat').classes('nav-button nav-active')
                 ui.button(t('Planes de energía'), icon='light_mode', on_click=quick_plans).props('flat').classes('nav-button')
                 ui.button(t('Solicitudes'), icon='description', on_click=lambda: ui.navigate.to('/solicitudes')).props('flat').classes('nav-button')
+                ui.button(t('Laboratorio RAR'), icon='tune', on_click=lambda: ui.navigate.to('/laboratorio-rar')).props('flat').classes('nav-button')
+                ui.button(t('Mi espacio de secretos'), icon='lock_outline', on_click=lambda: ui.navigate.to('/mi-espacio')).props('flat').classes('nav-button')
                 ui.button(t('Borradores anteriores'), icon='history', on_click=quick_requests).props('flat').classes('nav-button')
                 ui.button(t('Explorar en la web'), icon='public', on_click=quick_search).props('flat').classes('nav-button')
             ui.button(t('Nueva conversación'), icon='add', on_click=clear_chat).props('outline').classes('secondary w-full')
-            with ui.element('div').classes('rail-bottom'):
-                ui.label(t('Tu identidad, tus permisos.')).style('font-weight:600;color:var(--ink)')
-                ui.label(t('Cada consulta accede únicamente a lo que tienes autorizado.'))
-                ui.label(t('IBM Verify × HashiCorp Vault')).classes('eyebrow mt-4').style('font-size:8px;letter-spacing:1px')
         with ui.element('main').classes('workspace'):
             with ui.element('header').classes('topbar'):
                 ui.html(t('<div class="desktop-label eyebrow"><span class="status-dot"></span>Asistente de energía</div><div class="mobile-brand brand"><span class="brand-mark"></span>lumen</div>'))
@@ -370,6 +391,7 @@ def home(request: Request):
                         ui.button(t('Entrar con Verify'), icon='arrow_outward', on_click=lambda: ui.navigate.to('/auth/login')).classes('primary')
                     language_switch(request, t, lambda: busy or bool(session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()))
             provider_banner()
+            agent_controls()
             with ui.element('div').classes('content-grid'):
                 with ui.element('section').classes('conversation'):
                     with ui.element('div').classes('welcome'):
@@ -408,16 +430,6 @@ def home(request: Request):
                         ui.label(session.name if session else t('Todo empieza contigo')).classes('identity-name')
                         ui.label(t('Identidad verificada por IBM Verify' if session else 'Una sesión, acceso a tu medida.')).classes('tiny muted mt-2')
                         ui.label(t(role_label if session else 'Pendiente de iniciar sesión')).classes('access-badge')
-                    with ui.element('div').classes('info-card'):
-                        ui.label(t('Cómo protegemos tus datos')).classes('info-title')
-                        for n, title, caption in [('1', 'Tu identidad', 'Verify confirma quién eres y tu grupo.'),
-                                                  ('2', 'Tu autorización', 'Vault limita cada operación del agente.'),
-                                                  ('3', 'Solo lo necesario', 'MySQL recibe una credencial temporal.')]:
-                            with ui.element('div').classes('flow-step'):
-                                ui.label(n).classes('flow-number')
-                                with ui.element('div'):
-                                    ui.label(t(title)).classes('tiny').style('font-weight:550')
-                                    ui.label(t(caption)).classes('tiny muted')
                     activity()
                     if session:
                         ui.button(t('Comprobar límites en Vault'), icon='policy', on_click=lambda: perform(
@@ -440,6 +452,8 @@ async def application_page(request, renderer):
         async with LOCKS.setdefault(session.sid, asyncio.Lock()):
             guard()
             with span(name, **{'user.id': session.subject, 'user.role': SERVICES.role(session),
+                               'agent.identity': 'chatbot-' + actor_credential(CONFIG, session.task_agent),
+                               'agent.mode': session.task_agent,
                                'user.can_reveal': SERVICES.can_reveal(session)}):
                 session.traces.append(trace_id())
                 session.traces[:] = session.traces[-50:]
@@ -451,7 +465,11 @@ async def application_page(request, renderer):
             ui.label(t('Accede a tus solicitudes con tu cuenta de Verify.')).classes('sign-in-description')
             ui.link(t('Entrar con Verify'), '/auth/login').classes('primary sign-in-action')
 
+    agent_controls = task_agent_selector(CONFIG, session, t, lambda: bool(
+        session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()))
     with ui.element('main').classes('application-shell') as shell:
+        if renderer in (render_rar_lab, render_personal_spaces):
+            shell.classes('rar-lab')
         try:
             guard()
         except AccessDenied as exc:
@@ -467,6 +485,7 @@ async def application_page(request, renderer):
         with ui.row().classes('application-tools'):
             language_switch(request, t, lambda: LOCKS.setdefault(session.sid, asyncio.Lock()).locked())
             ui.button(icon='contrast', on_click=dark.toggle).props(t.props('flat round aria-label="Cambiar tema"')).classes('icon-button')
+        agent_controls()
         try:
             await renderer(SERVICES, session, guard, run_action, language=t.language)
         except AccessDenied as exc:
@@ -483,8 +502,18 @@ async def application_list(request: Request):
     await application_page(request, render_applications)
 
 
+@ui.page('/laboratorio-rar')
+async def rar_laboratory(request: Request):
+    await application_page(request, render_rar_lab)
+
+
+@ui.page('/mi-espacio')
+async def personal_workspace(request: Request):
+    await application_page(request, render_personal_spaces)
+
+
 @ui.page('/traces/{tid}')
-def trace_page(tid: str, request: Request):
+async def trace_page(tid: str, request: Request):
     t = page_language(request)
     ui.add_css(STYLE)
     with ui.row().classes('trace-language-bar'):
@@ -503,7 +532,10 @@ def trace_page(tid: str, request: Request):
                 'primary inline-flex items-center gap-2 px-5 py-3 no-underline').props('rel="noopener noreferrer"'):
             ui.label(t('Ver en Grafana'))
             ui.icon('open_in_new', size='18px')
-    TraceFlow(records, tid, language=t.language)
+    from .trace_flow import build_flow
+    flow = build_flow(records)
+    agent_details = await SERVICES.agent_inspector.describe_many({c['agent_name'] for c in flow['calls'] if c.get('agent_name')})
+    TraceFlow(records, tid, language=t.language, agent_details=agent_details, selected_span=request.query_params.get('span', ''))
     start = min((r['start_ns'] for r in records), default=0)
     rows = [dict(name=r['name'], start=round((r['start_ns']-start)/1e6), duration=r['duration_ms'],
                  status=r['status'], detail=json.dumps({k: v for k, v in r['attributes'].items() if k not in CONTENT_KEYS}, ensure_ascii=False)) for r in records]

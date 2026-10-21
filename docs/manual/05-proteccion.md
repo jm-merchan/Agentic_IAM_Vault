@@ -81,6 +81,7 @@ done
 vault kv get -format=json -mount=secrets chatbot/runtime | jq '.data.data' > "$MANUAL/runtime.json"
 jq --slurpfile probe "$MANUAL/probe.json" '.permission_probe=$probe[0]' "$MANUAL/runtime.json" | \
   vault kv put -mount=secrets chatbot/runtime -
+bash chatbot/scripts/configure-rar-fixtures.sh
 ```
 
 ## 4. Entender las operaciones de recuperación

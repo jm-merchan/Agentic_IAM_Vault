@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-21",
+  "change": "MySQL authentication is visible by default in the request console, not inside a collapsed disclosure",
+  "trace_id": "238bfc09f6f01a4df36771c07e4b9777",
+  "visible_fields": [
+    "host",
+    "port",
+    "database",
+    "username",
+    "password"
+  ],
+  "fields_nonempty": true,
+  "password_plaintext": true,
+  "fields_readonly": true,
+  "lease_duration_at_issue_seconds": 120,
+  "replay_succeeded": true,
+  "replay_duration_ms": 23.84,
+  "python_focused_passed": 35,
+  "javascript_passed": 6,
+  "screenshot": "chatbot/docs/screenshots/mysql-authentication-fields.png",
+  "screenshot_scope": "Cropped before credential values; real credentials are not persisted in this report or image.",
+  "english_ui_verified": true,
+  "spanish_ui_restored": true
+}

@@ -218,6 +218,7 @@ async def test_obo_captures_both_actual_input_tokens_and_result(monkeypatch):
 async def test_database_captures_actual_credential_query_and_result(monkeypatch):
     service = object.__new__(Services)
     service.role = lambda session: 'readwrite'
+    service.config = {}
     service.event = lambda *args, **kw: None
     service.exchange = AsyncMock(return_value='obo')
     service.vault_get = AsyncMock(return_value={'lease_id': 'lease-test', 'lease_duration': 600,
@@ -238,7 +239,7 @@ async def test_database_captures_actual_credential_query_and_result(monkeypatch)
     monkeypatch.setattr('app.services.pymysql.connect', connect)
     with span('test.database'):
         tid = trace_id()
-        result = await service.database(None, 'SELECT plan WHERE id=%s', ('demo',))
+        result = await service.database(SimpleNamespace(task_agent='legacy'), 'SELECT plan WHERE id=%s', ('demo',))
     record = next(r for r in records_for({tid}) if r['name'] == 'mysql.query')
     found = sections(record)
     assert found['connection']['password'] == observed['password'] == 'CANARY_SQL'

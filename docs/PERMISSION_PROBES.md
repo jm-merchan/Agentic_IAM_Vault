@@ -59,3 +59,10 @@ Pasaron 114 pruebas de aplicación y dos subcasos. Las sesiones OIDC de los tres
 [Correlación completa](runs/20261015T114709Z-openai-clean/all-ui-observability.json) · [Prueba adicional de nueve rutas tras actualizar Alloy](runs/20261015T114709Z-openai-clean/fresh-after-alloy-fix.json).
 
 La primera prueba de este botón, anterior a la retirada, queda como [evidencia histórica](runs/20261015-permission-probes/summary.json). Encontró copias raw ausentes en Loki. La reconstrucción permitió reproducir el problema y corregirlo actualizando Alloy a 1.21.0-rc.0; se recuperaron los eventos originales y pasó la correlación completa. Los detalles y el uso explícito de esa versión candidata están en el [informe actual](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría). Las antiguas trazas fueron eliminadas por `remove`.
+
+La salida actual incluye la identidad del agente OBO de la sesión y metadatos
+consultados directamente en Vault, con enlaces al registro, entidad, alias y
+políticas. Esta información contextual no sustituye las nueve decisiones HTTP.
+La traza identifica por separado los agentes de los proveedores y de Tavily.
+Consulta [la ficha del agente y sus enlaces](manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault)
+para el alcance de la credencial de inspección y la fecha de los metadatos.

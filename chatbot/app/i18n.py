@@ -33,7 +33,7 @@ def request_language(request) -> str:
 
 
 def safe_return_path(path: str) -> str:
-    return path if path in {'/', '/solicitud', '/solicitudes'} or re.fullmatch(r'/traces/[0-9a-f]{32}', path) else '/'
+    return path if path in {'/', '/solicitud', '/solicitudes', '/laboratorio-rar', '/mi-espacio'} or re.fullmatch(r'/traces/[0-9a-f]{32}', path) else '/'
 
 
 # Templates are only matched against authored display text, never capture values.

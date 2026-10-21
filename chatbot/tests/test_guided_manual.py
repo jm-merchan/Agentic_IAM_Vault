@@ -180,11 +180,11 @@ def test_real_terminal_failure_exit_and_resume_from_zsh(guide_lab):
     (guide.base / "fail").unlink()
     terminal = Terminal(guide)
     try:
-        terminal.expect("01/34")
+        terminal.expect(f"01/{len(guided.STEPS):02d}")
         terminal.expect("[Enter / v / l / número / q] > ")
         terminal.send("\n")
         terminal.expect("OK · entorno")
-        terminal.expect("02/34")
+        terminal.expect(f"02/{len(guided.STEPS):02d}")
         terminal.expect("[Enter / v / l / número / q] > ")
         terminal.send("q\n")
         assert terminal.process.wait(timeout=5) == 0

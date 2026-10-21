@@ -73,3 +73,35 @@ test("English diagram labels and formatting keep captured values intact", () => 
   assert.equal(vm.t("Copiar valor"), "Copiar valor");
   assert.equal(vm.ms(34.56), "34,56 ms");
 });
+
+test("workbench opens without sending and reset preserves the exact captured body", async () => {
+  const vm = view(); let calls = 0; const previous = globalThis.fetch;
+  const request = {id: "http.request.1", kind: "http", method: "POST", url: "https://api.example/v1",
+    headers: {authorization: "Bearer CANARY"}, body: '{"messages":[{"content":"energía"}]}'};
+  globalThis.fetch = async () => { calls++; return {ok:true, json:async () => ({sections:[], requests:[request], expires_at:Date.now()/1000+60})}; };
+  try {
+    await vm.openWorkbench();
+    assert.equal(calls, 1); assert.equal(vm.workbench, true);
+    assert.equal(vm.draft.body, request.body);
+    vm.draft.body = "edited"; vm.loadRequest(request.id);
+    assert.equal(vm.draft.body, request.body);
+    vm.hideSensitive(); assert.equal(vm.draft, null); assert.equal(vm.workbench, false);
+  } finally {globalThis.fetch = previous; vm.hideSensitive();}
+});
+
+test("sending uses the edited request once; changing steps discards its response", async () => {
+  const vm = view(); const previous = globalThis.fetch; let resolve, calls = 0;
+  vm.inspection = {requests:[{id:"http.request.1",kind:"http",method:"POST",url:"https://api.example/v1",headers:{authorization:"Bearer CANARY"},body:"original"}]};
+  vm.controller = new AbortController(); vm.loadRequest("http.request.1"); vm.draft.body = "edited";
+  globalThis.fetch = (url, options) => {
+    calls++; assert.equal(options.method, "POST"); assert.equal(options.credentials, "same-origin");
+    assert.equal(JSON.parse(options.body).body, "edited");
+    return new Promise(r => {resolve = r;});
+  };
+  try {
+    const sending = vm.sendRequest(); await vm.sendRequest(); assert.equal(calls, 1);
+    vm.select({id:"b"});
+    resolve({ok:true,json:async () => ({status_code:200,body:"NEW_SECRET"})}); await sending;
+    assert.equal(vm.replayResult,null); assert.equal(vm.draft,null);
+  } finally {globalThis.fetch = previous; vm.hideSensitive();}
+});

@@ -1,6 +1,105 @@
 # Validación actual e historial de reinstalación manual
 
+## Espacios personales · 21 de octubre de 2026
+
+Se probaron **12 combinaciones** (tres usuarios y cuatro agentes), con **120 comprobaciones reales** de Verify/OBO/Vault en **2.1.2+ent**: acceso propio, techos de escritura, CAS y denegaciones cruzadas de lectura/listado/escritura. [Informe](../../chatbot/docs/personal-spaces-verification.json) · [Guía](16-espacios-personales.md). No se migró Vault ni se modificaron solicitudes compartidas.
+
+En Chrome, Reader + Estándar leyó su secreto con HTTP 200 e intentó leer el de
+Writer con HTTP 403. El enlace abrió la denegación de Vault en la traza y mostró
+las entidades propietaria y destino. Se comprobó EN/ES y un ancho móvil de
+390 px sin desbordamiento horizontal. [Evidencia de interfaz y runtime](../../chatbot/docs/personal-spaces-ui-verification.json)
+· [Escritorio](../../chatbot/docs/screenshots/personal-spaces-desktop.png)
+· [Móvil](../../chatbot/docs/screenshots/personal-spaces-mobile.png)
+· [Traza](../../chatbot/docs/screenshots/personal-spaces-trace.png).
+
+Las capturas preceden al último ajuste que conserva el borrador al cambiar de
+idioma y añade el destinatario al estado de la operación. Se verificó que los
+archivos desplegados coinciden; el navegador dejó de estar disponible antes de
+repetir esa comprobación visual. La escritura y CAS sí se probaron contra los
+servicios reales, pero no desde esta sesión del navegador.
+
+Después se corrigió el acceso del menú: un único `lock_outline` sustituye a
+`folder_lock`, con 20 px reservados al icono, 12 px de separación y texto que
+puede ocupar dos líneas. El ajuste está desplegado y el runtime responde; la
+verificación visual de esta corrección sigue pendiente por la desconexión del
+navegador. Las capturas anteriores no acreditan este ajuste.
+
+La suite general obtuvo **426 pruebas Python correctas, dos subtests correctos
+y un fallo**, además de **seis pruebas JavaScript correctas**. El fallo corresponde
+al notebook oauth2c: tiene salidas de ejecución guardadas y el test exige un
+notebook sin salidas. Se conservaron esos resultados existentes. Tras los últimos
+ajustes pasaron las **47 pruebas enfocadas**, la validación estática del manual y
+la comprobación del runtime, sin secretos de aprovisionamiento heredados.
+
+También se repitió el flujo anterior: **108 decisiones de Vault, 12 consultas
+a MySQL y 12 rechazos de actor incorrecto**, todos correctos. Verify cortó una
+conexión tras las seis primeras combinaciones; se completaron las seis restantes
+al reanudar. Se revocaron los leases de prueba.
+[Informe de regresión](../../chatbot/docs/task-agents-verification.json).
+
 [Índice](README.md) · [Evidencias de esta ejecución](../runs/20261016T064722Z-manual-script/README.md)
+
+## Parámetros RAR · 21 de octubre de 2026
+
+El [capítulo 15](15-parametros-rar.md) añade seis escenarios opcionales con
+`allowed_parameters`, `denied_parameters` y `required_parameters`. Se ejecutaron
+**25 comparaciones y 50 llamadas reales a Vault**, con login PKCE y OBO reales:
+Writer + Creación, Supervisor + Revelado, Supervisor + Consulta y Writer +
+Estándar. Pasaron todas las comparaciones, incluidos el control permitido frente
+a restricción denegada y el acceso ya denegado por usuario/techo.
+[Informe](../../chatbot/docs/rar-parameters-verification.json).
+
+El esquema anterior de Verify se amplió conservando su ID y se prepararon dos
+perfiles ficticios cifrados. No se cambiaron ACL, techos ni clientes OAuth.
+El clúster sigue en **Vault 2.1.2+ent**. Esta verificación cubre la ampliación
+en la instalación existente; no equivale a una reinstalación completa.
+
+Pasaron **191 pruebas Python y 6 JavaScript**, incluida la conservación del RAR
+sin parámetros, rechazo de tokens con restricciones omitidas, clasificación de
+errores, aislamiento de trazas y migración idempotente del esquema. Se repitió
+la preparación real: conservó el esquema y los perfiles sintéticos existentes.
+
+En Chrome se ejecutaron los escenarios permitido y combinado con Writer +
+Estándar. El enlace de una denegación abrió el paso 12 de Vault con HTTP 403,
+las tres restricciones y el cuerpo enviado. La consola conservó `X-Vault-Token`
+y el cuerpo. Se comprobaron ES/EN, conservación de resultados y acceso desde el
+panel de permisos en móvil. A 390 px la página mide 390 px y la tabla se desplaza
+dentro de su contenedor. [Evidencia de UI y runtime](../../chatbot/docs/rar-parameters-ui-verification.json)
+· [Escritorio](../../chatbot/docs/screenshots/rar-parameters-desktop.png)
+· [Móvil](../../chatbot/docs/screenshots/rar-parameters-mobile.png)
+· [Traza](../../chatbot/docs/screenshots/rar-parameters-trace.png).
+
+## Agentes por tarea e imágenes Vault · 20 de octubre de 2026
+
+El [capítulo 14](14-agentes-por-tarea.md) añade Consulta, Creación y Revelado
+como identidades opcionales. Se probaron **12 combinaciones** de usuario y modo,
+incluyendo las tres del modo original: **108 decisiones reales de Vault**,
+12 consultas de MySQL y 12 rechazos de actor incorrecto en Verify.
+Se revocaron los leases emitidos por cada caso.
+[Informe real](../../chatbot/docs/task-agents-verification.json).
+
+La repetición del instalador conserva el catálogo de credenciales original
+OIDC/STS/runtime y los IDs y secretos de los tres clientes nuevos. Después de
+repetirlo se comprobaron de nuevo Consulta con escritor, Creación con escritor y
+Revelado con supervisor.
+
+En Chrome se completó el login PKCE del escritor con Consulta; el botón de
+comprobar límites mostró 9/9, incluidos los rechazos de escritura y revelado.
+Se comprobó el aviso al intentar crear una solicitud, la traducción ES/EN y la
+conservación del agente al cambiar de idioma. La [captura del selector](../../chatbot/docs/screenshots/task-agents.png)
+muestra el modo original como selección inicial. El cambio de agente inicia una
+sesión nueva; no conserva conversación ni borradores sin guardar.
+
+Las [imágenes publicadas](../VAULT_IMAGES.md) incluyen `2.2.0` y `2.2.0-ent`
+para AMD64/ARM64. Se comprobaron versión, checksum, arranque aislado, carga del
+plugin xAI y manifiestos remotos. **El clúster existente permanece en
+`2.1.2+ent`**: no se ha ensayado ni aplicado una migración Raft.
+
+La regresión local excluye una comprobación preexistente que exige que el
+notebook 10 no tenga salidas: la versión de ese archivo ya registrada en Git
+contiene 11 celdas ejecutadas. Se conserva intacto. Los resultados finales de
+pruebas y la comparación del runtime están en el
+[informe de implementación](../../chatbot/docs/task-agents-implementation.json).
 
 ## Notebook oauth2c · 20 de octubre de 2026
 

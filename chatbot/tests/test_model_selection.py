@@ -112,6 +112,7 @@ def test_bootstrap_loads_every_agent_and_always_revokes_token(monkeypatch, missi
         calls.append(request.url.path)
         assert request.headers['X-Vault-Token'] == 'bootstrap-test'
         if request.url.path.endswith('/revoke-self'): return httpx.Response(204)
+        if request.url.path.endswith('/task-agents'): return httpx.Response(404)
         name = request.url.path.rsplit('/', 1)[-1]
         if name == missing: return httpx.Response(403)
         value = {**models['openai'], 'providers': models} if name == 'model' else {'client_id': name}

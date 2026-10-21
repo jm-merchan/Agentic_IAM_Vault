@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-21",
+  "change": "HTTP authentication headers remain visible and editable on opening every request console; authentication headers sort first",
+  "trace_id": "6e7959862988462fcecc699971343828",
+  "browser_checks": {
+    "openai": {
+      "visible": true,
+      "editable": true,
+      "collapsed": false,
+      "first_header": "authorization",
+      "scheme": "Bearer",
+      "credential_present": true
+    },
+    "verify": {
+      "visible": true,
+      "collapsed": false,
+      "first_header": "authorization",
+      "scheme": "Basic",
+      "credential_present": true
+    },
+    "vault": {
+      "visible": true,
+      "collapsed": false,
+      "first_header": "x-vault-token",
+      "credential_present": true,
+      "namespace_present": true
+    }
+  },
+  "javascript_tests_passed": 6,
+  "deployment": "Atomic replacement of JS component and CSS in existing runtime; no process restart",
+  "screenshot": "chatbot/docs/screenshots/http-authentication-visible.png",
+  "screenshot_note": "Bearer replaced with an explicit example in the editable draft for screenshot only; original capture restored and equality checked. No request sent with example token."
+}

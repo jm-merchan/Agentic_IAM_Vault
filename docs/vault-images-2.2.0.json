@@ -1,0 +1,68 @@
+{
+  "version": "2.2.0",
+  "plugin_revision": "91c7ee155d8ad0ec760e3c19ad0c72637a4b125a",
+  "repository": "docker.io/josemerchan/vault-xai",
+  "published": true,
+  "platforms": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "checked_at": "2026-10-20T16:50:08.952213+00:00",
+  "cluster_upgraded": false,
+  "tests": [
+    "plugin Go tests",
+    "vault version and binary checksum on amd64/arm64",
+    "isolated dev server and xAI plugin load on amd64/arm64",
+    "remote multi-architecture manifest read-back"
+  ],
+  "images": [
+    {
+      "image": "docker.io/josemerchan/vault-xai:2.2.0",
+      "digest": "sha256:b4a02e9907b61695555c2cbaa2c228def2951d2532ab7bf005a0f3091a24caa2",
+      "manifests": [
+        {
+          "digest": "sha256:c5c4fe284ada632a1c811106aa99a1a963d897f0802f458a7eac7514c65cc843",
+          "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+          }
+        },
+        {
+          "digest": "sha256:39d7f9f2ad827fcd2397a7cd3ec056bcffa658bd3971e17f84fa25aac23998bf",
+          "platform": {
+            "architecture": "arm64",
+            "os": "linux"
+          }
+        }
+      ],
+      "versions": {
+        "amd64": "2.2.0",
+        "arm64": "2.2.0"
+      }
+    },
+    {
+      "image": "docker.io/josemerchan/vault-xai:2.2.0-ent",
+      "digest": "sha256:05fcbd5bfbd4894c75628ad78331a2f4cdffa2420a02a480da1cea2fa11d3714",
+      "manifests": [
+        {
+          "digest": "sha256:0f8d9253cd577551805ecf4ee5d4057eab239171a1faf9d7fa0789dab3ec3676",
+          "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+          }
+        },
+        {
+          "digest": "sha256:f811fd6ddcfd05eb60189651a983257775e47048ff32356fe09e27e0732d472c",
+          "platform": {
+            "architecture": "arm64",
+            "os": "linux"
+          }
+        }
+      ],
+      "versions": {
+        "amd64": "2.2.0+ent",
+        "arm64": "2.2.0+ent"
+      }
+    }
+  ]
+}

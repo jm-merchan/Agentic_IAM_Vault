@@ -16,8 +16,9 @@ def enabled():
 
 
 class CaptureStore:
-    def __init__(self, *, ttl=600, capacity=500, max_bytes=65536):
+    def __init__(self, *, ttl=600, capacity=500, max_bytes=1048576, max_total_bytes=33554432):
         self.ttl, self.capacity, self.max_bytes = ttl, capacity, max_bytes
+        self.max_total_bytes = max_total_bytes
         self.entries = OrderedDict()
         self.lock = threading.Lock()
 
@@ -40,9 +41,11 @@ class CaptureStore:
             entry = self.entries.setdefault((trace_id, span_id),
                                             {'expires_at': now + self.ttl, 'sections': {}})
             entry['sections'][key] = dict(key=key, title=title, value=json.loads(encoded),
-                                          truncated=truncated, original_bytes=size, source='runtime')
+                                          truncated=truncated, original_bytes=size, stored_bytes=len(encoded.encode('utf-8')), source='runtime')
             # Bound the whole store as well as each field.
-            while len(self.entries) > self.capacity:
+            while len(self.entries) > self.capacity or sum(
+                section.get('stored_bytes', 0) for item in self.entries.values()
+                for section in item['sections'].values()) > self.max_total_bytes:
                 self.entries.popitem(last=False)
 
     def get(self, trace_id, span_id):
@@ -93,6 +96,10 @@ def request(current, method, url, body, *, basic_auth=None, headers=None):
 def response(current, result):
     if not enabled():
         return
+    from .http_capture import record_request, record_response
+    binding = result.request.extensions.get('lumen_capture')
+    attempt = binding[1] if binding else record_request(current, result.request)
+    record_response(current, result, attempt)
     try:
         body = result.json()
     except ValueError:

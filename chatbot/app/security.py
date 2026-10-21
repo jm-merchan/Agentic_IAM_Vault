@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from urllib.parse import urlencode
 
 import httpx
+from .http_capture import request_hook
 import jwt
 from .telemetry import operation, trace_id
 from . import lab_capture
@@ -48,6 +49,11 @@ class Session:
     application_draft: dict | None = field(default=None, repr=False)
     model_provider: str = ''
     language: str = 'es'
+    task_agent: str = 'legacy'
+    rar_scenario: str = 'allowed'
+    rar_results: dict = field(default_factory=dict, repr=False)
+    personal_results: list = field(default_factory=list, repr=False)
+    personal_draft: dict = field(default_factory=dict, repr=False)
 
     def require_login(self):
         if not self.subject or time.time() >= self.expires_at:
@@ -71,17 +77,19 @@ class Identity:
         self.sessions: dict[str, Session] = {}
         self.keys = jwt.PyJWKClient(ISSUER + '/jwks', cache_keys=True)
 
-    def start(self) -> tuple[Session, str]:
+    def start(self, task_agent: str = 'legacy') -> tuple[Session, str]:
+        from .task_agents import actor_credential
+        credential = self.config[actor_credential(self.config, task_agent)]
         self.sessions = {k: v for k, v in self.sessions.items()
                          if max(v.expires_at, v.login_started + 600) > time.time()}
-        session = Session(secrets.token_urlsafe(32))
+        session = Session(secrets.token_urlsafe(32), task_agent=task_agent)
         session.state = secrets.token_urlsafe(32)
         session.nonce = secrets.token_urlsafe(32)
         session.verifier = secrets.token_urlsafe(64)
         session.login_started = time.time()
         self.sessions[session.sid] = session
         challenge = base64.urlsafe_b64encode(hashlib.sha256(session.verifier.encode()).digest()).rstrip(b'=').decode()
-        query = urlencode(dict(client_id=self.config['oidc']['client_id'], response_type='code',
+        query = urlencode(dict(client_id=credential['client_id'], response_type='code',
                                redirect_uri=CALLBACK, scope='openid profile email', state=session.state,
                                nonce=session.nonce, code_challenge=challenge,
                                code_challenge_method='S256', prompt='login'))
@@ -100,12 +108,13 @@ class Identity:
                 or time.time() - pending.login_started > 600):
             raise AccessDenied('La solicitud de inicio de sesión no es válida o ha caducado.')
         pending.state = ''  # single use, including failed exchanges
-        credential = self.config['oidc']
+        from .task_agents import actor_credential
+        credential = self.config[actor_credential(self.config, pending.task_agent)]
         data = dict(grant_type='authorization_code', code=code, redirect_uri=CALLBACK,
                     code_verifier=pending.verifier)
         lab_capture.request(trace.get_current_span(), 'POST', ISSUER + '/token', data,
                             basic_auth=(credential['client_id'], credential['client_secret']))
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, timeout=30) as client:
             result = await client.post(ISSUER + '/token', auth=(credential['client_id'], credential['client_secret']),
                                        data=data)
         trace.get_current_span().set_attribute('http.response.status_code', result.status_code)
@@ -125,10 +134,13 @@ class Identity:
         session = Session(secrets.token_urlsafe(32), subject=access['sub'],
                           name=claims.get('name') or claims.get('preferred_username') or access['sub'],
                           groups=groups, access_token=token['access_token'],
-                          expires_at=min(claims['exp'], access['exp']))
+                          expires_at=min(claims['exp'], access['exp']),
+                          task_agent=pending.task_agent)
         self.sessions.pop(sid, None)
         self.sessions[session.sid] = session
         trace.get_current_span().set_attribute('user.id', session.subject)
+        trace.get_current_span().set_attribute('agent.identity', 'chatbot-' + actor_credential(self.config, session.task_agent))
+        trace.get_current_span().set_attribute('agent.mode', session.task_agent)
         trace.get_current_span().set_attribute('user.role', role_for_groups(groups, self.config['runtime']['groups']) or 'none')
         session.traces.append(trace_id())
         return session
@@ -151,6 +163,24 @@ def load_config() -> dict:
                 if res.status_code != 200:
                     raise RuntimeError('Falta configuración de chatbot en Vault: ' + name)
                 config[name] = res.json()['data']['data']
+            # Older installations keep working until the optional extension is provisioned.
+            res = client.get(addr + '/v1/secrets/data/chatbot/task-agents',
+                             headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
+            if res.status_code == 200:
+                from .task_agents import TASK_AGENTS, task_agents_ready
+                bundle = res.json()['data']['data']
+                for mode, task in TASK_AGENTS.items():
+                    config[task['credential']] = bundle.get('agents', {}).get(mode, {})
+                if bundle.get('version') != 1 or not task_agents_ready(config):
+                    raise RuntimeError('La configuración opcional de agentes por tarea está incompleta.')
+            elif res.status_code not in (403, 404):
+                raise RuntimeError('No se ha podido consultar la configuración de agentes por tarea.')
+            res = client.get(addr + '/v1/secrets/data/chatbot/personal-spaces',
+                             headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
+            if res.status_code == 200:
+                config['personal-spaces'] = res.json()['data']['data']
+            elif res.status_code not in (403, 404):
+                raise RuntimeError('No se ha podido consultar la configuración de espacios personales.')
             # Explicitly optional: the UI and authorization tests work before the LLM is connected.
             res = client.get(addr + '/v1/secrets/data/chatbot/model',
                              headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})

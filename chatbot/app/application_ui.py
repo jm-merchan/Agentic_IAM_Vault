@@ -6,6 +6,7 @@ from uuid import uuid4
 from nicegui import ui
 
 from .applications import DEMO_FORM, STEPS, document_hint, generate_demo_form, iban_hint, validate_form
+from .task_agents import task_allows
 from .security import AccessDenied
 from .i18n import Translator
 
@@ -27,7 +28,7 @@ def page_header(session, role_name, title, subtitle, language=None):
 async def render_wizard(services, session, guard, run_action, language=None):
     t = Translator(language or session.language)
     guard()
-    if services.role(session) != 'readwrite':
+    if services.role(session) != 'readwrite' or not task_allows(session, 'write'):
         page_header(session, 'Solo consulta', 'Tu acceso es de consulta.', 'Puedes revisar las solicitudes y los permisos disponibles para tu perfil.', language=t.language)
         ui.link(t('Ver solicitudes'), '/solicitudes').classes('primary')
         return
@@ -248,7 +249,7 @@ async def render_applications(services, session, guard, run_action, language=Non
     role_name = 'Supervisor' if supervisor else 'Gestor' if role == 'readwrite' else 'Lector'
     page_header(session, role_name, 'Cada solicitud, en su sitio.', 'Bandeja compartida del laboratorio. Los datos personales se muestran enmascarados hasta que Vault autoriza revelarlos.', language=t.language)
     with ui.row().classes('items-center gap-3 mb-5'):
-        if role == 'readwrite':
+        if role == 'readwrite' and task_allows(session, 'write'):
             ui.link(t('Nueva solicitud'), '/solicitud').classes('primary')
         ui.button(t('Actualizar'), icon='refresh', on_click=lambda: ui.navigate.to('/solicitudes')).props('flat no-caps').classes('secondary')
         ui.label(t('Puede revelar datos' if supervisor else 'Lectura enmascarada')).classes('access-badge')

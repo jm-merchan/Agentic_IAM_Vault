@@ -43,6 +43,7 @@ done
 unset suffix
 for n in $(seq 22 25); do step 04-vault-iam "$n"; done
 for n in $(seq 1 6); do step 05-proteccion "$n"; done
+step 14-agentes-por-tarea 1
 step 01-vault 1
 for n in $(seq 4 7); do step 03-verify "$n"; done
 for n in $(seq 1 10); do step 06-xai "$n"; done
@@ -77,6 +78,8 @@ if [ ! -x /tmp/vault-chatbot-venv/bin/python ]; then
 else
  uv pip install --python /tmp/vault-chatbot-venv/bin/python -r chatbot/requirements.lock.txt > "$MANUAL/logs/runtime-dependencies.log" 2>&1
 fi
+# Personal spaces require the Python environment and the synchronized users.
+step 16-espacios-personales 1
 background 10-aplicacion 4 lumen
 wait_port 8088
 for retry in $(seq 1 30); do

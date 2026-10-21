@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import time
 import httpx
+from .http_capture import request_hook
 import jwt
 from opentelemetry import trace
 
@@ -29,6 +30,7 @@ class SpiffeModelServices:
 
     @operation('spiffe.mint_jwt_svid')
     async def _mint_model_identity(self, provider: str, audience: str, path: str) -> tuple[str, dict]:
+        trace.get_current_span().set_attribute('agent.identity', 'chatbot-' + provider)
         config = model_config(self.config, provider)
         token = await self.client_token(provider)
         response = await self.vault_post(path, token, {'audience': audience})
@@ -36,7 +38,7 @@ class SpiffeModelServices:
         if not isinstance(svid, str) or not svid:
             raise AccessDenied('Vault no ha emitido un JWT-SVID válido.')
         # Verify locally with Vault's public keys, in addition to the provider's validation.
-        async with httpx.AsyncClient(verify=self.vault_tls, timeout=15) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, verify=self.vault_tls, timeout=15) as client:
             with span('vault.jwks', **{'vault.path': 'spiffe/.well-known/keys',
                                      'vault.namespace': 'verify', 'http.request.method': 'GET'}) as keys_span:
                 lab_capture.request(keys_span, 'GET', self.config['vault_addr'] + '/v1/spiffe/.well-known/keys',
@@ -75,6 +77,7 @@ class SpiffeModelServices:
     async def exchange_openai_identity(self, svid: str, claims: dict) -> tuple[str, float]:
         config = model_config(self.config, 'openai')
         current = trace.get_current_span()
+        current.set_attribute('agent.identity', 'chatbot-openai')
         current.set_attribute('auth.flow', 'spiffe_jwt_svid')
         current.set_attribute('openai.identity_provider_id', config['identity_provider_id'])
         current.set_attribute('openai.service_account_id', config['service_account_id'])
@@ -86,7 +89,7 @@ class SpiffeModelServices:
             'service_account_id': config['service_account_id'],
         }
         lab_capture.request(current, 'POST', 'https://auth.openai.com/oauth/token', payload)
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, timeout=30) as client:
             response = await client.post('https://auth.openai.com/oauth/token', json=payload)
         current.set_attribute('http.response.status_code', response.status_code)
         lab_capture.response(current, response)
@@ -124,6 +127,7 @@ class SpiffeModelServices:
     async def exchange_anthropic_identity(self, svid: str, claims: dict) -> tuple[str, float]:
         config = model_config(self.config, 'anthropic')
         current = trace.get_current_span()
+        current.set_attribute('agent.identity', 'chatbot-anthropic')
         current.set_attribute('auth.flow', 'spiffe_jwt_svid')
         for field in ('federation_rule_id', 'organization_id', 'service_account_id', 'workspace_id'):
             current.set_attribute('anthropic.' + field, config[field])
@@ -138,7 +142,7 @@ class SpiffeModelServices:
         }
         lab_capture.request(current, 'POST', 'https://api.anthropic.com/v1/oauth/token', payload,
                             headers={'anthropic-version': '2023-06-01'})
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, timeout=30) as client:
             response = await client.post('https://api.anthropic.com/v1/oauth/token',
                                         headers={'anthropic-version': '2023-06-01'}, json=payload)
         current.set_attribute('http.response.status_code', response.status_code)

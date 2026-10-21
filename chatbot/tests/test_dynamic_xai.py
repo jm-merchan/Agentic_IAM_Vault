@@ -182,6 +182,8 @@ def test_bootstrap_reads_oauth_client_and_never_static_xai_key(monkeypatch):
     paths = []
     def handler(request):
         paths.append(request.url.path)
+        if request.url.path.endswith('/task-agents'):
+            return httpx.Response(404)
         if request.url.path.endswith('/model'):
             data = {'provider': 'xai', 'api_key': 'obsolete', 'credential_source': 'vault_dynamic'}
         else:

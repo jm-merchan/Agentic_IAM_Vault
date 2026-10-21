@@ -1,0 +1,41 @@
+{
+  "checked_at": "2026-10-21T09:18:07.231816+00:00",
+  "feature": "Interactive expected OBO permission matrix",
+  "runtime_files_match": true,
+  "authorization_behavior_changed": false,
+  "vault_or_verify_policies_changed": false,
+  "unit_tests": {
+    "passed": 70,
+    "files": [
+      "test_permission_matrix.py",
+      "test_task_agents.py",
+      "test_i18n.py"
+    ]
+  },
+  "browser_checks": {
+    "signed_out_no_active_identity": true,
+    "authenticated_profile": "reader",
+    "authenticated_agent": "chatbot-task-reveal",
+    "active_expected_operations": [
+      "read"
+    ],
+    "reveal_explanation": "user false, agent true; restricted by user",
+    "supervisor_read_preview": "user true, agent false for reveal; restricted by agent",
+    "writer_write_preview_keyboard_enter": true,
+    "preview_preserves_active_identity_and_selector": true,
+    "restore_current_combination": true,
+    "agent_selector_pre_login_preview": true,
+    "spanish_and_english": true,
+    "final_language": "es",
+    "final_provider": "xai",
+    "current_row_column_and_cell_marked": true
+  },
+  "scope": "UI and explanatory calculations only. No new live Vault authorization probe was run; the existing probe remains available.",
+  "screenshot": "screenshots/permission-matrix.png",
+  "files": {
+    "app/permission_matrix.py": "b973734a894a95a431d406c8a4e9a0da38315ab67f187cb3961ff7a42ce17c49",
+    "app/task_agent_ui.py": "485d56cf39f924af7225fa38b6785782e91cb3c4897c782beebe9d7f3edeed18",
+    "app/translations_en.json": "2ce4d49acc9e4fd30536b65b53330c6ecf4a2a11204d9e1bbff5a992e4ed0d51",
+    "static/style.css": "c0cafa422b25e5708699fafd68610ff9658a2f784073c754cfae9b48fc45254d"
+  }
+}

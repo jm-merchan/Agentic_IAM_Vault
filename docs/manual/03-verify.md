@@ -58,7 +58,7 @@ Repetir este paso si expira el token de administración. `curl --fail` detiene e
 
 ## 2. Registrar el tipo RAR `vault:path_access`
 
-[rar-schema.json](../../verify/config/rar-schema.json) exige `type`, `path` y `capabilities`; permite `read/create/update/delete/sudo/list/deny` y rechaza propiedades extra. Inspeccionar el inventario primero:
+[rar-schema.json](../../verify/config/rar-schema.json) exige `type`, `path` y `capabilities`; permite `read/create/update/delete/sudo/list/deny` y las propiedades opcionales `allowed_parameters`, `denied_parameters` y `required_parameters`. Rechaza otras propiedades. Los tokens anteriores sin parámetros siguen siendo válidos. Inspeccionar el inventario primero:
 
 Descargar el inventario de tipos RAR:
 
@@ -78,7 +78,7 @@ Revisar el esquema local:
 cat verify/config/rar-schema.json
 ```
 
-Los siguientes pasos crean el tipo solo cuando el inventario anterior no lo contiene. Si existe, conservan su ID y comprueban el esquema; una diferencia se trata como conflicto:
+Los siguientes pasos crean el tipo solo cuando el inventario anterior no lo contiene. Si existe, conservan su ID. El reconciliador amplía únicamente el esquema anterior conocido de Lumen con los tres campos opcionales; cualquier otra diferencia se trata como conflicto. Conserva descripción, consentimiento y demás ajustes del tipo existente.
 
 Obtener el ID existente. Si hay más de uno, el comando falla:
 
@@ -102,9 +102,10 @@ Confirmar que existe exactamente un ID:
 RAR_ID=$(jq -er '[..|objects|select(.type?=="vault:path_access")|.id]|unique| if length==1 then .[0] else error("RAR duplicado o ausente") end' "$MANUAL/rar-list.json")
 ```
 
-Descargar su configuración:
+Reconciliar el esquema conocido y descargar su configuración. El script obtiene un token administrativo nuevo y no modifica clientes OAuth ni políticas de Vault:
 
 ```bash
+bash verify/scripts/configure-rar.sh
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/auth-detail-types/$RAR_ID" > "$MANUAL/rar-check.json"
 ```
 

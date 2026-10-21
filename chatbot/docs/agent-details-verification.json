@@ -1,0 +1,48 @@
+{
+  "checked_at": "2026-10-21T08:08:36.880359+00:00",
+  "scope": "Vault agent metadata in permission probes and per-call trace details",
+  "automated": {
+    "focused_tests_passed": 110,
+    "javascript_tests_passed": 4,
+    "manual_bash_blocks_valid": 9,
+    "notebook_6_valid": true,
+    "full_suite": {
+      "passed": 355,
+      "failed_initially": 1,
+      "failure": "Existing SQL capture test needed a session/config fixture for the new actor attribution; corrected and included in the 110 passing tests.",
+      "deselected": 1,
+      "deselected_reason": "Pre-existing executed cells in notebook 10; unchanged in this task."
+    }
+  },
+  "live": {
+    "agents_read": 8,
+    "policy_contents_read": true,
+    "business_and_unrelated_routes_denied_to_inspector": true,
+    "token_renewal_verified": true,
+    "probe_mode": "read",
+    "probe_user": "lumen-writer",
+    "probe_expected_results": 9,
+    "probe_total": 9,
+    "entity_link_verified": true,
+    "alias_and_policy_routes_observed_in_vault_ui": true,
+    "final_deployment_probe_expected_results": 9,
+    "final_deployment_probe_total": 9,
+    "alias_issuer_and_profile_visible": true,
+    "catalogue_obo_and_mysql_succeeded": true,
+    "screenshot": "screenshots/agent-vault-links.png",
+    "provider_xai_trace_identity": "chatbot-xai",
+    "obo_trace_identity": "chatbot-task-read",
+    "trace_ui_languages": [
+      "es",
+      "en"
+    ],
+    "provider_screenshot": "screenshots/agent-vault-xai.png"
+  },
+  "behavior": {
+    "business_permissions_changed": false,
+    "metadata_is_current_at_view_time": true,
+    "vault_links_include_namespace": true,
+    "links_include_credentials": false,
+    "metadata_token_captured": false
+  }
+}

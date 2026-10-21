@@ -9,6 +9,7 @@ from deepagents import create_deep_agent, HarnessProfile, register_harness_profi
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 from .anthropic_model import FederatedChatAnthropic
+from .http_capture import CapturedModelMixin, model_http_client, close_model_http
 from langchain_xai import ChatXAI
 
 from .security import AccessDenied, Session
@@ -23,15 +24,23 @@ from .catalogue import catalogue_reply
 os.environ['LANGSMITH_TRACING'] = 'false'
 
 
+class CapturedChatOpenAI(CapturedModelMixin, ChatOpenAI):
+    pass
+
+
+class CapturedChatXAI(CapturedModelMixin, ChatXAI):
+    pass
+
+
 def make_model(config):
     provider, model_name = config.get('provider', 'openai'), config.get('model', '')
     if not config.get('api_key') or not model_name:
         raise AccessDenied('Falta conectar el modelo de lenguaje. Las consultas directas y la búsqueda web siguen disponibles.')
     if provider == 'xai':
-        model = ChatXAI(model=model_name, api_key=config['api_key'], timeout=60, max_retries=1,
+        model = CapturedChatXAI(http_async_client=model_http_client(), model=model_name, api_key=config['api_key'], timeout=60, max_retries=1,
                         max_tokens=2000, reasoning_effort='low')
     elif provider == 'openai':
-        model = ChatOpenAI(model=model_name, api_key=config['api_key'], timeout=60, max_retries=1)
+        model = CapturedChatOpenAI(http_async_client=model_http_client(), model=model_name, api_key=config['api_key'], timeout=60, max_retries=1)
     elif provider == 'anthropic':
         if config.get('credential_source') != 'vault_spiffe':
             raise AccessDenied('Claude requiere una credencial federada de Vault SPIFFE.')
@@ -98,7 +107,8 @@ def make_agent(services: Services, session: Session, config=None, model=None, la
 
     tools = [consultar_planes, consultar_solicitudes, consultar_inventario, buscar_en_web]
     try:
-        if services.role(session) == 'readwrite':
+        from .task_agents import task_allows
+        if services.role(session) == 'readwrite' and task_allows(session, 'write'):
             tools.append(preparar_solicitud)
     except AccessDenied:
         pass
@@ -151,8 +161,10 @@ async def reply(services: Services, session: Session, message: str, language=Non
                                 session.verifier, session.nonce, session.state])
     callbacks = ModelSpans(model_config['model'], recorder, model_config['provider'],
                            credential=model_config.get('api_key'))
+    models_to_close = []
     async def guarded_run():
         model = make_model(model_config)
+        models_to_close.append(model)
         decision = await assess_request(model, session.messages, message, recorder, model_config)
         if decision.category == 'out_of_scope':
             services.event(session, 'Ámbito de Lumen', 'Consulta fuera de energía · sin ejecutar herramientas')
@@ -181,6 +193,9 @@ async def reply(services: Services, session: Session, message: str, language=Non
         raise AccessDenied('La consulta ha superado el tiempo permitido para su clave temporal. Vuelve a intentarlo.') from None
     finally:
         callbacks.close()
+        for model in models_to_close:
+            if hasattr(model, '_agenerate'):
+                await close_model_http(model)
         model_config.pop('api_key', None)
     if result is None:
         return t(OUT_OF_SCOPE)

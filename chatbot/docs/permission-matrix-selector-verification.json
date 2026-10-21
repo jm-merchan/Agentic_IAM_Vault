@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-10-21T09:30:28.051630+00:00",
+  "runtime_files_match": true,
+  "unit_tests": {
+    "passed": 46,
+    "files": [
+      "test_permission_matrix.py",
+      "test_i18n.py"
+    ]
+  },
+  "browser_checks": {
+    "active_profile": "writer",
+    "active_agent": "reveal",
+    "cell_writer_write_selects_dropdown_write": true,
+    "cell_supervisor_read_preserves_preview_profile_and_selects_dropdown_read": true,
+    "back_to_my_combination_restores_dropdown_reveal": true,
+    "dropdown_write_selects_current_writer_row_in_table": true,
+    "comparison_does_not_change_authenticated_identity": true,
+    "signed_out_cell_selection_sets_login_agent": true,
+    "login_with_selected_agent_completed": true,
+    "final_pending_agent": "write",
+    "final_active_agent": "reveal"
+  },
+  "authorization_behavior_changed": false,
+  "screenshot": "screenshots/permission-matrix-selector.png"
+}

@@ -1,5 +1,7 @@
 # Lumen · Vault Agentic IAM
 
+La ampliación [Espacios personales](docs/manual/16-espacios-personales.md) añade **Mi espacio de secretos** a la interfaz: KV por identidad humana, lectura/escritura según el techo del agente y pruebas reales de acceso cruzado con trazas.
+
 Demo con **NiceGUI, LangChain Deep Agents y selección xAI/OpenAI/Claude**, login OIDC en IBM Verify, **OBO**, MySQL Enterprise con **KMIP**, protección **Transit/Transform** y trazas en **Grafana, Loki y Tempo**. xAI utiliza un Secret Engine dinámico; OpenAI y Claude utilizan **SPIFFE JWT-SVID emitidos por Vault** y tokens de corta duración. [Configuración manual de Claude](docs/manual/08-claude-spiffe.md).
 
 Lumen admite **español e inglés**: toma el idioma inicial del navegador y ofrece **EN / ES** arriba a la derecha. La elección se recuerda y se aplica a la interfaz, los formularios, las trazas y las siguientes respuestas del asistente. [Funcionamiento y mantenimiento](chatbot/README.md#idioma-español-e-inglés) · [Comprobación paso a paso](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
@@ -15,6 +17,14 @@ Para una instalación desde cero, prepara las herramientas, cuentas y credencial
 - **Podman o Docker instalado y arrancado**. La plantilla usa Podman; para Docker, cambia tanto `CONTAINER_ENGINE` como `MINIKUBE_DRIVER` a `docker` en `.env`.
 - Recursos disponibles para Minikube: la configuración predeterminada asigna **4 CPU y 8 GiB de memoria**. La VM del motor de contenedores debe disponer de esa capacidad.
 - Conectividad con los proveedores y los registros de imágenes. Vault utiliza [`josemerchan/vault-xai:2.1.2-ent`](https://hub.docker.com/r/josemerchan/vault-xai), que incluye el plugin xAI para AMD64 y ARM64; Kubernetes descarga la imagen al desplegarlo.
+
+También están publicadas las [imágenes 2.2.0 y 2.2.0-ent](docs/VAULT_IMAGES.md) para ambas arquitecturas. Su publicación no migra el clúster existente.
+
+La ampliación [Agentes por tarea](docs/manual/14-agentes-por-tarea.md) permite activar desde la interfaz Consulta, Creación de solicitudes o Revelado de datos, cada uno con su identidad y techo OBO. El modo inicial conserva el comportamiento anterior. Cambiar de agente inicia una sesión nueva mediante Verify. La comprobación de límites y cada paso de la traza identifican al agente de Vault y enlazan su registro, entidad, alias y políticas.
+
+El panel incluye una matriz interactiva **usuario × agente**: resalta la sesión activa y permite comparar los permisos esperados y qué identidad limita cada operación. La vista previa no cambia la sesión; Vault sigue comprobando el usuario, el techo del agente y el RAR en cada llamada.
+
+El [Laboratorio RAR](docs/manual/15-parametros-rar.md), accesible desde la barra lateral y el panel de agentes, añade seis escenarios con `allowed_parameters`, `denied_parameters` y `required_parameters`. Compara peticiones reales con y sin esas restricciones y enlaza cada resultado con su llamada a Vault, RAR y cuerpo enviado. Es opcional y conserva la autorización habitual del chat.
 
 ### Cuentas, licencias y credenciales externas
 
@@ -295,3 +305,5 @@ El perfil OAuth de Vault y el cliente aplican **15 segundos de tolerancia** al v
 Las capturas e informes anteriores describen ejecuciones con fecha; no certifican el estado actual. Tempo/Loki retienen siete días. El último despliegue se acredita con `last-run.json` y las nuevas pruebas, no con IDs históricos.
 
 El chat mantiene su [ámbito de energía mediante un control previo al agente](docs/ENERGY_SCOPE_AND_SVID.md). La misma guía muestra dónde inspeccionar el JWT-SVID completo y sus claims en las trazas de Lumen/Grafana.
+
+**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).

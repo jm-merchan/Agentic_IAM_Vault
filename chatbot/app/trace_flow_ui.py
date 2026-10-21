@@ -17,9 +17,11 @@ ICONS = {
 
 
 class TraceFlow(Element, component='trace_flow.js'):
-    def __init__(self, records: list[dict], trace_id='', language='es'):
+    def __init__(self, records: list[dict], trace_id='', language='es', agent_details=None, selected_span=''):
         super().__init__()
-        self._props['flow'] = localize_flow(build_flow(records), language)
+        self._props['flow'] = localize_flow(build_flow(records, agent_details), language)
+        self._props['initialSelectedId'] = next((c['id'] for c in self._props['flow']['calls']
+            if c['id'] == selected_span or (c['parent_id'] == selected_span and c['target'] == 'vault')), '')
         self._props['messages'] = EN if language == 'en' else {}
         self._props['locale'] = Translator(language).locale
         self._props['traceId'] = trace_id

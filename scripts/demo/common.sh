@@ -43,8 +43,8 @@ start_managed() {
   label="local.lumen-demo.$fingerprint.$name"
   mkdir -p "$LUMEN_STATE_DIR/services"
   file="$LUMEN_STATE_DIR/services/$name.plist"
-  jq -n --arg label "$label" --arg state "$LUMEN_STATE_DIR" --arg path "$PATH" --arg userhome "$HOME" --arg name "$name" --arg verify "${CHATBOT_VERIFY_ACCESS:-0}" --arg tenant "$VERIFY_TENANT" --arg raw "${LUMEN_TRACE_VAULT_RAW:-1}" --arg content "${LUMEN_TRACE_CONTENT:-1}" --args \
-    '{Label:$label,ProgramArguments:$ARGS.positional,WorkingDirectory:$state,RunAtLoad:true,KeepAlive:($name != "lumen"),ThrottleInterval:10,EnvironmentVariables:{PATH:$path,HOME:$userhome,VAULT_ENV_FILE:($state+"/vault/config.env"),LUMEN_STATE_DIR:$state,VERIFY_TENANT:$tenant,LUMEN_TRACE_VAULT_RAW:$raw,LUMEN_TRACE_CONTENT:$content,CHATBOT_VERIFY_ACCESS:$verify},StandardOutPath:($state+"/logs/"+$name+".log"),StandardErrorPath:($state+"/logs/"+$name+".log")}' -- "$@" > "$file"
+  jq -n --arg label "$label" --arg state "$LUMEN_STATE_DIR" --arg path "$PATH" --arg userhome "$HOME" --arg name "$name" --arg verify "${CHATBOT_VERIFY_ACCESS:-0}" --arg tenant "$VERIFY_TENANT" --arg vault_ui "${LUMEN_VAULT_UI_URL:-https://127.0.0.1:8443}" --arg raw "${LUMEN_TRACE_VAULT_RAW:-1}" --arg content "${LUMEN_TRACE_CONTENT:-1}" --args \
+    '{Label:$label,ProgramArguments:$ARGS.positional,WorkingDirectory:$state,RunAtLoad:true,KeepAlive:($name != "lumen"),ThrottleInterval:10,EnvironmentVariables:{PATH:$path,HOME:$userhome,VAULT_ENV_FILE:($state+"/vault/config.env"),LUMEN_STATE_DIR:$state,VERIFY_TENANT:$tenant,LUMEN_VAULT_UI_URL:$vault_ui,LUMEN_TRACE_VAULT_RAW:$raw,LUMEN_TRACE_CONTENT:$content,CHATBOT_VERIFY_ACCESS:$verify},StandardOutPath:($state+"/logs/"+$name+".log"),StandardErrorPath:($state+"/logs/"+$name+".log")}' -- "$@" > "$file"
   plutil -convert xml1 "$file"
   unload_managed "$name"
   launchctl bootstrap "gui/$(id -u)" "$file"

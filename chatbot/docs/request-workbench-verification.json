@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-21",
+  "feature": "Per-step HTTP and SQL request console with actual model payloads",
+  "automated": {
+    "python": {
+      "passed": 378,
+      "subtests_passed": 2,
+      "deselected": 1,
+      "excluded": "test_notebook_structure_and_shell_syntax",
+      "reason": "Pre-existing executed outputs in notebook 10; notebook 10 unchanged."
+    },
+    "javascript_passed": 6,
+    "notebook_6_schema_valid": true,
+    "git_diff_check": true
+  },
+  "mock_transport": {
+    "providers": [
+      "OpenAI",
+      "xAI",
+      "Anthropic"
+    ],
+    "checks": [
+      "Prepared HTTP body equals SDK request bytes",
+      "Messages, system instructions and tool schemas captured",
+      "Two attempts after HTTP 429",
+      "Concurrent calls retain independent credentials",
+      "Streaming response delivered unchanged",
+      "Owner/session/lab-mode/origin/expiry/truncation checks",
+      "Redirect not followed; exact credential reused",
+      "MySQL connection and parameters replayed"
+    ]
+  },
+  "live": {
+    "runtime": "http://localhost:8088",
+    "xai": {
+      "trace_id": "e0dcbf910f265d2ce15d3b5c5ddb02d7",
+      "original_status": 200,
+      "replay_status": 200,
+      "replay_duration_ms": 12067.79,
+      "curl_export_contains_auth_messages_tools": true
+    },
+    "verify_client_credentials": {
+      "replay_status": 200,
+      "replay_duration_ms": 219.79
+    },
+    "vault_kv": {
+      "replay_status": 200,
+      "replay_duration_ms": 18.53
+    },
+    "mysql": {
+      "trace_id": "923c975be5c53a2c50c46658c655ce92",
+      "replay_succeeded": true,
+      "rows": 3,
+      "replay_duration_ms": 30.51
+    },
+    "openai": {
+      "trace_id": "912164992c7eba2d8f3e439570fc7ebd",
+      "original_status": 200,
+      "replay_status": 200,
+      "replay_duration_ms": 627.87,
+      "english_console_verified": true
+    },
+    "anthropic": {
+      "trace_id": "ec3526af819027971b0930b2f7320a75",
+      "original_status": 200,
+      "replay_status": 200,
+      "replay_duration_ms": 892.48
+    },
+    "original_provider_restored": "xai"
+  },
+  "limits": [
+    "Live replay tests use existing demo privileges; no policy/identity changes",
+    "Replay uses captured credentials without refreshing them",
+    "Responses and screenshots omit credentials from this report",
+    "Older captures cannot be retroactively reconstructed"
+  ],
+  "documentation": [
+    "chatbot/OBSERVABILITY.md",
+    "chatbot/README.md",
+    "README.md",
+    "docs/manual/10-aplicacion.md",
+    "6_Lumen_Chatbot_Vault_IAM.ipynb",
+    "chatbot/scripts/build-notebook.sh"
+  ],
+  "screenshot": "chatbot/docs/screenshots/request-workbench.png"
+}

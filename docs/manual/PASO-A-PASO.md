@@ -58,11 +58,29 @@ Los usuarios se buscan antes del POST. Una cuenta existente conserva su contrase
 
 El paso `grupos` comprueba los tres grupos, sus usuarios y las políticas antes de empezar a modificar entidades o permisos. El capítulo [04](04-vault-iam.md) llama a este mismo archivo y carga el entorno aunque se ejecute desde una terminal nueva.
 
+El paso `agentes-tarea` prepara las tres identidades del [capítulo 14](14-agentes-por-tarea.md).
+Su preparación no activa el modo nuevo: se elige desde Lumen y comienza otro
+login con Verify. Al repetir el paso se reutilizan apps, secretos, entidades y
+aliases; no se reemplaza el cliente del modo actual.
+
+El paso `rar-parametros` prepara el [laboratorio del capítulo 15](15-parametros-rar.md):
+amplía el esquema RAR anterior conocido con tres campos opcionales y guarda dos
+perfiles ficticios cifrados. Conserva el ID y consentimiento del tipo RAR y no
+cambia ACL ni techos. Las comparaciones se activan desde **Laboratorio RAR**;
+prepararlo no altera las llamadas habituales del chat. El arranque completo y
+los capítulos 03/05 también incorporan esta preparación.
+
 Los pasos de infraestructura reutilizan los recursos existentes según sus scripts. Configurar de nuevo puede actualizar políticas, parámetros, datos de demostración y servicios: el alcance se muestra en cada paso. Este recorrido no llama a `remove`, `rebuild` ni `demo.sh start`.
 
 El progreso se guarda en `${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/manual/guided/progress.json`, con logs y reportes en ese mismo directorio privado. Exporta `LUMEN_STATE_DIR` antes de arrancar si usas otro directorio. Los estados `OK` son historial de ejecuciones, no una comprobación continua: después de cambiar el despliegue, ejecuta de nuevo los pasos necesarios.
 
 ## Pausas de consola y comprobación real
+
+El paso `espacios-personales`, después de `grupos`, añade el [capítulo 16](16-espacios-personales.md).
+Prepara las políticas del nuevo prefijo KV, las asignaciones y un secreto ficticio
+por usuario. La pantalla **Mi espacio de secretos** activa el recorrido. Repetir
+conserva valores y versiones; los comandos de agentes/grupos reaplican la
+extensión cuando ya existe.
 
 - **OpenAI:** `openai-recursos` prepara proyecto y cuenta; antes de ejecutar `openai-mapping`, completa WIF según [07](07-openai-spiffe.md) y guarda los IDs en `.env`.
 - **Claude:** completa inicialmente emisor, regla, cuenta e inicio de sesión `ant` según [08](08-claude-spiffe.md). `claude-jwks` sincroniza las claves públicas actuales por la API oficial y comprueba el resultado antes de `claude-agente`. Si se recrea Vault, el mismo paso actualiza el emisor existente.

@@ -5,6 +5,9 @@
   "properties": {
     "type": {"const": "vault:path_access"},
     "path": {"type": "string", "pattern": "^[A-Za-z0-9._/:-]+$"},
-    "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "enum": ["read", "create", "update", "delete", "sudo", "list", "deny"]}}
+    "capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "enum": ["read", "create", "update", "delete", "sudo", "list", "deny"]}},
+    "allowed_parameters": {"type": "object", "additionalProperties": {"type": "array"}},
+    "denied_parameters": {"type": "object", "additionalProperties": {"type": "array"}},
+    "required_parameters": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
   }
 }

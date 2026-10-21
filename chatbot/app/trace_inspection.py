@@ -8,9 +8,15 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from . import lab_capture
+from .request_workbench import templates
 from .i18n import Translator, request_language
 
 RAW_TITLES = {
+    'gen_ai.input.messages': 'Mensajes enviados al modelo · telemetría',
+    'gen_ai.output.messages': 'Respuesta del modelo · telemetría',
+    'gen_ai.tool.definitions': 'Herramientas ofrecidas al modelo',
+    'lumen.model.parameters': 'Parámetros del modelo',
+    'lumen.user.message': 'Pregunta del usuario',
     'vault.http.request': 'Petición enviada a Vault',
     'vault.http.response': 'Respuesta recibida de Vault',
     'vault.auth.jwt': 'Token presentado a Vault',
@@ -100,7 +106,7 @@ def inspection_router(identity, records_for, cookie='lumen_session'):
         stored = lab_capture.STORE.get(tid, sid)
         sections = inspect_record(record, stored)
         return result({
-            'span_id': sid, 'sections': sections,
+            'span_id': sid, 'sections': sections, 'requests': templates(stored),
             'expires_at': min(session.expires_at, (stored or {}).get('expires_at', time.time() + 600)),
             'message': '' if sections else 'No hay valores capturados para este paso. Genera una nueva traza; las capturas en memoria caducan a los 10 minutos o al reiniciar Lumen.',
             'note': 'Valores de esta ejecución. La decodificación de JWT no verifica su firma. Los valores en memoria caducan a los 10 minutos; los intercambios raw de Vault/SPIFFE conservan la retención de las trazas.',

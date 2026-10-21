@@ -1,5 +1,6 @@
 """A credential-free view of recorded client calls, separate from local spans."""
 from __future__ import annotations
+import json
 
 ACTORS = {
     'lumen': ('Lumen', 'Aplicación · orquesta las llamadas'),
@@ -12,6 +13,13 @@ ACTORS = {
     'tavily': ('Tavily', 'Búsqueda pública'),
 }
 TITLES = {
+    'lumen.personal.read': 'Leer un espacio personal',
+    'lumen.personal.write': 'Guardar en un espacio personal',
+    'lumen.personal.list': 'Listar un espacio personal',
+    'personal.access': 'Comprobar la política del propietario',
+    'lumen.rar.compare': 'Comparación de parámetros RAR',
+    'rar.comparison.phase': 'Preparar una fase de la comparación RAR',
+    'rar.comparison.access': 'Comprobar el acceso en Vault',
     'lumen.applications.list': 'Consultar solicitudes',
     'lumen.application.save': 'Guardar solicitud',
     'lumen.action': 'Ejecución de Lumen',
@@ -53,7 +61,8 @@ def _describe(record):
     if name in {'verify.obo_exchange', 'verify.token_exchange'}:
         return dict(target='verify', title='Delegar el permiso del usuario', method='POST', endpoint='/oauth2/token',
                     credential='Cliente STS + token del usuario + token del agente',
-                    request=f'Token exchange OBO · RAR para {path or "la ruta solicitada"}',
+                    request=(f'Token exchange OBO · RAR para {path or "la ruta solicitada"}'
+                             + (f' · {a["agent.identity"]}' if a.get('agent.identity') else '')),
                     response='JWT delegado, limitado al usuario, al agente y a la ruta')
     if name in {'vault.read', 'vault.write', 'vault.jwks'}:
         response = 'Respuesta de la ruta de Vault'
@@ -79,6 +88,10 @@ def _describe(record):
             title, response = 'Autorizar el uso de xAI', 'Generación de autorización de la credencial'
         elif path == 'secrets/data/tavily':
             title, response = 'Obtener credencial de búsqueda', 'Credencial de Tavily'
+        elif path.startswith(('secrets/data/lumen-personal/', 'secrets/metadata/lumen-personal/')):
+            title = 'Listar un espacio personal' if '/metadata/' in path else 'Guardar en un espacio personal' if name == 'vault.write' else 'Leer un espacio personal'
+            response = 'Respuesta KV del espacio solicitado'
+            credential = 'JWT OBO de Verify · X-Vault-Token'
         return dict(target='vault', title=title, method=a.get('http.request.method', 'GET' if name != 'vault.write' else 'POST'),
                     endpoint='/v1/' + path, credential=credential,
                     request=f'Namespace {a.get("vault.namespace", "verify")} · {path}', response=response)
@@ -97,8 +110,8 @@ def _describe(record):
                     response='Access token temporal del proveedor')
     if name in {'openai.chat', 'anthropic.chat', 'xai.chat'}:
         provider = name.split('.')[0]
-        return dict(target=provider, title='Consultar el modelo', method='SDK',
-                    endpoint=f'{a.get("gen_ai.request.model", "Modelo")} · API de inferencia',
+        return dict(target=provider, title='Consultar el modelo', method=a.get('http.request.method', 'SDK'),
+                    endpoint=(a.get('server.address', '') + a.get('url.path', '')) if a.get('lumen.http.attempts') else f'{a.get("gen_ai.request.model", "Modelo")} · API de inferencia',
                     credential='API key temporal de Vault' if provider == 'xai' else 'Access token de la federación SPIFFE',
                     request='Instrucciones, mensajes y definiciones de herramientas',
                     response='Texto y/o solicitudes de herramientas')
@@ -110,7 +123,7 @@ def _describe(record):
     return None
 
 
-def build_flow(records: list[dict]) -> dict:
+def build_flow(records: list[dict], agent_details=None) -> dict:
     records = sorted(records, key=lambda r: (r['start_ns'], r.get('span_id', '')))
     start = min((r['start_ns'] for r in records), default=0)
     end = max((r['end_ns'] for r in records), default=start)
@@ -144,9 +157,22 @@ def build_flow(records: list[dict]) -> dict:
                 sort_start = max([sort_start] + [r['end_ns'] for r in actor_calls])
                 notes.append('Traza anterior: OBO incluye la obtención del token del agente. Se sitúa después de ese paso; su duración es inclusiva, no la latencia HTTP aislada.')
         if name.endswith('.chat'):
-            notes.append('Llamada lógica del SDK. La traza no desglosa sus reintentos ni captura aquí el cuerpo HTTP final.')
+            notes.append('La consola incluye las peticiones HTTP reales de esta llamada y permite seleccionar cada intento.' if attrs.get('lumen.http.attempts') else 'Traza anterior sin captura HTTP del SDK. Los mensajes de telemetría no permiten reconstruir una petición exacta.')
         state, status = _outcome(record)
         chain = ancestors(record)
+        rar_context = None
+        if attrs.get('rar.lab.phase'):
+            try:
+                # Only this lab's synthetic inputs are shown by default. Other
+                # capture values remain behind the existing inspection API.
+                details = attrs.get('auth.rar.presented') or next(
+                    (r.get('attributes', {}).get('auth.rar.validated') for r in reversed(chain)
+                     if r.get('attributes', {}).get('auth.rar.validated')), None) or attrs.get('rar.lab.authorization_details', '[]')
+                rar_context = dict(phase=attrs['rar.lab.phase'], scenario=attrs.get('rar.lab.scenario', ''),
+                                   case=attrs.get('rar.lab.case', ''), authorization_details=json.loads(details),
+                                   payload=json.loads(attrs.get('rar.lab.payload', '{}')))
+            except (ValueError, TypeError):
+                pass
         if description and name.endswith('.chat') and any(r['name'] == 'guardrail.energy_scope' for r in chain):
             description.update(title='Clasificar la pregunta',
                                request='Pregunta e instrucciones del control de ámbito',
@@ -155,8 +181,28 @@ def build_flow(records: list[dict]) -> dict:
                       duration_ms=record['duration_ms'], start_ms=round((record['start_ns'] - start) / 1e6, 2),
                       state=state, status=status, context=' → '.join(r['name'] for r in chain))
         if description:
+            # Prefer the identity recorded on this actual call. Provider and search
+            # spans must never inherit the human's OBO actor from the root span.
+            agent_name = attrs.get('agent.identity', '')
+            if name == 'vault.jwks':
+                agent_name = ''
+            elif not agent_name and name.split('.')[0] in {'openai', 'anthropic', 'xai'}:
+                agent_name = 'chatbot-' + name.split('.')[0]
+            elif not agent_name and name == 'tavily.search':
+                agent_name = 'chatbot-research'
+            elif not agent_name:
+                agent_name = next((r['attributes']['agent.identity'] for r in reversed(chain)
+                                   if r.get('attributes', {}).get('agent.identity')), '')
+            from .agent_details import AGENT_NAMES
+            if agent_name not in AGENT_NAMES:
+                agent_name = ''
             code = attrs.get('http.response.status_code')
-            calls.append(dict(**common, **description, source='lumen', notes=notes, sort_start=sort_start,
+            calls.append(dict(**common, **description, agent_name=agent_name,
+                              rar=rar_context,
+                              personal=({key.removeprefix('personal.'): value for key, value in attrs.items()
+                                         if key in {'personal.owner_entity', 'personal.target_entity', 'personal.user_policy',
+                                                    'personal.cross_user', 'personal.path'}} if attrs.get('personal.path') else None),
+                              agent=(agent_details or {}).get(agent_name), source='lumen', notes=notes, sort_start=sort_start,
                               http_status=code, response_recorded=bool(code) or (
                                   state != 'error' and (name == 'mysql.query' or name.endswith('.chat'))),
                               request_id=attrs.get('vault.request_id', '')))

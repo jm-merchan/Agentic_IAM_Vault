@@ -41,7 +41,7 @@ remove_verify_inventory() {
   remove_add_target sts vault-chatbot-sts "$id" /v1.0/sts/oauth/clients
   remove_api GET /v1.0/applications "$REMOVE_WORK/apps.json"
   jq -e '(._embedded.applications|type=="array") and (.totalCount == (._embedded.applications|length))' "$REMOVE_WORK/apps.json" >/dev/null || fail 'Inventario de aplicaciones incompleto; no se elimina una lista paginada parcialmente'
-  for name in vault-chatbot-oidc vault-chatbot-research vault-chatbot-xai vault-chatbot-openai vault-chatbot-anthropic; do
+  for name in vault-chatbot-oidc vault-chatbot-research vault-chatbot-xai vault-chatbot-openai vault-chatbot-anthropic vault-chatbot-task-read vault-chatbot-task-write vault-chatbot-task-reveal; do
     id=$(jq -r --arg name "$name" '[._embedded.applications[]|select(.name==$name)|._links.self.href|split("/")[-1]]|if length>1 then error("Duplicate app") else .[0]//empty end' "$REMOVE_WORK/apps.json")
     remove_add_target app "$name" "$id" /v1.0/applications
   done

@@ -18,6 +18,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcess
 from opentelemetry.trace import Status, StatusCode
 from .trace_content import CURRENT, ContentRecorder, message_document
 from .lab_capture import capture
+from .rar import LAB_CONTEXT
 
 RECORDS = deque(maxlen=3000)
 LOCK = threading.Lock()
@@ -66,7 +67,7 @@ def headers():
 @contextmanager
 def span(name, **attributes):
     # Automatic exception capture can leak HTTP bodies, SQL credentials or tool input.
-    with TRACER.start_as_current_span(name, attributes=attributes,
+    with TRACER.start_as_current_span(name, attributes={**LAB_CONTEXT.get(), **attributes},
                                      record_exception=False, set_status_on_exception=False) as current:
         try:
             yield current
@@ -128,11 +129,14 @@ class ModelSpans(AsyncCallbackHandler):
         self.sequence += 1
         current = TRACER.start_span(self.provider + '.chat', context=self.context, attributes={
             'gen_ai.provider.name': self.provider, 'gen_ai.request.model': self.model,
+            'agent.identity': 'chatbot-' + self.provider,
             'gen_ai.operation.name': 'chat', 'gen_ai.input.message_count': sum(map(len, messages)),
             'lumen.model.call_index': self.sequence, 'lumen.content.enabled': self.recorder.enabled,
             'lumen.content.source': 'langchain_callback',
         })
         self.active[run_id] = current
+        from .http_capture import MODEL_SPANS
+        MODEL_SPANS[run_id] = current
         if self.credential:
             capture(current, 'authentication', 'Credencial utilizada por el cliente del modelo', {
                 'provider': self.provider, 'model': self.model,
@@ -157,6 +161,8 @@ class ModelSpans(AsyncCallbackHandler):
             self.recorder.capture(current, 'gen_ai.tool.definitions', definitions)
 
     async def on_llm_end(self, response, *, run_id, **kwargs):
+        from .http_capture import MODEL_SPANS
+        MODEL_SPANS.pop(run_id, None)
         current = self.active.pop(run_id, None)
         if current:
             outputs, reasons = [], []
@@ -190,6 +196,8 @@ class ModelSpans(AsyncCallbackHandler):
             current.end()
 
     async def on_llm_error(self, error, *, run_id, **kwargs):
+        from .http_capture import MODEL_SPANS
+        MODEL_SPANS.pop(run_id, None)
         current = self.active.pop(run_id, None)
         if current:
             current.set_attribute('error.type', type(error).__name__)
@@ -201,5 +209,8 @@ class ModelSpans(AsyncCallbackHandler):
             current.set_attribute('error.type', 'Interrupted')
             current.set_status(Status(StatusCode.ERROR))
             current.end()
+        from .http_capture import MODEL_SPANS
+        for run_id in self.active:
+            MODEL_SPANS.pop(run_id, None)
         self.active.clear()
         self.credential = None

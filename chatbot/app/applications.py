@@ -9,6 +9,7 @@ from uuid import UUID
 
 from .security import AccessDenied
 from .telemetry import operation
+from .task_agents import task_allows
 
 PROFILE_KEY = 'lumen-applications'
 TRANSFORMS = {'dni': 'lumen-dni', 'iban': 'lumen-iban'}
@@ -107,7 +108,7 @@ def iban_hint(value):
 class ApplicationServices:
     def can_reveal(self, session):
         session.require_login()
-        return bool(set(session.groups).intersection(self.config['runtime']['groups'].get('sensitive', [])))
+        return task_allows(session, 'reveal') and bool(set(session.groups).intersection(self.config['runtime']['groups'].get('sensitive', [])))
 
     async def protected_write(self, session, path, payload):
         token = await self.exchange(session, path, ['update'])
@@ -115,6 +116,8 @@ class ApplicationServices:
 
     @operation('application.save')
     async def save_application(self, session, form, application_id):
+        if not task_allows(session, 'write'):
+            raise AccessDenied('Este agente no puede crear solicitudes. Selecciona Creación de solicitudes.')
         if self.role(session) != 'readwrite':
             raise AccessDenied('Tu perfil permite consultar solicitudes, pero no guardarlas.')
         try:

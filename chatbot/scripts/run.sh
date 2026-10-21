@@ -7,6 +7,9 @@ source "${VAULT_ENV_FILE:-/tmp/vault/config.env}"
 export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 export CHATBOT_BOOTSTRAP_TOKEN
 CHATBOT_BOOTSTRAP_TOKEN=$(vault token create -format=json -policy=chatbot-bootstrap -no-default-policy -ttl=5m -explicit-max-ttl=5m -display-name=lumen-bootstrap | jq -er .auth.client_token)
+vault policy write chatbot-agent-inspector policies/agent-inspector.hcl >/dev/null
+export CHATBOT_AGENT_INSPECTOR_TOKEN
+CHATBOT_AGENT_INSPECTOR_TOKEN=$(vault token create -format=json -policy=chatbot-agent-inspector -no-default-policy -period=1h -display-name=lumen-agent-inspector | jq -er .auth.client_token)
 unset VAULT_TOKEN
 # Provisioning inputs must never be inherited by the application process.
 unset VERIFY_ADMIN_CLIENT_SECRET XAI_MANAGEMENT_API_KEY XAI_TEAM_ID TAVILY_API_KEY

@@ -1,5 +1,11 @@
 # Configuración manual de Lumen · Vault Agentic IAM
 
+La ampliación [14 · Agentes por tarea](14-agentes-por-tarea.md) añade identidades seleccionables desde la interfaz y conserva el modo actual como valor inicial. Las [imágenes Vault 2.2.0](../VAULT_IMAGES.md) se construyen y publican por separado de la migración del clúster.
+
+[15 · Parámetros RAR](15-parametros-rar.md) incorpora un laboratorio opcional en la UI: seis escenarios, comparación real de accesos y trazas de las restricciones permitidas, prohibidas y obligatorias.
+
+[16 · Espacios personales](16-espacios-personales.md) añade KV por identidad humana, pruebas de aislamiento y techos de lectura/escritura por agente.
+
 Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Actualizadas con el selector de proveedores, el visor interactivo y sensible de trazas y el soporte **EN/ES**, comprobado el **20 de octubre de 2026**. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
 
 ## Prerrequisitos y orden
@@ -30,6 +36,9 @@ Prepara antes las entradas de [00 · Entorno y credenciales](00-entorno.md). No 
 | 11 | [OBO a mano](11-obo.md) | Login PKCE, actor, token exchange RAR y llamadas a Vault |
 | 12 | [Bloqueos y revocación](12-bloqueos.md) | Deny para tokens antiguos/nuevos y revocación de leases |
 | 13 | [Repetición por script](13-repeticion-script.md) | Retirada, ejecución de bloques, sincronización de claves Claude y validación |
+| 14 | [Agentes por tarea](14-agentes-por-tarea.md) | Ampliación opcional desde la interfaz, identidades y techos OBO separados |
+| 15 | [Parámetros RAR](15-parametros-rar.md) | Seis escenarios con reglas, cuerpos, resultados HTTP y trazas correlacionadas |
+| 16 | [Espacios personales](16-espacios-personales.md) | KV por usuario, políticas centrales, acceso cruzado y trazas |
 
 Completa 00–05, prepara **los tres proveedores en 06–08** y continúa con 09–10. Cada capítulo genera un perfil JSON privado; el capítulo 10 los publica juntos en `secrets/chatbot/model`, sin que el último proveedor borre los anteriores. La aplicación carga las tres identidades al arrancar y el usuario cambia de proveedor en el banner. `LUMEN_MODEL_PROVIDER=auto` solo fija OpenAI como selección inicial. Los capítulos 11–12 explican OBO y los bloqueos independientemente del LLM.
 

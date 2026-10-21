@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-10-21T16:13:51.520938+00:00",
+  "url": "http://localhost:8088/mi-espacio",
+  "session": {
+    "role": "reader",
+    "agent": "legacy"
+  },
+  "ui_observed": {
+    "sidebar_navigation": true,
+    "own_read_http_status": 200,
+    "own_read_trace_id": "c82f03b37e6ad7db6f89c2107d8599c3",
+    "cross_owner_read_http_status": 403,
+    "cross_owner_trace_id": "6a2e6d64b0e95eaa01f8e2c97405ec40",
+    "trace_link_selected_vault_denial": true,
+    "trace_ownership_context_visible": true,
+    "language_switch_es_en": true,
+    "mobile_viewport_width": 390,
+    "mobile_document_width": 390
+  },
+  "screenshots": [
+    "screenshots/personal-spaces-desktop.png",
+    "screenshots/personal-spaces-mobile.png",
+    "screenshots/personal-spaces-trace.png"
+  ],
+  "runtime_source_matches": {
+    "app/personal_spaces.py": true,
+    "app/personal_spaces_ui.py": true,
+    "app/security.py": true,
+    "app/main.py": true,
+    "app/i18n.py": true,
+    "app/task_agent_ui.py": true,
+    "app/trace_flow.py": true,
+    "app/trace_flow.js": true,
+    "app/translations_en.json": true,
+    "static/style.css": true
+  },
+  "runtime_health_and_environment_check": "passed",
+  "limitations": [
+    "Browser checks preceded the final small changes preserving drafts across language navigation and including target name in status text. Browser became unavailable before a repeat visual check; deployed source matches those final changes.",
+    "UI write was not exercised in this browser session; real write and CAS were verified in the 12-combination service suite."
+  ],
+  "automated": {
+    "personal_live_combinations": 12,
+    "personal_live_checks": 120,
+    "personal_live_all_passed": true,
+    "full_python_passed": 426,
+    "full_python_subtests_passed": 2,
+    "full_python_failed": 1,
+    "python_failure": "test_oauth2c_notebook.py::test_notebook_structure_and_shell_syntax: existing saved execution output violates clean notebook assertion; notebook left unchanged",
+    "final_focused_python_passed": 47,
+    "javascript_passed": 6,
+    "existing_flow_regression": {
+      "combinations": 12,
+      "vault_decisions": 108,
+      "mysql_catalogue_reads": 12,
+      "wrong_actor_rejections": 12,
+      "all_passed": true,
+      "transient_error": "Verify disconnected before case 7; the six remaining cases passed when resumed"
+    }
+  },
+  "sidebar_icon_fix": {
+    "checked_at": "2026-10-21T16:21:28.666724+00:00",
+    "icon": "lock_outline",
+    "icon_slot_px": 20,
+    "icon_text_gap_px": 12,
+    "label_wraps": true,
+    "deployed_source_matches": true,
+    "runtime_health": "ok",
+    "visual_verification": "pending: browser and native computer connection unavailable; previous screenshots do not show this correction"
+  }
+}

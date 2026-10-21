@@ -70,4 +70,7 @@ done
 jq -n --slurpfile additions "$TMP_WORK/entitlements.json" '{birthRightAccess:false,requestAccess:false,additions:$additions[0]}' > "$TMP_WORK/grants.json"
 api POST "/v1.0/owner/applications/$app_id/entitlements" "$TMP_WORK/granted.json" --data-binary "@$TMP_WORK/grants.json"
 cat "$TMP_WORK/runtime.json" | kv_write chatbot/runtime
+if vault kv metadata get -mount=secrets chatbot/personal-spaces >/dev/null 2>&1; then
+  bash "$(dirname "$0")/configure-personal-spaces.sh"
+fi
 echo 'Restart Lumen to load the group ID mapping; users must obtain fresh OIDC sessions after changes.'

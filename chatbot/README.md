@@ -1,5 +1,7 @@
 # Lumen · tu energía, con claridad
 
+**Mi espacio de secretos** ofrece un laboratorio opcional KV v2 por entidad humana. Todos los perfiles tienen un espacio propio; Estándar/Creación pueden guardar y Consulta/Revelado solo leer. La política de Vault deniega el acceso cruzado, incluso para Supervisor. [Preparación, alcance y prueba](../docs/manual/16-espacios-personales.md).
+
 Chatbot de energía en Python con **NiceGUI + LangChain Deep Agents + xAI/OpenAI/Claude**, autenticación **OIDC con IBM Verify**, acceso a MySQL mediante **Vault IAM OBO** y búsqueda **Tavily con un agente autónomo registrado**. xAI obtiene claves dinámicas del Secret Engine; OpenAI y Claude intercambian un SPIFFE JWT-SVID de Vault por un token temporal. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
 
 Desde la raíz, ejecutar **`./demo.sh`** y abrir **http://localhost:8088**. [Instalación y `.env`](../README.md). Los notebooks 1–4 y 6–9 son documentación por etapas y llaman a los mismos scripts. [Notebook OpenAI/SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb) y [reconstrucción manual verificada del 16 de octubre](../docs/runs/20261016T064722Z-manual-script/README.md).
@@ -251,6 +253,8 @@ Los campos del formulario no se incorporan al historial ni a los prompts. `consu
 
 ### Interfaz y trazas
 
+**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
+
 En la reconstrucción del 15/10 se verificaron los temas claro/oscuro, la aceptación de sugerencias mediante Tab y la aplicación a **390 px**, sin desbordamiento horizontal. El informe conserva también los valores de viewport y el cotejo del favicon.
 
 ![Lumen a 390 px](../docs/runs/20261015T114709Z-openai-clean/screenshots/openai-mobile.jpg)
@@ -276,3 +280,44 @@ El notebook base de Verify es un ejercicio histórico separado; `start` crea las
 ## Ámbito del asistente y JWT-SVID
 
 Las consultas fuera de energía o del uso de esta demo se rechazan antes de ejecutar herramientas. Un seguimiento como «venga» conserva el rechazo; una pregunta nueva de energía puede continuar. [Control, evidencias y campos JWT-SVID de las trazas](../docs/ENERGY_SCOPE_AND_SVID.md). La validación del 15/10 registró **123 tests y dos subcasos**. La reinstalación por script del 16/10 pasó **102 comprobaciones funcionales** y se verificaron además las nueve pruebas unitarias de la retirada; son suites y alcances distintos.
+## Agentes opcionales por tarea
+
+La interfaz incluye **Agentes por tarea**, con **Modo actual** como valor inicial.
+El botón abre un panel a la derecha del chat, superpuesto en tablet y móvil, con
+desplazamiento propio; no expande la tabla encima de la conversación.
+Su matriz **usuario × agente** resalta la combinación activa y permite pulsar otras
+celdas para comparar permisos esperados y ver si el límite viene del usuario o del
+agente. La vista previa no cambia la sesión ni consulta las políticas actuales de
+Vault; el botón de comprobar límites conserva las pruebas reales.
+Consulta, Creación de solicitudes y Revelado de datos tienen clientes Verify y
+techos OBO independientes. Cambiar requiere un nuevo login y descarta conversación
+y borrador sin guardar. Los permisos del usuario siguen aplicándose.
+Ver [instalación, límites y pruebas](../docs/manual/14-agentes-por-tarea.md).
+
+### Laboratorio de parámetros RAR
+
+**Laboratorio RAR** abre `/laboratorio-rar` con el usuario y agente de la sesión.
+Incluye seis escenarios: versión permitida, lotes prohibidos, parámetros
+obligatorios, combinación de restricciones, transformación explícita y revelado
+de un único perfil ficticio. La UI muestra las reglas y cuerpos antes de enviar,
+compara dos peticiones reales y enlaza el control y la restricción con sus pasos
+en la traza. Un `403 → 403` se distingue de un `200 → 403`: los parámetros no
+pueden ampliar los permisos del usuario ni el techo del agente.
+
+La preparación amplía el esquema RAR conocido de Verify conservando su ID y crea
+dos perfiles sintéticos cifrados. No cambia ACL, techos, clientes ni la versión
+de Vault. El chat sigue usando su RAR habitual; los parámetros se añaden solo en
+las comparaciones explícitas. [Escenarios, instalación y repetición](../docs/manual/15-parametros-rar.md)
+· [Pruebas reales](docs/rar-parameters-verification.json).
+
+### Agente de Vault en permisos y trazas
+
+La comprobación de límites identifica el agente OBO y consulta su registro,
+entidad, alias y políticas en Vault. El detalle de cada llamada de la traza añade
+la identidad correspondiente, enlaces a Vault y el HCL de sus políticas. Distingue
+el agente por tarea, los proveedores y la búsqueda. Los datos llevan fecha de
+consulta y los enlaces usan la sesión propia de Vault del navegador.
+
+El arranque provisiona una credencial de inspección independiente, limitada a
+metadatos de los agentes de Lumen. Los permisos de negocio se conservan.
+Ver [alcance, enlaces y operación del inspector](../docs/manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault).

@@ -1,6 +1,8 @@
 # Lumen: recorrido por usuario y trazabilidad
 
-Esta guía describe el visor interactivo, las capturas sensibles y **EN/ES** de la revisión del **20 de octubre de 2026**. El [historial de validación](../docs/manual/VALIDACION.md) distingue las pruebas de interfaz de las reinstalaciones. Los informes end-to-end del [15 de octubre](../docs/E2E_OPENAI_VERIFICATION.md) y del [14 de octubre](../docs/E2E_VERIFICATION.md) conservan evidencia histórica; sus IDs no acreditan el estado actual ni garantizan que la traza siga disponible.
+Las operaciones de **Mi espacio de secretos** registran el sujeto OBO, el agente, la entidad propietaria solicitada y la política `lumen-personal-user`. El diagrama distingue lectura, escritura y listado, enlaza el resultado de Vault y conserva la consola de repetición. El contenido personal no se envía al modelo. La auditoría general mantiene HMAC; no se amplían los filtros raw existentes. [Recorrido](../docs/manual/16-espacios-personales.md).
+
+Esta guía describe el visor interactivo, las capturas sensibles y **EN/ES** de la revisión del **21 de octubre de 2026**. El [historial de validación](../docs/manual/VALIDACION.md) distingue las pruebas de interfaz de las reinstalaciones. Los informes end-to-end del [15 de octubre](../docs/E2E_OPENAI_VERIFICATION.md) y del [14 de octubre](../docs/E2E_VERIFICATION.md) conservan evidencia histórica; sus IDs no acreditan el estado actual ni garantizan que la traza siga disponible.
 
 ## 1. Qué puede hacer cada usuario
 
@@ -37,11 +39,66 @@ En Lumen: **Ver última traza → Ver en Grafana**. El enlace incluye la ventana
 
 **Ver última traza** abre primero un diagrama interactivo: Lumen aparece como origen y cada servicio como destino. Seleccionar una flecha muestra la operación, ruta, tipo de credencial, respuesta prevista, estado observado y referencia del span. Se puede filtrar por servicio, avanzar llamada a llamada y mostrar u ocultar los retornos. La tabla completa y los contenidos capturados se conservan debajo.
 
+### Relacionar parámetros RAR con el acceso
+
+El [Laboratorio RAR](../docs/manual/15-parametros-rar.md) emite dos tokens OBO por
+caso y envía el mismo cuerpo con ambos. **Ver control** y **Ver restricción**
+abren `/traces/<trace_id>?span=<span_id>` y seleccionan la llamada a Vault
+correspondiente. El visor muestra escenario, caso, fase, RAR y cuerpo ficticio;
+la consola conserva la autenticación y el intercambio real.
+
+Los spans `rar.comparison.phase` y `rar.comparison.access` agrupan las operaciones.
+`rar.lab.scenario`, `rar.lab.case`, `rar.lab.phase` y `rar.lab.payload` permiten
+correlacionarlas. `auth.rar.validated` registra el RAR después de validar el JWT
+OBO; `auth.rar.presented` registra el claim presentado a Vault. La decodificación
+para observabilidad no sustituye la validación criptográfica. `vault.request_id`
+permite pivotar al audit cuando Vault devuelve ese identificador.
+
+Un control 200 seguido de 403 demuestra la diferencia al añadir los parámetros.
+Si ambos reciben 403, la UI señala que el acceso ya falla sin las restricciones:
+hay que revisar usuario, techo y bloqueos. Los fallos de emisión, conexión y
+motor se presentan como no concluyentes. Las trazas de las pruebas por script
+viven en el directorio privado `rar-parameters/traces`; las de la UI conservan
+el control de acceso de su sesión.
+
 ### Idioma del visor
 
 El visor usa la misma preferencia **EN / ES** que Lumen, con detección inicial del navegador. **View latest trace**, **View in Grafana**, **View sensitive values** y **HTTP Basic authentication** corresponden a **Ver última traza**, **Ver en Grafana**, **Ver valores sensibles** y **Autenticación HTTP Basic**. Los títulos, explicaciones, etiquetas accesibles, tiempos y paginación cambian de idioma. Los nombres técnicos de spans, rutas, cabeceras, JWT, `client_secret`, SVID, credenciales SQL y cuerpos de cifrado/descifrado mantienen sus valores originales.
 
 Cambiar el idioma recarga la página y cierra cualquier captura sensible abierta; para verla de nuevo hay que solicitarla dentro de la sesión propietaria vigente. Una pestaña que sigue abierta conserva sus etiquetas hasta recargarse; sus capturas se presentan en el idioma de esa página. El idioma no modifica la captura, la retención ni los permisos. Grafana tiene su propio ajuste de idioma. [Verificación bilingüe](docs/language-verification.json) · [Procedimiento](../docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+
+### Consola para repetir una llamada real
+
+En una traza nueva, selecciona un paso y pulsa **Abrir consola de peticiones / Open request console**. La consola muestra la petición HTTP que preparó el cliente: método, URL, cabeceras de autenticación y cuerpo. En OpenAI, xAI y Anthropic incluye las instrucciones, mensajes e historial, herramientas y parámetros enviados realmente al proveedor, tanto para **Clasificar la pregunta** como para **Consultar el modelo**. No confundir el cuerpo del clasificador con el del agente. Si el SDK reintentó, el selector muestra cada intento capturado.
+
+1. **Cabeceras y autenticación · JSON** aparece siempre abierto, con `Authorization`, `X-Vault-Token` o la cabecera de API key al principio para que la credencial sea visible. Esto se aplica a todas las peticiones HTTP, incluidas la clasificación y la conversación con el modelo, Verify y Vault. Puedes editar las cabeceras completas, el cuerpo, el método y la ruta o los parámetros de la URL. **Restaurar captura** recupera los valores originales. Si el protocolo envía la credencial en el cuerpo (por ejemplo, una assertion SPIFFE), se conserva en ese cuerpo y no se inventa una cabecera.
+2. **Enviar petición real** ejecuta una nueva llamada desde el servidor de Lumen. Abrir o editar no ejecuta nada. La respuesta muestra código HTTP, cabeceras, cuerpo y duración; un `401`, `403` o `400` es el resultado del destino, no una simulación.
+3. **Copiar cURL** y **Exportar a Postman** incluyen los valores editados y las credenciales actuales del editor. Para llamar a Vault desde otro cliente, configura su CA de confianza; la consola usa la CA de la instalación. Los archivos exportados y el portapapeles permanecen aunque cierres el visor.
+4. En MySQL, **Autenticación MySQL** muestra directamente el servidor, puerto, base de datos, usuario y contraseña dinámica en claro, sin desplegables. Incluye el lease y su validez al emitirse. Los valores son de sólo lectura y corresponden a los utilizados al repetir la llamada. Debajo aparecen SQL y parámetros JSON. Puedes editar consulta y parámetros; conserva el servidor, base de datos y login de ese paso. El driver enlaza los parámetros, limita la lectura a 50 filas y confirma las escrituras que permita esa credencial.
+
+Funciona también con Client Credentials y STS de Verify, el intercambio de tokens de OpenAI/Claude, lecturas/escrituras de Vault (secretos, credenciales, SPIFFE, Transit y Transform), JWKS y Tavily. Una operación interna sin tráfico propio no se convierte en una petición ficticia. El login OIDC muestra su intercambio si está en la traza de la sesión; su código de autorización de un solo uso normalmente ya estará consumido.
+
+En Tavily y Anthropic, la autenticación se encuentra en estos campos de la petición capturada:
+
+| Paso | Destino | Credencial visible en la consola |
+| --- | --- | --- |
+| Búsqueda Tavily | `POST https://api.tavily.com/search` | `Authorization: Bearer …`, con la API key leída de `secrets/data/tavily` por el agente `chatbot-research`. El cuerpo contiene la consulta y sus opciones. |
+| Federación de Claude | `POST https://api.anthropic.com/v1/oauth/token` | JWT-SVID en el campo `assertion` del cuerpo JSON, junto con los identificadores de federación. Este paso no lleva cabecera `Authorization`. |
+| Clasificar o consultar Claude | `POST https://api.anthropic.com/v1/messages` | `Authorization: Bearer …`, con el access token temporal obtenido en el intercambio anterior. El cuerpo contiene las instrucciones, mensajes, herramientas y parámetros de esa llamada. |
+
+El JWT-SVID de Claude con `jti` es de un solo uso: repetir su intercambio puede devolver un error porque ya fue consumido. La consola conserva la credencial capturada; no emite otra automáticamente.
+
+**Cada envío es real:** puede consumir inferencia, emitir nuevas credenciales, cifrar/descifrar o modificar datos. La consola no ejecuta las herramientas sugeridas por una respuesta del modelo, no renueva tokens, no reasigna credenciales a la sesión y no sustituye la traza original. Para encadenar manualmente llamadas, copia el token devuelto y pégalo en la cabecera/cuerpo del paso siguiente. Si una credencial ha caducado, genera una nueva ejecución de Lumen. Cerrar el panel no deshace una petición ya enviada.
+
+La repetición conserva el mismo protocolo, servidor y puerto del destino capturado. No sigue redirecciones ni usa cookies o credenciales administrativas del servidor. Se recalculan las cabeceras de transporte (`Host`, `Content-Length`, etc.); el cuerpo conserva el texto original, incluido `application/x-www-form-urlencoded`. Cada sesión admite un envío simultáneo. La API comprueba propietario, sesión vigente, origen de la página, modo laboratorio y captura completa no caducada.
+
+Las capturas HTTP reales están **sólo en memoria**, durante diez minutos desde el inicio de la captura del paso: máximo 1 MiB por sección, 500 pasos y 32 MiB en total. Al alcanzar el límite global se descartan los pasos más antiguos. Una petición truncada o ausente no se puede repetir. La respuesta de la consola se limita a 1 MiB; no se almacena en Tempo ni en la conversación. Las trazas antiguas pueden seguir mostrando mensajes de telemetría y los campos raw de Vault/SPIFFE, pero no se reconstruye una petición HTTP exacta a partir de ellos.
+
+La consola y sus mensajes están disponibles en ES/EN; nunca se traducen tokens, cabeceras, cuerpos, SQL ni respuestas del servicio. Al cambiar de paso/pestaña, cerrar o caducar la captura se vacían los editores y respuestas. Es una herramienta del visor para la persona que opera la demo; no amplía las herramientas ni los permisos del LLM.
+
+[Autenticación HTTP visible: verificación](docs/http-authentication-verification.json) · [Captura con token de ejemplo](docs/screenshots/http-authentication-visible.png).
+
+[Informe de verificación de la consola](docs/request-workbench-verification.json) · [Captura de la interfaz](docs/screenshots/request-workbench.png).
 
 ### Valores de cada llamada
 
@@ -51,7 +108,7 @@ En **modo laboratorio**, selecciona una flecha y pulsa **Ver valores sensibles**
 - Vault y federación: JWT presentado a Vault, JWT-SVID emitido y enviado a OpenAI/Claude, y token temporal devuelto por el proveedor.
 - MySQL: usuario y contraseña dinámicos, lease, consulta parametrizada y resultado.
 - Transit y Transform: cuerpo de entrada y salida, texto en claro, ciphertext, valor original y tokenización. El `plaintext` Base64 de Transit también se presenta decodificado como UTF-8.
-- Modelo y Tavily: credencial concreta entregada al cliente en esa invocación. En el modelo es evidencia del SDK, no una captura de cada intento HTTP.
+- Modelo y Tavily: petición HTTP real, cabeceras y cuerpo, con credencial, mensajes, instrucciones, herramientas y parámetros. La respuesta HTTP también se captura; los reintentos del SDK tienen secciones independientes.
 
 Los JWT se pueden leer decodificados; esa decodificación no verifica su firma. Cada valor pertenece al Trace ID y Span ID seleccionados: no se completan huecos con credenciales de otra llamada. Una respuesta denegada conserva el error recibido, sin inventar un secreto.
 
@@ -65,7 +122,7 @@ Genera una ejecución nueva después de actualizar o reiniciar Lumen. Las trazas
 
 ![Visor del texto ficticio descifrado por Transit](docs/screenshots/trace-sensitive-values.png)
 
-Las operaciones locales y los spans contenedores se muestran aparte. `verify.token_exchange` mide la petición STS después de obtener el token del agente; `verify.obo_exchange` contiene ambos pasos y la validación local. En trazas anteriores, el diagrama sitúa OBO después de Client Credentials y señala que su duración es inclusiva. `vault.jwks` registra la lectura de claves públicas para validar el JWT-SVID. Las duraciones anidadas no se suman; `UNSET` no equivale a una autorización verificada. El retorno indica que el cliente registró una respuesta; su descripción explica el tipo de datos previsto, sin copiar credenciales al diagrama. Una llamada de modelo representa una invocación lógica del SDK, no cada intento HTTP.
+Las operaciones locales y los spans contenedores se muestran aparte. `verify.token_exchange` mide la petición STS después de obtener el token del agente; `verify.obo_exchange` contiene ambos pasos y la validación local. En trazas anteriores, el diagrama sitúa OBO después de Client Credentials y señala que su duración es inclusiva. `vault.jwks` registra la lectura de claves públicas para validar el JWT-SVID. Las duraciones anidadas no se suman; `UNSET` no equivale a una autorización verificada. El retorno indica que el cliente registró una respuesta; su descripción explica el tipo de datos previsto, sin copiar credenciales al diagrama. Una flecha del modelo representa una invocación lógica del SDK; su consola permite inspeccionar y repetir cada intento HTTP capturado.
 
 La llamada al modelo dentro de `guardrail.energy_scope` se identifica como **Clasificar la pregunta**, separada de las llamadas del agente. [Verificación del diagrama del 20/10/2026](docs/trace-flow-verification.json): consulta real a solicitudes, conversación con Claude, controles interactivos y acceso sin sesión bloqueado.
 
@@ -124,7 +181,7 @@ El control `guardrail.energy_scope` precede al agente conversacional. Su llamada
 | `gen_ai.tool.call.arguments`, `gen_ai.tool.call.result` | Entrada/salida de cada herramienta |
 | `lumen.model.parameters`, `gen_ai.usage.*` | Parámetros y consumo devueltos por el proveedor |
 
-Desplegar `xai.chat` u `openai.chat` en Tempo, según el proveedor, o la llamada numerada en el visor de Lumen. La captura se toma en el callback de LangChain antes de invocar el SDK: no es una copia del cuerpo HTTP final ni de cada reintento interno del proveedor. Cada campo indica `.truncated`, `.original_bytes` y `.captured_bytes`.
+Desplegar `xai.chat` u `openai.chat` en Tempo, según el proveedor, o la llamada numerada en el visor de Lumen. Estos atributos de telemetría se toman en el callback de LangChain antes de invocar el SDK y se filtran. La consola del visor añade, por separado y sólo en memoria, el cuerpo HTTP final sin ese filtrado, con cada intento del SDK. Cada campo indica `.truncated`, `.original_bytes` y `.captured_bytes`.
 
 Los mensajes y resultados se conservan para explicar el flujo. Los filtros del LLM ocultan credenciales conocidas; no garantizan detectar cualquier dato escrito libremente. Los campos del formulario se recogen fuera del chat y `consultar_solicitudes` devuelve solo la proyección enmascarada. Se comparó esta entrada con los datos ficticios guardados y con Tempo.
 

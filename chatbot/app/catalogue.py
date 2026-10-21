@@ -1,5 +1,6 @@
 """Render catalogue facts and proposal state only after real authorized operations."""
 from __future__ import annotations
+from .task_agents import task_allows
 
 import re
 import unicodedata
@@ -35,6 +36,9 @@ def table(plans, language='es'):
 async def catalogue_reply(services, session, decision, language=None):
     t = Translator(language or session.language)
     preparing = decision.operation == 'prepare_request'
+    if preparing and not task_allows(session, 'write'):
+        session.pending = None
+        return t('Este agente no puede crear solicitudes. Selecciona Creación de solicitudes.')
     if preparing and services.role(session) != 'readwrite':
         session.pending = None
         return t('Tu perfil permite consultar los planes, pero no preparar ni guardar solicitudes. '

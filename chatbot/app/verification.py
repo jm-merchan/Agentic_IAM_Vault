@@ -6,6 +6,7 @@ from pathlib import Path
 
 import httpx
 import pymysql
+from .task_agents import task_allows
 
 
 async def verify_session(services, session):
@@ -21,7 +22,7 @@ async def verify_session(services, session):
         async with httpx.AsyncClient(verify=services.vault_tls, timeout=30) as client:
             response = await client.get(services.config['vault_addr'] + '/v1/' + path,
                                         headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
-            allowed = suffix == 'readonly' or role == 'readwrite'
+            allowed = suffix == 'readonly' or (role == 'readwrite' and task_allows(session, 'write'))
             record('obo_' + suffix + ('_allowed' if allowed else '_denied'),
                    response.status_code == (200 if allowed else 403))
             # Exact RAR cannot be reused to read an unrelated secret.
@@ -52,4 +53,6 @@ async def verify_session(services, session):
               'all_passed': all(t['passed'] for t in tests)}
     is_supervisor = bool(set(session.groups).intersection(services.config['runtime']['groups'].get('sensitive', [])))
     profile = 'supervisor' if is_supervisor and role == 'readonly' else role
+    if session.task_agent != 'legacy':
+        profile += '-task-' + session.task_agent
     (Path(__file__).parents[1] / 'docs' / ('obo-' + profile + '.json')).write_text(json.dumps(report, indent=2) + '\n')

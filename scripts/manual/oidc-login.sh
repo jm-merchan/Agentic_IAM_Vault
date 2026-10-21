@@ -17,12 +17,23 @@ source "$LUMEN_STATE_DIR/vault/config.env"
 export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 ROLE=${1:?reader, writer or supervisor}
 case $ROLE in reader|writer|supervisor) ;; *) exit 2;; esac
+TASK_AGENT=${2:-legacy}
+case $TASK_AGENT in legacy|read|write|reveal) ;; *) echo 'Unknown task agent' >&2; exit 2;; esac
 AUTH_WORK="$MANUAL/login-$ROLE"
+login_name=$ROLE
+if [ "$TASK_AGENT" != legacy ]; then
+  login_name="$ROLE-task-$TASK_AGENT"
+  AUTH_WORK="$MANUAL/login-$login_name"
+fi
 mkdir -p "$AUTH_WORK"
 chmod 700 "$AUTH_WORK"
 rm -f "$AUTH_WORK/cookies" "$AUTH_WORK/tokens.json"
 vault kv get -format=json -mount=secrets "chatbot/users/$ROLE" | jq '.data.data' > "$AUTH_WORK/user.json"
-vault kv get -format=json -mount=secrets chatbot/oidc | jq '.data.data' > "$AUTH_WORK/client.json"
+if [ "$TASK_AGENT" = legacy ]; then
+  vault kv get -format=json -mount=secrets chatbot/oidc | jq '.data.data' > "$AUTH_WORK/client.json"
+else
+  vault kv get -format=json -mount=secrets chatbot/task-agents | jq -e --arg task "$TASK_AGENT" '.data.data.agents[$task]' > "$AUTH_WORK/client.json"
+fi
 STATE=$(openssl rand -hex 24)
 NONCE=$(openssl rand -hex 24)
 printf '%s' "$NONCE" > "$AUTH_WORK/nonce"
@@ -81,5 +92,5 @@ jq -jr '"Authorization: Basic "+((.client_id+":"+.client_secret)|@base64)+"\nCon
 jq -n --rawfile code "$AUTH_WORK/code" --rawfile verifier "$AUTH_WORK/verifier" --arg uri "$CALLBACK" '{grant_type:"authorization_code",code:$code,code_verifier:$verifier,redirect_uri:$uri}' | form_encode > "$AUTH_WORK/token.form"
 curl --fail --silent --show-error --header "@$AUTH_WORK/token.headers" --data-binary "@$AUTH_WORK/token.form" "$TENANT/oauth2/token" > "$AUTH_WORK/tokens.json"
 jq -e '.access_token|type=="string" and length>0' "$AUTH_WORK/tokens.json" > /dev/null
-cp "$AUTH_WORK/tokens.json" "$MANUAL/human-$ROLE.json"
-printf 'OIDC Authorization Code + PKCE: %s OK\n' "$ROLE"
+cp "$AUTH_WORK/tokens.json" "$MANUAL/human-$login_name.json"
+printf 'OIDC Authorization Code + PKCE: %s OK\n' "$login_name"

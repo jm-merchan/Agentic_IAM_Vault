@@ -21,18 +21,9 @@ api PUT "/v1.0/applications/$APP_ID" "$TMP_WORK/app-result.json" --data-binary "
 api GET "/v1.0/applications/$APP_ID" "$TMP_WORK/app-check.json"
 jq -e --arg cid "$APP_CLIENT_ID" '.providers.oidc.token.accessTokenType=="jwt" and any(.providers.oidc.token.attributeMappings[]; .targetName=="may_act" and (.function.custom|fromjson).client_id==$cid)' "$TMP_WORK/app-check.json" >/dev/null
 printf 'OIDC app updated and read back: %s\n' "$APP_ID"
-# Create RAR type once; an existing different schema is a conflict, not overwritten.
-api GET /v1.0/auth-detail-types "$TMP_WORK/rar-list.json"
-RAR_ID=$(jq -r '[..|objects|select(.type?=="vault:path_access")|.id]|unique|if length>1 then error("Duplicate RAR type") else .[0]//empty end' "$TMP_WORK/rar-list.json")
-jq -n --rawfile schema "$VERIFY_DIR/config/rar-schema.json" '{type:"vault:path_access",description:"Vault path and capabilities for delegated access",schema:$schema,inlineMode:true,consentInlineText:("<div>Permitir al agente las operaciones solicitadas en Vault.</div>"|@base64)}' > "$TMP_WORK/rar-payload.json"
-if [ -z "$RAR_ID" ]; then
-  api POST /v1.0/auth-detail-types "$TMP_WORK/rar-created.json" --data-binary "@$TMP_WORK/rar-payload.json"
-fi
-api GET /v1.0/auth-detail-types "$TMP_WORK/rar-list.json"
-RAR_ID=$(jq -er '[..|objects|select(.type?=="vault:path_access")|.id]|unique|if length==1 then .[0] else error("RAR missing") end' "$TMP_WORK/rar-list.json")
-api GET "/v1.0/auth-detail-types/$RAR_ID" "$TMP_WORK/rar-check.json"
-jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '(.schema|fromjson)==$wanted[0]' "$TMP_WORK/rar-check.json" >/dev/null || fail 'Existing RAR schema differs; review before changing it.'
-printf 'RAR configured: vault:path_access\n'
+# Reconcile the known Lumen RAR schema, preserving its ID and other settings.
+source "$VERIFY_DIR/scripts/rar-common.sh"
+configure_rar
 # STS client: token exchange only, no Verify administrative entitlements.
 api GET /v1.0/sts/oauth/clients "$TMP_WORK/sts-list.json"
 STS_ID=$(jq -r '[..|objects|select(.clientName?=="vault-obo-sts")|.clientId]|unique|if length>1 then error("Duplicate STS name") else .[0]//empty end' "$TMP_WORK/sts-list.json")

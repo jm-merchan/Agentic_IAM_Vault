@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-10-21T11:20:24+00:00",
+  "url": "http://localhost:8088/laboratorio-rar",
+  "vault_version": "2.1.2+ent",
+  "service_report": "rar-parameters-verification.json",
+  "local_tests": {
+    "python_passed": 191,
+    "javascript_passed": 6,
+    "shell_syntax": true,
+    "git_diff_check": true
+  },
+  "runtime_matches_source": true,
+  "preparation_repeat": {
+    "schema_id_preserved": true,
+    "fixtures_preserved": true
+  },
+  "browser": {
+    "identity": "Writer + Standard (chatbot-oidc)",
+    "live_scenarios": [
+      "allowed",
+      "combined"
+    ],
+    "final_trace_id": "7d2e30241819a49443196b4126fcf63d",
+    "linked_vault_step": 12,
+    "linked_vault_http_status": 403,
+    "rules_and_synthetic_body_visible": true,
+    "captured_vault_token_and_body_visible_in_workbench": true,
+    "languages": [
+      "es",
+      "en"
+    ],
+    "results_preserved_on_language_change": true,
+    "mobile_entry_from_permissions_drawer": true,
+    "desktop": {
+      "viewport_width": 1440,
+      "document_width": 1440
+    },
+    "mobile": {
+      "viewport_width": 390,
+      "document_width": 390,
+      "table_container_width": 360,
+      "table_scroll_width": 860
+    },
+    "screenshots": [
+      "screenshots/rar-parameters-desktop.png",
+      "screenshots/rar-parameters-mobile.png",
+      "screenshots/rar-parameters-trace.png"
+    ]
+  },
+  "scope": "Optional synthetic RAR laboratory. Real Verify OBO and Vault decisions. Existing chat behavior, ACLs and agent ceilings preserved. No cluster upgrade or complete rebuild."
+}
