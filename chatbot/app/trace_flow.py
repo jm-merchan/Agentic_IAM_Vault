@@ -1,6 +1,7 @@
 """A credential-free view of recorded client calls, separate from local spans."""
 from __future__ import annotations
 import json
+import re
 
 ACTORS = {
     'lumen': ('Lumen', 'Aplicación · orquesta las llamadas'),
@@ -123,6 +124,45 @@ def _describe(record):
     return None
 
 
+def _personal_context(attrs):
+    """Explain the demo's path template, without claiming to evaluate Vault ACLs.
+
+    Identity and policy snapshots come from Lumen's provisioned catalogue. The
+    actual authorization result remains the selected Vault call's HTTP status.
+    Historical traces keep their recorded IDs; missing claims are never filled
+    from today's configuration or from the requested resource owner's ID.
+    """
+    if not attrs.get('personal.path'):
+        return None
+    allowed = {'owner_entity', 'target_entity', 'user_policy', 'cross_user', 'path',
+               'action', 'subject', 'issuer', 'owner_name', 'target_name', 'actor_client_id',
+               'ceiling_policy', 'user_policy_snapshot', 'ceiling_policy_snapshot'}
+    result = {key: attrs['personal.' + key] for key in allowed if 'personal.' + key in attrs}
+    owner = result.get('owner_entity', '')
+    path = result['path']
+    match = re.fullmatch(r'(secrets/(data|metadata)/lumen-personal)/([a-f0-9-]{36})(/.*)?', path)
+    if match and re.fullmatch(r'[a-f0-9-]{36}', owner):
+        prefix, kind, requested_owner, suffix = match.groups()
+        ending = '' if kind == 'metadata' and not suffix else '/*'
+        result.update(template_path=prefix + '/{{identity.entity.id}}' + ending,
+                      expanded_path=prefix + '/' + owner + ending,
+                      path_matches_owner=requested_owner == owner)
+    for attr, source in (('auth.rar.presented', 'presented'), ('auth.rar.requested', 'requested')):
+        try:
+            details = json.loads(attrs.get(attr, 'null'))
+            if not isinstance(details, list):
+                continue
+            # Do not expose arbitrary RAR parameter values in the public diagram.
+            projected = [{key: item[key] for key in ('type', 'path', 'capabilities') if key in item}
+                         for item in details if isinstance(item, dict) and item.get('path') == path]
+            if projected:
+                result.update(authorization_details=projected, rar_source=source)
+                break
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
 def build_flow(records: list[dict], agent_details=None) -> dict:
     records = sorted(records, key=lambda r: (r['start_ns'], r.get('span_id', '')))
     start = min((r['start_ns'] for r in records), default=0)
@@ -199,9 +239,7 @@ def build_flow(records: list[dict], agent_details=None) -> dict:
             code = attrs.get('http.response.status_code')
             calls.append(dict(**common, **description, agent_name=agent_name,
                               rar=rar_context,
-                              personal=({key.removeprefix('personal.'): value for key, value in attrs.items()
-                                         if key in {'personal.owner_entity', 'personal.target_entity', 'personal.user_policy',
-                                                    'personal.cross_user', 'personal.path'}} if attrs.get('personal.path') else None),
+                              personal=_personal_context(attrs),
                               agent=(agent_details or {}).get(agent_name), source='lumen', notes=notes, sort_start=sort_start,
                               http_status=code, response_recorded=bool(code) or (
                                   state != 'error' and (name == 'mysql.query' or name.endswith('.chat'))),

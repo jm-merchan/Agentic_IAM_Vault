@@ -29,6 +29,15 @@ export default {
     selected() { return this.visible.find(c => c.id === this.selectedId) || this.visible[0]; },
     position() { return this.visible.findIndex(c => c.id === this.selected?.id); },
     section() { return this.inspection?.sections.find(s => s.key === this.sectionKey); },
+    personal() { return this.selected?.personal; },
+    personalOutcome() {
+      if (this.selected?.target !== 'vault') return 'Este paso corresponde a Verify. Su HTTP 200 no demuestra acceso al secreto; selecciona la llamada a Vault.';
+      if (this.selected.http_status === 403) return 'Vault ha denegado esta operación. La comparación de rutas explica el aislamiento; el HTTP 403 por sí solo no identifica todas las reglas que intervinieron.';
+      if (this.selected.http_status === 200) return this.personal?.path_matches_owner === false
+        ? 'Vault ha permitido una ruta ajena. Revisa otras políticas o cambios de configuración; la política personal mostrada no explica ese permiso.'
+        : 'Vault ha permitido esta operación. Además de la ruta propia, el techo del agente y el RAR debían permitirla.';
+      return 'Este resultado no confirma acceso ni aislamiento: puede ser un secreto inexistente, un conflicto de versión u otro error. Consulta la respuesta real.';
+    },
   },
   methods: {
     t(text, values = {}) {
@@ -284,13 +293,63 @@ export default {
         </aside>
       </div>
       <p v-else class="tf-notice">{{ t('No hay llamadas externas reconocidas en los registros disponibles. Revisa las operaciones internas y la tabla técnica.') }}</p>
-      <section v-if="selected?.personal" class="tf-rar-panel" :aria-label="t('Aislamiento del espacio personal')">
-        <h3>{{ t('Aislamiento del espacio personal') }}</h3>
-        <p>{{ t('Vault compara la identidad humana del token con la ruta solicitada. El RAR no amplía la política del propietario.') }}</p>
-        <dl><dt>{{ t('Entidad humana autenticada') }}</dt><dd>{{ selected.personal.owner_entity }}</dd>
-          <dt>{{ t('Entidad propietaria del espacio solicitado') }}</dt><dd>{{ selected.personal.target_entity }}</dd>
-          <dt>{{ t('Política central del propietario') }}</dt><dd>{{ selected.personal.user_policy }}</dd>
-          <dt>{{ t('Ruta solicitada') }}</dt><dd>{{ selected.personal.path }}</dd></dl>
+      <section v-if="personal" class="tf-rar-panel tf-personal" :aria-label="t('Aislamiento del espacio personal')">
+        <header class="tf-personal-heading">
+          <div><div class="tf-eyebrow">{{ t('IDENTIDAD → POLÍTICA → RUTA') }}</div><h3>{{ t('Aislamiento del espacio personal') }}</h3></div>
+          <span class="tf-status" :class="{'tf-error-status': selected.state === 'error'}">{{ actor(selected.target) }} · {{ selected.status }}</span>
+        </header>
+        <p>{{ t('El UUID lo genera Vault al crear la entidad humana. Cuando llega una petición OBO, Vault recupera esa entidad mediante el alias del usuario identificado por Verify; no toma la identidad de la URL solicitada.') }}</p>
+        <div class="tf-personal-identities">
+          <div><span class="tf-eyebrow">{{ t('USUARIO QUE DELEGA') }}</span><strong>{{ personal.owner_name || t('Usuario de esta ejecución') }}</strong><code>{{ personal.owner_entity }}</code><small>{{ t('UUID humano usado para expandir la política') }}</small></div>
+          <div><span class="tf-eyebrow">{{ t('PROPIETARIO DE LA RUTA') }}</span><strong>{{ personal.target_name || t('Espacio solicitado') }}</strong><code>{{ personal.target_entity }}</code><small>{{ t('UUID presente en la ruta pedida por Lumen') }}</small></div>
+        </div>
+        <ol class="tf-personal-steps">
+          <li><span class="tf-personal-number" aria-hidden="true">1</span><div><h4>{{ t('Se prepara la identidad') }}</h4>
+            <p>{{ t('El instalador crea la entidad en Vault y un alias que une el emisor de Verify y el ID del usuario con el canonical_id de esa entidad. Son dos identificadores distintos.') }}</p>
+            <dl><dt>iss / issuer</dt><dd>{{ personal.issuer || t('No registrado en esta traza') }}</dd><dt>sub / external_id</dt><dd>{{ personal.subject || t('No registrado en esta traza') }}</dd><dt>canonical_id → entity.id</dt><dd>{{ personal.owner_entity }}</dd></dl>
+          </div></li>
+          <li><span class="tf-personal-number" aria-hidden="true">2</span><div><h4>{{ t('Se guarda bajo ese UUID') }}</h4>
+            <p>{{ t('El instalador crea demo bajo lumen-personal/UUID/demo con su credencial de aprovisionamiento. Después, Lumen construye las rutas con el catálogo de identidades; guardar desde la pantalla usa OBO.') }}</p>
+            <p>{{ t('El campo owner del JSON es informativo. La protección viene de la ruta y de las políticas, no de quién escribió el valor inicial.') }}</p>
+          </div></li>
+          <li><span class="tf-personal-number" aria-hidden="true">3</span><div><h4>{{ t('Verify firma la delegación') }}</h4>
+            <p>{{ t('Lumen envía el token humano, el token del agente y el RAR para la operación. Verify devuelve un JWT OBO firmado: sub identifica al humano y actor-token.sub al agente.') }}</p>
+            <dl><dt>{{ t('Agente en este flujo') }}</dt><dd>{{ selected.agent_name || t('No registrado en esta traza') }}</dd><dt>actor-token.sub / client_id</dt><dd>{{ personal.actor_client_id || t('No registrado en esta traza') }}</dd></dl>
+          </div></li>
+          <li><span class="tf-personal-number" aria-hidden="true">4</span><div><h4>{{ t('Vault resuelve y autoriza') }}</h4>
+            <p>{{ t('Lumen presenta el JWT en X-Vault-Token. Vault valida firma, emisor y vigencia; el perfil OAuth usa user_claim=sub y actor_claim=actor-token.sub. El alias resuelve al humano y al agente por separado.') }}</p>
+            <p>{{ t('Vault obtiene las políticas humanas, sustituye identity.entity.id por el UUID humano y comprueba también el techo del agente y el RAR.') }}</p>
+          </div></li>
+        </ol>
+        <div class="tf-personal-comparison">
+          <div><h4>{{ t('Aplicado a esta petición') }}</h4><p>{{ t('Política humana ∩ techo del agente ∩ RAR del token') }}</p></div>
+          <span class="tf-personal-match" :class="{'tf-personal-different': personal.path_matches_owner === false}">{{ t(personal.path_matches_owner === true ? 'Mismo UUID: espacio propio' : personal.path_matches_owner === false ? 'UUID distinto: espacio ajeno' : 'Faltan datos para comparar la ruta') }}</span>
+        </div>
+        <div class="tf-personal-paths">
+          <div><h4>{{ t('Plantilla de la política humana') }}</h4><code>{{ personal.template_path || t('No registrado en esta traza') }}</code></div>
+          <div><h4>{{ t('Plantilla expandida para este humano') }}</h4><code>{{ personal.expanded_path || t('No registrado en esta traza') }}</code></div>
+          <div><h4>{{ t('Ruta solicitada') }}</h4><code>{{ personal.path }}</code></div>
+        </div>
+        <p class="tf-personal-rule" v-if="personal.path_matches_owner !== undefined">{{ t(personal.path_matches_owner ? 'La ruta está dentro del espacio propio. Esto no garantiza el acceso: Consulta y Revelado, por ejemplo, no pueden escribir por su techo.' : 'La política personal mostrada no permite esta ruta ajena. Cambiar la URL o pedir esa ruta en el RAR no cambia la identidad humana resuelta desde el token.') }}</p>
+        <p class="tf-notice">{{ t(personalOutcome) }}</p>
+        <details class="tf-personal-more">
+          <summary>{{ t('Por qué hay un wildcard en el Registry') }}</summary>
+          <p>{{ t('El mismo agente atiende a varios usuarios. Su techo puede cubrir lumen-personal/*, pero cada usuario solo tiene lumen-personal/SU_UUID/*. En OBO se exige la intersección; el wildcard del agente no concede acceso a los espacios de todos.') }}</p>
+          <p>{{ t('La política lumen-personal-user llega al humano mediante el grupo lumen-personal-users. Las políticas del Registry limitan al agente. El RAR acota la operación concreta; no amplía ninguna de las otras dos capas.') }}</p>
+          <div class="tf-rar-json">
+            <div><h4>{{ personal.user_policy }}</h4><pre v-if="personal.user_policy_snapshot" tabindex="0"><code>{{ personal.user_policy_snapshot }}</code></pre><p v-else>{{ t('Esta traza no guardó el HCL. La comparación superior ilustra la regla de la demo; abre Vault para consultar la política actual.') }}</p></div>
+            <div><h4>{{ personal.ceiling_policy || t('Techo del agente') }}</h4><pre v-if="personal.ceiling_policy_snapshot" tabindex="0"><code>{{ personal.ceiling_policy_snapshot }}</code></pre><p v-else>{{ t('Esta traza no guardó el HCL. La comparación superior ilustra la regla de la demo; abre Vault para consultar la política actual.') }}</p></div>
+          </div>
+          <h4>{{ t(personal.rar_source === 'presented' ? 'RAR presentado a Vault' : 'RAR solicitado a Verify') }}</h4>
+          <pre v-if="personal.authorization_details" tabindex="0"><code>{{ format(personal.authorization_details) }}</code></pre><p v-else>{{ t('No registrado en este paso. Selecciona el intercambio OBO o la petición a Vault para ver su RAR.') }}</p>
+        </details>
+        <details class="tf-personal-more">
+          <summary>{{ t('Origen de los datos y cómo comprobarlo') }}</summary>
+          <p>{{ t('Los nombres, UUID y snapshots HCL proceden del catálogo publicado por el instalador y registrado por Lumen en esta ejecución. La plantilla expandida es una explicación de esa configuración, no una lectura de la ACL efectiva de Vault.') }}</p>
+          <p>{{ t('La respuesta HTTP de la llamada a Vault acredita el resultado observado. Para inspeccionar el token y la petición completos, usa Ver valores sensibles o Abrir consola de peticiones en ese paso. Las trazas antiguas dejan vacíos los datos que no registraron.') }}</p>
+          <p>{{ t('Puedes comprobar el vínculo en Vault: perfil OAuth verify, alias de la entidad humana, grupo lumen-personal-users y política lumen-personal-user. El alias debe vincular issuer + external_id con el canonical_id humano.') }}</p>
+          <div class="tf-personal-links"><a href="https://developer.hashicorp.com/vault/ai/iam/setup-obo" target="_blank" rel="noopener noreferrer">{{ t('Documentación de OBO') }} ↗</a><a href="https://developer.hashicorp.com/vault/docs/concepts/policies#templated-policies" target="_blank" rel="noopener noreferrer">{{ t('Plantillas de políticas de Vault') }} ↗</a></div>
+        </details>
       </section>
       <section v-if="selected?.rar" class="tf-rar-panel" :aria-label="t('RAR y parámetros de esta comparación')">
         <div class="tf-eyebrow">{{ t('RAR y parámetros de esta comparación') }}</div>

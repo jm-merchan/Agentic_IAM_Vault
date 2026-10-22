@@ -12,7 +12,7 @@ from app.rar import LAB_CONTEXT
 from app.security import AccessDenied, Session
 from app.services import VaultPermissionDenied, VaultResponseError
 from app.telemetry import records_for, span, trace_id
-from app.trace_flow import build_flow
+from app.trace_flow import build_flow, _personal_context
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -67,6 +67,8 @@ async def test_not_found_and_server_errors_are_not_reported_as_denials():
 @pytest.mark.asyncio
 async def test_trace_exposes_ownership_but_no_secret_data():
     service = SimpleNamespace(config=config(), event=lambda *a: None, exchange=AsyncMock(return_value='synthetic'))
+    service.config['oidc'] = {'client_id': 'agent-client', 'client_secret': 'PRIVATE-CLIENT-SECRET'}
+    service.config['personal-spaces']['policies'] = {'user': (ROOT/'policies/personal-user.hcl').read_text()}
     async def get(path, token, **kwargs):
         with span('vault.read', **{'vault.path': path, 'http.response.status_code': 200}):
             return {'data': {'data': {'note': 'PRIVATE-VALUE'}, 'metadata': {'version': 1}}}
@@ -75,8 +77,46 @@ async def test_trace_exposes_ownership_but_no_secret_data():
         tid = trace_id()
         await access(service, session(), 'read')
     flow = build_flow(records_for({tid}))
-    assert flow['calls'][0]['personal']['owner_entity'] == config()['personal-spaces']['users'][0]['entity_id']
-    assert 'PRIVATE-VALUE' not in str(flow)
+    personal = flow['calls'][0]['personal']
+    assert personal['owner_entity'] == config()['personal-spaces']['users'][0]['entity_id']
+    assert personal['subject'] == 'alice' and personal['actor_client_id'] == 'agent-client'
+    assert '{{identity.entity.id}}' in personal['user_policy_snapshot']
+    assert personal['path_matches_owner'] is True
+    assert 'PRIVATE-VALUE' not in str(flow) and 'PRIVATE-CLIENT-SECRET' not in str(flow)
+
+
+@pytest.mark.parametrize('listing', [False, True])
+def test_explanation_expands_human_policy_independently_of_requested_owner(listing):
+    owner = config()['personal-spaces']['users'][0]['entity_id']
+    target = config()['personal-spaces']['users'][1]['entity_id']
+    path = secret_path(config(), 'bob', listing=listing)
+    data = _personal_context({'personal.path': path, 'personal.owner_entity': owner,
+                              'personal.target_entity': target})
+    assert owner in data['expanded_path'] and target not in data['expanded_path']
+    assert data['path_matches_owner'] is False and data['path'] == path
+    assert '{{identity.entity.id}}' in data['template_path']
+    # An old trace must not invent a Verify subject or issuer from a UUID.
+    assert 'subject' not in data and 'issuer' not in data
+
+
+def test_explanation_only_projects_recorded_rar_identity_fields():
+    import json
+    path = secret_path(config(), 'alice')
+    entry = {'type': 'vault:path_access', 'path': path, 'capabilities': ['read'],
+             'allowed_parameters': {'password': ['PRIVATE-PARAMETER']}}
+    data = _personal_context({'personal.path': path, 'auth.rar.presented': json.dumps([entry]),
+                              'personal.client_secret': 'PRIVATE-CLIENT',
+                              'vault.auth.jwt': 'PRIVATE-JWT'})
+    assert data['rar_source'] == 'presented'
+    assert data['authorization_details'] == [{k: entry[k] for k in ('type', 'path', 'capabilities')}]
+    assert 'PRIVATE' not in str(data) and 'path_matches_owner' not in data
+
+
+def test_explanation_handles_missing_or_malformed_rar_without_fabricating_it():
+    for value in ('not-json', '{}', 'null', '[null]', '[]'):
+        result = _personal_context({'personal.path': secret_path(config(), 'alice'),
+                                    'auth.rar.presented': value})
+        assert 'authorization_details' not in result
 
 
 def test_installer_preserves_existing_secrets_and_ceiling_policies():

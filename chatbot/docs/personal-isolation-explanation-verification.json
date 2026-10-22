@@ -1,0 +1,61 @@
+{
+  "checked_at": "2026-10-21T16:48:08.823485+00:00",
+  "scope": "Read-only Writer + Creation PKCE/OBO calls against own and Supervisor personal spaces; trace explanation metadata verified. No browser rendering check.",
+  "all_passed": true,
+  "checks": [
+    {
+      "test": "own_read",
+      "status": 200,
+      "passed": true,
+      "trace_id": "e34fa0ecc1fe19a5a38c3433bc60f6b9",
+      "human_entity": "f647b919-acf8-5b81-d3ac-bf6fdbd76c94",
+      "target_entity": "f647b919-acf8-5b81-d3ac-bf6fdbd76c94",
+      "template": "secrets/data/lumen-personal/{{identity.entity.id}}/*",
+      "expanded_path": "secrets/data/lumen-personal/f647b919-acf8-5b81-d3ac-bf6fdbd76c94/*",
+      "requested_path": "secrets/data/lumen-personal/f647b919-acf8-5b81-d3ac-bf6fdbd76c94/demo",
+      "path_matches_owner": true,
+      "issuer_and_subject_match_verified_claims": true,
+      "actor_client_matches": true,
+      "policy_snapshots_match_catalogue": true,
+      "rar_source": "presented",
+      "public_projection_excludes_credentials": true
+    },
+    {
+      "test": "cross_read",
+      "status": 403,
+      "passed": true,
+      "trace_id": "eeb9ddc2248b76db339ca6718c484064",
+      "human_entity": "f647b919-acf8-5b81-d3ac-bf6fdbd76c94",
+      "target_entity": "40743873-8738-24fa-776f-4da351110978",
+      "template": "secrets/data/lumen-personal/{{identity.entity.id}}/*",
+      "expanded_path": "secrets/data/lumen-personal/f647b919-acf8-5b81-d3ac-bf6fdbd76c94/*",
+      "requested_path": "secrets/data/lumen-personal/40743873-8738-24fa-776f-4da351110978/demo",
+      "path_matches_owner": false,
+      "issuer_and_subject_match_verified_claims": true,
+      "actor_client_matches": true,
+      "policy_snapshots_match_catalogue": true,
+      "rar_source": "presented",
+      "public_projection_excludes_credentials": true
+    }
+  ],
+  "implementation_validation": {
+    "checked_at": "2026-10-21T16:49:46.458269+00:00",
+    "python_focused_tests_passed": 67,
+    "javascript_tests_passed": 8,
+    "vue_template_compiled": true,
+    "vue_compile_scope": "Installed Vue compiler in Node; HTML entity decoding skipped. No browser rendering.",
+    "runtime_health_passed": true,
+    "deployed_files_match": [
+      "app/personal_spaces.py",
+      "app/trace_flow.py",
+      "app/trace_flow.js",
+      "app/translations_en.json",
+      "static/trace_flow.css"
+    ],
+    "browser_visual_check": "Unavailable: no enabled browsers; Sky Computer Use native pipe startup failed",
+    "visual_verified": false,
+    "permissions_changed": false,
+    "personal_secrets_written": false,
+    "historical_trace_missing_fields": "Not backfilled with current configuration"
+  }
+}

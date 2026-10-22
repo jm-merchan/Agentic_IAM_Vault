@@ -6,8 +6,9 @@ import re
 
 from opentelemetry import trace
 from .rar import LAB_CONTEXT, authorization_details
-from .security import AccessDenied
+from .security import AccessDenied, ISSUER
 from .services import VaultPermissionDenied, VaultResponseError
+from .task_agents import TASK_AGENTS
 from .telemetry import span, trace_id
 
 PREFIX = 'lumen-personal'
@@ -54,9 +55,18 @@ async def access(services, session, action, *, name='demo', value=None, version=
         if type(version) is not int or version < 0:
             raise AccessDenied('La versión del secreto no es válida.')
         payload = {'options': {'cas': version}, 'data': value}
+    credential = TASK_AGENTS.get(session.task_agent, {}).get('credential', 'oidc')
+    policies = configuration(services.config).get('policies', {})
+    ceiling = 'write' if session.task_agent in ('legacy', 'write') else 'read'
     attrs = {'personal.action': action, 'personal.owner_entity': owner['entity_id'],
              'personal.target_entity': target_owner['entity_id'], 'personal.cross_user': target != session.subject,
-             'personal.user_policy': 'lumen-personal-user', 'personal.path': path}
+             'personal.user_policy': 'lumen-personal-user', 'personal.path': path,
+             'personal.subject': session.subject, 'personal.issuer': ISSUER,
+             'personal.owner_name': owner['name'], 'personal.target_name': target_owner['name'],
+             'personal.actor_client_id': services.config.get(credential, {}).get('client_id', ''),
+             'personal.ceiling_policy': 'lumen-personal-' + ceiling,
+             'personal.user_policy_snapshot': policies.get('user', ''),
+             'personal.ceiling_policy_snapshot': policies.get(ceiling, '')}
     context = LAB_CONTEXT.set({**LAB_CONTEXT.get(), **attrs})
     result = dict(action=action, path=path, owner=owner['name'], target=target_owner['name'],
                   expected=target == session.subject and (action != 'write' or session.task_agent in ('legacy', 'write')),

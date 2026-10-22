@@ -2,6 +2,23 @@
 
 Las operaciones de **Mi espacio de secretos** registran el sujeto OBO, el agente, la entidad propietaria solicitada y la política `lumen-personal-user`. El diagrama distingue lectura, escritura y listado, enlaza el resultado de Vault y conserva la consola de repetición. El contenido personal no se envía al modelo. La auditoría general mantiene HMAC; no se amplían los filtros raw existentes. [Recorrido](../docs/manual/16-espacios-personales.md).
 
+El panel **Aislamiento del espacio personal** explica la creación de la entidad,
+el vínculo `issuer + external_id → canonical_id`, la ruta KV por UUID y la
+resolución de las identidades humana y agente desde el JWT OBO. Compara la
+plantilla humana expandida con la ruta solicitada y distingue la emisión del
+token en Verify del resultado de la llamada a Vault. Incluye el motivo del
+wildcard del Registry y la intersección con política humana y RAR, en ES/EN.
+
+Las nuevas trazas añaden `personal.subject`, `personal.issuer`, nombres del
+usuario y destinatario, `personal.actor_client_id`, nombre del techo personal y
+snapshots HCL del catálogo. Son metadatos explicativos; no capturan nuevos tokens,
+contraseñas ni valores de secretos. La proyección del RAR en este panel conserva
+solo tipo, ruta y capacidades de la ruta seleccionada. Los intercambios completos
+mantienen sus controles sensibles existentes. La expansión de la plantilla no
+consulta ni evalúa la ACL efectiva: el catálogo puede diferir de políticas
+modificadas después. Las trazas históricas no se rellenan con datos actuales y
+el resultado HTTP real se muestra por separado de la comparación de UUID.
+
 Esta guía describe el visor interactivo, las capturas sensibles y **EN/ES** de la revisión del **21 de octubre de 2026**. El [historial de validación](../docs/manual/VALIDACION.md) distingue las pruebas de interfaz de las reinstalaciones. Los informes end-to-end del [15 de octubre](../docs/E2E_OPENAI_VERIFICATION.md) y del [14 de octubre](../docs/E2E_VERIFICATION.md) conservan evidencia histórica; sus IDs no acreditan el estado actual ni garantizan que la traza siga disponible.
 
 ## 1. Qué puede hacer cada usuario

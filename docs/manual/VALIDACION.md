@@ -1,5 +1,35 @@
 # Validación actual e historial de reinstalación manual
 
+## Explicación del aislamiento en la traza · 21 de octubre de 2026
+
+Se amplió **Aislamiento del espacio personal** en ES/EN con el origen del UUID,
+el alias humano, la creación del secreto, los claims OBO y la comparación entre
+plantilla expandida y ruta solicitada. Incluye HCL del catálogo, RAR de la ruta
+y la distinción entre HTTP 200 de Verify y autorización real de Vault.
+[Explicación y límites](16-espacios-personales.md).
+
+Pasaron **67 pruebas Python enfocadas y 8 JavaScript**, además de compilar la
+plantilla con la versión de Vue instalada. La comprobación del compilador se hizo
+en Node sin decodificar entidades HTML; no sustituye a renderizar en un navegador.
+Con **Writer + Creación**, PKCE/OBO reales produjeron **HTTP 200 en el espacio
+propio y HTTP 403 en el de Supervisor**. Se comprobó que ambas trazas usan el
+UUID del humano autenticado para expandir la política, conservan la ruta pedida,
+los snapshots HCL y el RAR presentado, sin incluir credenciales en esa proyección.
+[Informe](../../chatbot/docs/personal-isolation-explanation-verification.json).
+
+El cambio está desplegado; los cinco archivos de aplicación modificados coinciden
+con el runtime y su comprobación de salud pasó. La validación estática del manual
+y `git diff --check` también pasaron. No se modificaron permisos ni secretos
+personales durante estas dos lecturas. Las pruebas anteriores de 12 combinaciones
+se conservan como evidencia separada.
+
+La nueva distribución tiene columnas adaptables y ajuste de UUID/rutas largas.
+**La revisión visual sigue pendiente**: la herramienta no ofrece ningún navegador
+y devuelve `Sky Computer Use native pipe startup failed`. Las capturas históricas
+de abajo no acreditan este panel nuevo. Después del reinicio, vuelve a entrar y
+genera una operación para ver todos los metadatos nuevos; las trazas anteriores
+muestran explícitamente la información que no registraron.
+
 ## Espacios personales · 21 de octubre de 2026
 
 Se probaron **12 combinaciones** (tres usuarios y cuatro agentes), con **120 comprobaciones reales** de Verify/OBO/Vault en **2.1.2+ent**: acceso propio, techos de escritura, CAS y denegaciones cruzadas de lectura/listado/escritura. [Informe](../../chatbot/docs/personal-spaces-verification.json) · [Guía](16-espacios-personales.md). No se migró Vault ni se modificaron solicitudes compartidas.

@@ -59,6 +59,32 @@ path "secrets/metadata/lumen-personal/{{identity.entity.id}}" {
 Vault resuelve la plantilla con la entidad **humana** del flujo OBO. La ruta
 real contiene su UUID. Cambiar de agente conserva el mismo espacio.
 
+## De dónde sale `identity.entity.id` y cómo llega a la autorización
+
+Hay dos identidades distintas: la persona que delega y el agente que actúa.
+El UUID que organiza el espacio personal es el de la **persona en Vault**,
+no el ID de usuario de Verify ni el UUID de la entidad del agente.
+
+| Momento | Qué ocurre | Dónde comprobarlo |
+|---|---|---|
+| Preparar las identidades | `05-sync-groups.sh` crea `chatbot-human-<ID de Verify>`; Vault asigna su UUID. El alias vincula `issuer` de Verify y `external_id` del usuario con ese UUID en `canonical_id`. | Entidad y alias humanos de Vault; el perfil OAuth `verify` identifica al emisor. |
+| Preparar el espacio | `configure-personal-spaces.py` lee ese UUID y publica el catálogo que usa Lumen. Añade la entidad al grupo `lumen-personal-users`, que asigna `lumen-personal-user`. | Catálogo `secrets/chatbot/personal-spaces`, grupo y política en el namespace `verify`. |
+| Crear el primer secreto | El instalador escribe el dato ficticio `demo` en `secrets/data/lumen-personal/<UUID humano>/demo` con su credencial de aprovisionamiento. Las escrituras posteriores desde la pantalla usan OBO. | Ruta KV v2. El campo `owner` del JSON solo describe el dato; no establece su propietario de seguridad. |
+| Obtener la delegación | Lumen presenta a Verify el token humano, el token del agente y el RAR de la operación. El JWT OBO firmado contiene `sub` humano, `actor-token.sub` del agente y `authorization_details`. | Intercambio OBO y JWT de esta ejecución en la traza. |
+| Acceder a Vault | Lumen envía ese JWT en `X-Vault-Token`. Vault lo valida y usa `user_claim=sub` y `actor_claim=actor-token.sub` del perfil OAuth para resolver ambos alias por separado. El alias humano conduce a su `canonical_id`. | Perfil OAuth `verify`, alias humanos y del agente, petición a Vault. |
+| Decidir | Vault expande la plantilla con el UUID humano y exige **políticas humanas ∩ techo del agente ∩ RAR**. La ruta solicitada no decide quién es el usuario. | Respuesta de Vault y auditoría correlacionada con `request_id`. |
+
+Por ejemplo, con un humano `A` y un agente cuyo techo contiene
+`secrets/data/lumen-personal/*`, la política humana se expande a
+`secrets/data/lumen-personal/A/*`. Pedir `secrets/data/lumen-personal/B/demo`
+en el RAR no cambia `A` por `B`: el alias se resuelve desde la identidad del
+token. En la configuración de esta demo, Vault deniega el acceso ajeno aunque
+Verify haya emitido el JWT OBO con HTTP 200.
+
+El wildcard del Registry permite que el mismo agente atienda espacios de varias
+personas. Cada llamada sigue limitada por la política de la persona concreta.
+Incluso con ruta propia, el techo de Consulta o Revelado impide escribir.
+
 | Usuario | Estándar | Consulta | Creación | Revelado |
 |---|---|---|---|---|
 | Reader | Leer y guardar propios | Leer propios | Leer y guardar propios | Leer propios |
@@ -93,6 +119,33 @@ a lectura. No se habilita borrado desde esta pantalla.
 con enlaces a las políticas y entidad actuales en Vault. Las peticiones reales
 son la prueba del acceso efectivo. Los enlaces usan tu sesión de Vault sin
 tokens en la URL.
+
+En la traza, **Aislamiento del espacio personal** desarrolla este recorrido en
+cuatro pasos y muestra, en español o inglés:
+
+- La persona que delega y el propietario de la ruta, con sus UUID separados.
+- `issuer`, `sub / external_id`, `canonical_id` y el cliente del agente registrados.
+- La plantilla humana, su expansión con el UUID del usuario y la ruta solicitada.
+- El resultado del servicio seleccionado. Un HTTP 200 de Verify solo acredita
+  la emisión del token; selecciona la llamada a Vault para ver el acceso.
+- **Por qué hay un wildcard en el Registry**: HCL humano y techo personal del
+  agente conservados en la traza, más tipo, ruta y capacidades del RAR.
+- **Origen de los datos y cómo comprobarlo**: procedencia y puntos de consulta
+  en Vault, junto a enlaces a la documentación oficial.
+
+Los nombres, UUID y HCL son snapshots del catálogo aprovisionado que Lumen
+registra al ejecutar la operación. La expansión mostrada es una explicación de
+la regla de la demo, **no una consulta a la ACL efectiva ni una evaluación de
+todas las políticas de Vault**. Cambios posteriores pueden hacer que el catálogo
+no coincida con la configuración actual. La respuesta real de Vault sigue siendo
+la evidencia del acceso observado. Un 403 no identifica por sí solo todas las
+reglas que intervinieron; una ruta ajena permitida se señala para revisar políticas.
+
+Las trazas antiguas conservan sus IDs y muestran «No registrado» cuando falta
+información; no se completan con la configuración actual. Genera una nueva
+operación para obtener los campos nuevos. El panel no muestra tokens ni valores
+de secretos: siguen disponibles en los controles sensibles y la consola de esa
+misma llamada.
 
 HTTP 404 indica un secreto inexistente; HTTP 400 puede señalar conflicto de
 versión. Ninguno se presenta como prueba de aislamiento. Las capturas sensibles

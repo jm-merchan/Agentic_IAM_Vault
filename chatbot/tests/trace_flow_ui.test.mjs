@@ -105,3 +105,29 @@ test("sending uses the edited request once; changing steps discards its response
     assert.equal(vm.replayResult,null); assert.equal(vm.draft,null);
   } finally {globalThis.fetch = previous; vm.hideSensitive();}
 });
+
+test("personal explanation distinguishes Verify token issuance from Vault authorization", () => {
+  const vm = view();
+  vm.flow.calls[0] = {id: 'a', target: 'verify', http_status: 200, personal: {path_matches_owner: true}};
+  assert.match(vm.personalOutcome, /no demuestra acceso/);
+  vm.flow.calls[0].target = 'vault';
+  assert.match(vm.personalOutcome, /Vault ha permitido esta operación/);
+  vm.flow.calls[0].personal.path_matches_owner = false;
+  assert.match(vm.personalOutcome, /permitido una ruta ajena/);
+  vm.flow.calls[0].http_status = 403;
+  assert.match(vm.personalOutcome, /Vault ha denegado/);
+  vm.flow.calls[0].http_status = 404;
+  assert.match(vm.personalOutcome, /no confirma acceso ni aislamiento/);
+});
+
+test("personal panel and outcome explanations have English translations", async () => {
+  const translations = JSON.parse(await readFile(new URL('../app/translations_en.json', import.meta.url), 'utf8'));
+  const panel = component.template.split('class="tf-rar-panel tf-personal"')[1].split('<section v-if="selected?.rar"')[0];
+  for (const match of panel.matchAll(/t\('([^']+)'\)/g))
+    assert.ok(translations[match[1]], 'Missing English translation: ' + match[1]);
+  const vm = view(); vm.messages = translations;
+  for (const target of ['verify', 'vault']) for (const code of [200, 403, 404]) for (const same of [true, false]) {
+    vm.flow.calls[0] = {id: 'a', target, http_status: code, personal: {path_matches_owner: same}};
+    assert.notEqual(vm.t(vm.personalOutcome), vm.personalOutcome);
+  }
+});
