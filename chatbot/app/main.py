@@ -20,6 +20,7 @@ from .services import Services
 from .telemetry import records_for, span, trace_id
 from .trace_content import CONTENT_KEYS, VAULT_CONTENT_KEYS, SPIFFE_CONTENT_KEYS
 from .trace_inspection import inspection_router
+from .vault_decision import decision_router
 from .request_workbench import workbench_router
 from .contracts_http import contract_download_router
 from .trace_links import grafana_trace_url
@@ -39,7 +40,6 @@ app.on_shutdown(SERVICES.agent_inspector.close)
 app.timer(60, SERVICES.contracts.purge)
 COOKIE = 'lumen_session'
 app.include_router(inspection_router(IDENTITY, records_for, COOKIE))
-from .vault_decision import decision_router
 app.include_router(decision_router(IDENTITY, records_for, COOKIE))
 app.include_router(workbench_router(IDENTITY, records_for, COOKIE, vault_origin=CONFIG['vault_addr'], vault_tls=SERVICES.vault_tls))
 LOCKS: dict[str, asyncio.Lock] = {}

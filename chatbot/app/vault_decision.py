@@ -79,7 +79,7 @@ async def query_audit(record, loki_url):
                     if len(content) > 4_000_000:
                         return [], 'limited'
         document = json.loads(content)
-        if document.get('status') != 'success':
+        if not isinstance(document, dict) or document.get('status') != 'success':
             return [], 'unavailable'
         lines = [line for stream in document['data']['result'] for _, line in stream['values']]
         if len(lines) >= LIMIT:

@@ -1,6 +1,6 @@
 # Reinstalación manual por script · 2026-10-16T06:53:46Z
 
-[Guías](../../manual/README.md) · [Cómo repetir](../../manual/12-repeticion-script.md)
+[Guías](../../manual/README.md) · [Cómo repetir](../../manual/13-repeticion-script.md)
 
 El ciclo completo terminó correctamente: retirada, instalación de los bloques Markdown y 102 comprobaciones funcionales. No se utilizó navegador, notebooks ni demo.sh start. La instalación configura Vault con su CLI y las APIs externas con curl.
 

@@ -1,5 +1,13 @@
 # Revisión del workspace
 
+## Validación final del repositorio · 22 de octubre de 2026
+
+La [validación final](runs/20261022T161825Z-repo-validation/README.md) incorpora
+la explicación de decisiones de Vault y comprueba la alineación del código,
+notebooks, documentación y runtime. Incluye las correcciones de formato de
+respuesta de Loki y enlaces históricos. Los resultados anteriores conservan
+su fecha y alcance.
+
 ## Revisión integral de interfaz, documentación y servicios · 22 de octubre de 2026
 
 La [revisión detallada](runs/20261022T140230Z-workspace-review/README.md) sustituye las capturas incrustadas en guías activas y

@@ -9,7 +9,7 @@ La federación Claude quedó formada por:
 - cuenta de servicio `lumen-chatbot-claude`, rol Developer;
 - claves públicas de Vault en modo JWKS en línea.
 
-Los intentos mediante discovery y URL JWKS directa quedaron registrados como `jwks_unavailable`. Con las mismas claves públicas almacenadas en línea, el capítulo [13](../../manual/13-claude-spiffe.md) pasó sus trece bloques: canje RFC 7523, listado de modelos, inferencia `CLAUDE SPIFFE OK`, rechazo de replay `jti_reused`, audiencia fija y denegaciones de base de datos y secreto administrativo.
+Los intentos mediante discovery y URL JWKS directa quedaron registrados como `jwks_unavailable`. Con las mismas claves públicas almacenadas en línea, el capítulo [08](../../manual/08-claude-spiffe.md) pasó sus trece bloques: canje RFC 7523, listado de modelos, inferencia `CLAUDE SPIFFE OK`, rechazo de replay `jti_reused`, audiencia fija y denegaciones de base de datos y secreto administrativo.
 
 El verificador de la aplicación confirmó:
 

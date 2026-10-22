@@ -1,0 +1,5 @@
+{
+  "scope": "Archived Okta Terraform module; isolated initialization, backend disabled; no plan or apply",
+  "init_exit_code": 0,
+  "validate_exit_code": 0
+}

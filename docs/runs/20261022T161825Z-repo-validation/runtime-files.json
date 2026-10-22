@@ -1,0 +1,277 @@
+[
+  {
+    "file": "chatbot/app/__init__.py",
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/agent.py",
+    "sha256": "a9ae4bf3ff305c31e47aaff9d77ea576897d1d3d2c3337e52d4fe26576790074",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/agent_details.py",
+    "sha256": "afad5ecb6c90bdabffadcec6f138353e3df8ef600f3b5a5b94912cb8acf73054",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/anthropic_model.py",
+    "sha256": "786d9fd1f477bf6fec7d8b786b3ce2781c8fee023f928791579a144021efb698",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/application_pdf.py",
+    "sha256": "db9e91a4f4c99c3654f7441a15f9f5b87c90d4048ecee16dd0fca684d9af6aa1",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/application_ui.py",
+    "sha256": "8983b8cc941d15aaa93033328b78d4003e43edb8aa99585dfd2900a7bd46c6a8",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/applications.py",
+    "sha256": "a216b62633f02057252f8105813a126fdd9f67bd309196370c32454db9850f73",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/catalogue.py",
+    "sha256": "61385d252f53077aa8bddd2eb5f529b5096cc56f9d1aeaba2be02e088a1cb930",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/contracts.py",
+    "sha256": "caa0f0fa6d9e3328f89a083db420fad98765dfc811df9f79a70edff59b3f6b07",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/contracts_http.py",
+    "sha256": "4de3283c805418c82be61822b247c934613498431302800422cc666477fa1e46",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/contracts_ui.py",
+    "sha256": "a047be9e6d7283bc51db236369a528d301ff62c12ea4729d200bbe7710e86b7e",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/guardrails.py",
+    "sha256": "463d97d0ba2ec78e70c95d64e2f304db6d1e48d419b7f16b07a27d0caf5a215d",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/http_capture.py",
+    "sha256": "cefa9d1a9c7f079933e79a1b1e1bc12592561c259e65612b2c3c975a2ad40c5a",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/i18n.py",
+    "sha256": "e619f5f9251ebd7d442c2c464f64c0818464e25573f321dc1a87274bf752fb02",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/lab_capture.py",
+    "sha256": "ea9470503f2972b15c6f279de4a5e850db1ed5d0c12be20ed436b3eea39e880b",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/live_call_flow.js",
+    "sha256": "50f2baa8ecda84e2243b1e2f84fbe393632ce5158360801056389f6adaf80b81",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/live_call_flow_ui.py",
+    "sha256": "75789fc95577c0a0cb0e7e70149531a1a17266c1ef338126badc5109a8ec4235",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/main.py",
+    "sha256": "073b64d9f42428d4c85866306c74db41f67d27f4b5a3df95c4aec451a9c8e11d",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/model_config.py",
+    "sha256": "3d5378b1060572786aff45514fdef0895427b54c0494e1172fdd2006df9d103b",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/permission_matrix.py",
+    "sha256": "b973734a894a95a431d406c8a4e9a0da38315ab67f187cb3961ff7a42ce17c49",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/personal_spaces.py",
+    "sha256": "ccd0d041be5d4682a58ad5811db88fb70cdc465699c4c89510cdae41fd5294ff",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/personal_spaces_ui.py",
+    "sha256": "9274e24843ea0b3db763b361808b196a79aa862fcd7f560c75ddca6da5b60ce6",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/rar.py",
+    "sha256": "3f76ee8f2e4233a10f0b7f47904401cac3acfa4fd2fdf513977871f458cc2dec",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/rar_lab.py",
+    "sha256": "db5cc06000f0f961e9dde7a09856c10797ab19ff925220b6076bd3947a44dcfd",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/rar_lab_ui.py",
+    "sha256": "2898269b226dcc5a9611a5886be5a840393dfa32ba566cda1a496a7d4ebe57a2",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/request_workbench.py",
+    "sha256": "233b85f1f030ffb49c06120aca03c10739caee7f57179805fb5efedcd00c56ee",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/security.py",
+    "sha256": "414fa9f205d64373044113444e573d7b2406fb238334cedd7ee60155606ec73e",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/services.py",
+    "sha256": "9c599f7299cd815378eb1d5c03029611e0407f287414669035043386c856d9ac",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/spiffe.py",
+    "sha256": "9871a5050d2bec8f0403c6085f9bd40caf6e48a4c3a3512a53bae53a0defdad1",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/task_agent_ui.py",
+    "sha256": "d48b6598cb5e845a6d30d3dbb699321c175a3a291935a33a5f6bb6b0367a9336",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/task_agents.py",
+    "sha256": "8b1d062e79a682e7ab449ffbc1e69a64f54dd85405c6df5a77f09322bd77803f",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/telemetry.py",
+    "sha256": "e7f47319864599328d0dcba16b6fa2a433d26be9c8a43734ae6ba4aa8957f540",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/trace_content.py",
+    "sha256": "15220867edf880cb00439cb31a0522429ce2301596ec963179fc1cbb01cd66bf",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/trace_flow.js",
+    "sha256": "7d3ad39ce8736b22e1b976665446032db4a1be0ade10c1bddcb055d7a672726e",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/trace_flow.py",
+    "sha256": "7afd3e598a1f0fb6e996d22293e28b6af05e034ddffb320daacb0c678a3edac0",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/trace_flow_ui.py",
+    "sha256": "931c3fb4cd2fdb0abc1f9b62c43c59402ad7c84f5bef42a3af6d1d5cfb9e9d07",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/trace_inspection.py",
+    "sha256": "1024a2417bd5811d741eefbe5db2fff062751f0cdeb6f54b46a82334d952db4e",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/trace_links.py",
+    "sha256": "798e044e9f92273085403bc8acfc8c042051286416867a2cd2ace10d1037114d",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/translations_en.json",
+    "sha256": "83f3c24cd70ca0e6f96c16f1712756065e9062374255ec34bf24881697d7f772",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/vault_decision.py",
+    "sha256": "c2845c72da1850a3cac8cbcffd366e6b65ae00e42fb15d3dfb8ee6081841e62b",
+    "matches": true
+  },
+  {
+    "file": "chatbot/app/verification.py",
+    "sha256": "2748c48558164d76121fe8f529f967bfcf2bbe0ef118cd17ca3b3f0c22d2a47c",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/favicon.svg",
+    "sha256": "20925e4aa1f6e15312f6598f1fd657f157e0cee38866aa80380ab906baf06847",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/live_call_flow.css",
+    "sha256": "25ae4737547af2de538d2de439eb017cb27e830c55a404559549c562205660be",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/LICENSE-devicon",
+    "sha256": "121194741d4a915b9f5890fdd6dd95121f9b1f816517c792358d72d7c838d664",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/LICENSE-lobe-icons",
+    "sha256": "add9d7531d1b21646317a8958e38fc727506fa39d24bdecb44154d943c82753a",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/README.md",
+    "sha256": "e04abf202e33ca4c0df65f2fda38de8c04f59de8c8c9920f4b89dec466b0b782",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/anthropic.svg",
+    "sha256": "a3101f3047a119aa11825ad9369510f0c472428c8c52d420e31bc62db44a8364",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/mysql.svg",
+    "sha256": "f73fa5d6b9da33fbf540ff96f5360c24b6d29d883ecfe6fcaecf89a8d3456067",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/openai.svg",
+    "sha256": "a595df6b423920c67a7f8f73c063e4bfb72d415948097b6cac063a2366bb5186",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/tavily.svg",
+    "sha256": "2dec98b9ce5a9dd1edc52d4f8a4de7bbabe82f710dd224931f19c6bf5e3ccaff",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/vault.svg",
+    "sha256": "7ba6a343ddad8558691960d4649e337ac30e4182adb91702980c4cc06f0c8ef3",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/verify.png",
+    "sha256": "2a130a6a3f1f43537d301dfffa0a79b539c7eeb01aac137347e477192d552cab",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/service-icons/xai.svg",
+    "sha256": "89eb7de9f0d02a41cfecd9109e253d7fd3529e27467dee4254faa67f3ac21451",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/style.css",
+    "sha256": "7b4b16cb43a59da043b78c4bfe177e335881c2f46489165cda506af65d2a2b07",
+    "matches": true
+  },
+  {
+    "file": "chatbot/static/trace_flow.css",
+    "sha256": "291aeab47a266586c0ef2bd3fbe02300269ff9f5f8ea8380984c99fd5eeb4242",
+    "matches": true
+  }
+]

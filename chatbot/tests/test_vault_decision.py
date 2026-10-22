@@ -219,3 +219,12 @@ async def test_loki_query_is_bounded_and_fails_without_exposing_raw_values(monke
     expected = {'success': 'available', 'down': 'unavailable', 'limited': 'limited', 'bad_json': 'unavailable', 'oversize': 'limited'}
     assert state == expected[scenario]
     if scenario != 'success': assert records == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('payload', [[], 'unexpected document', 42, None])
+async def test_loki_non_object_json_is_unavailable_without_a_server_error(monkeypatch, payload):
+    factory = httpx.AsyncClient
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, content=json.dumps(payload)))
+    monkeypatch.setattr(decision.httpx, 'AsyncClient', lambda **kwargs: factory(transport=transport, **kwargs))
+    assert await decision.query_audit(record(), 'http://localhost:3100') == ([], 'unavailable')

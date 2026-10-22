@@ -1,0 +1,46 @@
+{
+  "generators": 7,
+  "notebooks": [
+    {
+      "notebook": "10_OAuth2c_Verify_Vault.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "1_Deploy_Vault_minikube.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "2_vault-demo-kmip-mysql.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "3_Database_Secret_Engine.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "4_XAI_Secret_Engine.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "6_Lumen_Chatbot_Vault_IAM.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "7_Lumen_Observability.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "8_Lumen_Protected_Applications.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "9_OpenAI_Vault_SPIFFE.ipynb",
+      "matches_generator": true
+    },
+    {
+      "notebook": "verify/5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb",
+      "matches_generator": true
+    }
+  ],
+  "all_passed": true
+}

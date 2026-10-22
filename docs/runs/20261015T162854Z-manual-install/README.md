@@ -19,7 +19,7 @@ El lector inició sesión por OIDC/PKCE y completó las nueve comprobaciones de 
 
 ![Lector: permisos SQL, Transit y Transform](screenshots/reader-permissions.png)
 
-Traza de esa acción: `e8088316f06a99fd6371054797866a7e`; 29 spans, nueve IDs de petición de Vault y 36 eventos audit (request/response, HMAC/raw). Para consultarla, seguir [08 · correlación](../../manual/08-observabilidad.md). Los eventos completos contienen valores del laboratorio y se conservan en los servicios locales, no en este informe.
+Traza de esa acción: `e8088316f06a99fd6371054797866a7e`; 29 spans, nueve IDs de petición de Vault y 36 eventos audit (request/response, HMAC/raw). Para consultarla, seguir [09 · correlación](../../manual/09-observabilidad.md). Los eventos completos contienen valores del laboratorio y se conservan en los servicios locales, no en este informe.
 
 Lector y gestor completaron además los comandos de OBO, SQL y protección de datos. El gestor pudo escribir en una transacción revertida y cifrar/tokenizar; no pudo recuperar datos sensibles. Las pruebas pendientes no se consideran aprobadas por inferencia a partir de las políticas.
 
@@ -29,4 +29,4 @@ Lector y gestor completaron además los comandos de OBO, SQL y protección de da
 - [Vault](https://127.0.0.1:8443/ui/): credencial administrativa en `~/.local/state/lumen-vault-demo/vault/config.env`, namespace `verify`.
 - [Grafana](http://localhost:3000/d/lumen-iam): `lumen-admin`, contraseña en `secrets/chatbot/observability` del namespace `verify`.
 
-Los procesos manuales se mantienen en terminales: Lumen, forwards y ngrok/publicador JWKS. Para detenerlos o volver al lanzador, cerrar primero esos procesos según [09](../../manual/09-aplicacion.md). `demo.sh stop` administra sus propios servicios; no sustituye el cierre de todas las terminales manuales.
+Los procesos manuales se mantienen en terminales: Lumen, forwards y ngrok/publicador JWKS. Para detenerlos o volver al lanzador, cerrar primero esos procesos según [10](../../manual/10-aplicacion.md). `demo.sh stop` administra sus propios servicios; no sustituye el cierre de todas las terminales manuales.

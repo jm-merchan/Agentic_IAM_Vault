@@ -1,6 +1,6 @@
 # Trazas de la reinstalación del 16/10/2026
 
-[Informe del ciclo](README.md) · [Interpretar audit y trazas](../../manual/08-observabilidad.md)
+[Informe del ciclo](README.md) · [Interpretar audit y trazas](../../manual/09-observabilidad.md)
 
 Estas trazas se comprobaron en Tempo y se correlacionaron con los eventos de Vault en Loki. Corresponden a las pruebas reales ejecutadas por script, sin navegador. Los enlaces abren Grafana con un intervalo fijo para cada acción. Inicia sesión como `lumen-admin`; la contraseña se recupera siguiendo el [README](../../../README.md#acceso-a-vault-y-grafana).
 

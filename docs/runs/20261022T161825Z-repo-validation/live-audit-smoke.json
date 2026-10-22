@@ -1,0 +1,9 @@
+{
+  "trace_id": "fe265bdaa4c5af97a6b3aa159561bd93",
+  "span_id": "0f71239b24fdc0a4",
+  "source": "previously recorded real request; no new Vault operation",
+  "audit_state": "matched",
+  "mode": "obo",
+  "policy_allowed": true,
+  "endpoint_without_session_http": 404
+}

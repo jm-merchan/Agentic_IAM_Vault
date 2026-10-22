@@ -1,0 +1,132 @@
+{
+  "run": "20261022T161825Z-repo-validation",
+  "checked_at": "2026-10-22T16:25:18.495091+00:00",
+  "base_commit": "0d41a699b4250888a2c4fd64efe1dd1662bbe401",
+  "python": {
+    "command": "/tmp/vault-chatbot-venv/bin/python -m pytest -q",
+    "passed": 569,
+    "subtests_passed": 2,
+    "failed": 0,
+    "seconds": 197.17
+  },
+  "javascript": {
+    "command": "node --test chatbot/tests/*.test.mjs",
+    "passed": 15,
+    "failed": 0
+  },
+  "focused_after_notebook_regeneration": {
+    "passed": 50,
+    "failed": 0,
+    "seconds": 19.14
+  },
+  "dependencies": {
+    "tool": "uv pip check",
+    "packages": 124,
+    "passed": true
+  },
+  "scope": "Final repository validation and runtime publication of the Loki input-format guard. No reinstall, new CIBA approval or new browser end-to-end run.",
+  "static": {
+    "checked_at": "2026-10-22T16:24:20.178207+00:00",
+    "documents": 38,
+    "bash_blocks": 273,
+    "shell_scripts": 92,
+    "local_links": 712,
+    "python_files": 92,
+    "notebooks": 11,
+    "bash_cells": 73,
+    "current_screenshots": 46,
+    "errors": [],
+    "all_passed": true,
+    "scope": "Static syntax, local links/anchors, notebook Markdown and screenshot provenance only. No provisioning, credentials issuance, inference, revocation or deletion."
+  },
+  "runtime": {
+    "files_checked": 55,
+    "all_match": true,
+    "health_http_status": {
+      "lumen": 200,
+      "grafana": 200,
+      "loki": 200,
+      "tempo": 200
+    },
+    "no_provisioning_secrets_in_process": true,
+    "env_mode": "600"
+  },
+  "secret_pattern_check": {
+    "changed_files_scanned": 24,
+    "findings": [],
+    "scope": "Private-key, Vault-token and JWT patterns; does not replace a dedicated secret scanner."
+  },
+  "diff_check_passed": true,
+  "notebooks": {
+    "generators": 7,
+    "notebooks": [
+      {
+        "notebook": "10_OAuth2c_Verify_Vault.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "1_Deploy_Vault_minikube.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "2_vault-demo-kmip-mysql.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "3_Database_Secret_Engine.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "4_XAI_Secret_Engine.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "6_Lumen_Chatbot_Vault_IAM.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "7_Lumen_Observability.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "8_Lumen_Protected_Applications.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "9_OpenAI_Vault_SPIFFE.ipynb",
+        "matches_generator": true
+      },
+      {
+        "notebook": "verify/5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb",
+        "matches_generator": true
+      }
+    ],
+    "all_passed": true
+  },
+  "terraform": {
+    "scope": "Archived Okta Terraform module; isolated initialization, backend disabled; no plan or apply",
+    "init_exit_code": 0,
+    "validate_exit_code": 0,
+    "fmt_exit_code": 0
+  },
+  "all_checks_passed": true,
+  "repository_files": {
+    "structured_files": {
+      "json": 338,
+      "yaml": 7
+    },
+    "structured_errors": [],
+    "markdown_documents": 48,
+    "all_markdown_links": 765,
+    "link_errors": []
+  },
+  "audit_smoke": {
+    "trace_id": "fe265bdaa4c5af97a6b3aa159561bd93",
+    "span_id": "0f71239b24fdc0a4",
+    "source": "previously recorded real request; no new Vault operation",
+    "audit_state": "matched",
+    "mode": "obo",
+    "policy_allowed": true,
+    "endpoint_without_session_http": 404
+  }
+}

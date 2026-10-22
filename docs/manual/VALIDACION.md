@@ -1,5 +1,13 @@
 # Validación actual e historial de reinstalación manual
 
+## Validación final del repositorio · 22 de octubre de 2026
+
+La [validación final](../runs/20261022T161825Z-repo-validation/README.md) revisa
+el código posterior al desplegable **Cómo decide Vault**, los generadores,
+los enlaces, las capturas y el runtime. La [verificación visual del componente](../runs/20261022T154444Z-vault-decision/README.md)
+cubre ES/EN, móvil y ambos temas. Los resultados fechados siguientes conservan
+su alcance original.
+
 ## Revisión integral de interfaz, documentación y servicios · 22 de octubre de 2026
 
 La [revisión detallada](../runs/20261022T140230Z-workspace-review/README.md) sustituye las capturas incrustadas en guías activas y
