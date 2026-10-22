@@ -1,0 +1,2 @@
+# Preserve generated PDFs byte-for-byte and avoid text whitespace/merge handling.
+*.pdf binary

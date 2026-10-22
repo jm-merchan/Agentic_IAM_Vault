@@ -111,7 +111,7 @@ if [ "$action" = start ]; then
   step 'Vault SPIFFE JWT-SVID para OpenAI' env LUMEN_SELECTED_PROVIDER=openai bash "$DEMO_ROOT/scripts/demo/spiffe.sh"
   step 'Vault SPIFFE JWT-SVID para Claude' env LUMEN_SELECTED_PROVIDER=anthropic bash "$DEMO_ROOT/scripts/demo/spiffe.sh"
   step 'Discovery y JWKS públicos mediante ngrok' bash "$DEMO_ROOT/scripts/demo/ngrok.sh"
-  step 'Sincronizar claves públicas del emisor Claude' bash "$DEMO_ROOT/scripts/demo/claude-issuer.sh"
+  step 'Claves públicas del emisor Claude (API o consola)' bash "$DEMO_ROOT/scripts/demo/claude-issuer.sh"
   step 'Proyecto y cuenta de servicio OpenAI' bash "$DEMO_ROOT/scripts/demo/openai-admin.sh"
   load_inputs
   step 'Identidad OpenAI' bash "$DEMO_ROOT/chatbot/scripts/configure-openai.sh"

@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-10-20T13:20:11.053769+00:00",
+  "checked_at": "2026-10-22T12:55:43.148838+00:00",
   "provider": "anthropic",
   "integration": "SPIFFE JWT-SVID",
   "model": "claude-haiku-5-5",
-  "trace_id": "9d702274bd5369dc64624ba57b2b6cfc",
+  "trace_id": "f339b98ba39e772828194fbbeb9f6810",
   "checks": {
     "spiffe_exchange": true,
     "inference": true,

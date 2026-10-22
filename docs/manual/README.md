@@ -6,6 +6,14 @@ La ampliación [14 · Agentes por tarea](14-agentes-por-tarea.md) añade identid
 
 [16 · Espacios personales](16-espacios-personales.md) añade KV por identidad humana, pruebas de aislamiento y techos de lectura/escritura por agente.
 
+[17 · Contratación CIBA](17-contratacion-ciba.md) incorpora confirmación del Validador,
+formalización en MySQL y descarga del contrato por su propietario. La
+[revisión local del 22/10](../WORKSPACE_REVIEW.md#revisión-del-22-de-octubre-de-2026)
+incluye sus errores y concurrencia, la reanudación de usuarios y la validación
+de README, scripts y notebooks. Después se completó la
+[retirada y reinstalación real del 22/10](../runs/20261022T122934Z-full-e2e/README.md),
+con tres proveedores, matrices de permisos, CIBA aprobado y comprobaciones de navegador.
+
 Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Actualizadas con el selector de proveedores, el visor interactivo y sensible de trazas y el soporte **EN/ES**, comprobado el **20 de octubre de 2026**. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
 
 ## Prerrequisitos y orden

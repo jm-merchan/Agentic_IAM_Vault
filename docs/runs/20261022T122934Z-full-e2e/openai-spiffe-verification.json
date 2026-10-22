@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-10-22T13:03:45.737956+00:00",
+  "provider": "openai",
+  "integration": "SPIFFE JWT-SVID",
+  "model": "gpt-4.1-nano",
+  "trace_id": "222ddca986207867f6e2ae62f234b998",
+  "checks": {
+    "spiffe_exchange": true,
+    "inference": true,
+    "fresh_token_on_next_run": true,
+    "no_static_inference_key": true,
+    "deadline_bounded": true
+  },
+  "all_passed": true
+}

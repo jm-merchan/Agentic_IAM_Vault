@@ -83,7 +83,7 @@ conserva valores y versiones; los comandos de agentes/grupos reaplican la
 extensión cuando ya existe.
 
 - **OpenAI:** `openai-recursos` prepara proyecto y cuenta; antes de ejecutar `openai-mapping`, completa WIF según [07](07-openai-spiffe.md) y guarda los IDs en `.env`.
-- **Claude:** completa inicialmente emisor, regla, cuenta e inicio de sesión `ant` según [08](08-claude-spiffe.md). `claude-jwks` sincroniza las claves públicas actuales por la API oficial y comprueba el resultado antes de `claude-agente`. Si se recrea Vault, el mismo paso actualiza el emisor existente.
+- **Claude:** completa inicialmente emisor, regla y cuenta según [08](08-claude-spiffe.md). Con `LUMEN_CLAUDE_SYNC_MODE=api`, prepara también el perfil `ant`: `claude-jwks` sincroniza las claves públicas y comprueba el resultado. Con `console`, ese paso solo exporta las claves; guárdalas en el emisor existente desde la consola antes de continuar. Repite la sincronización si se recrea Vault. La prueba de inferencia posterior es necesaria en ambos modos.
 
 El script vuelve a leer `.env` en cada paso. No marca la federación como probada por el mero hecho de que los IDs estén presentes.
 

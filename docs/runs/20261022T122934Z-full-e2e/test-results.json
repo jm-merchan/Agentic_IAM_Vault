@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-10-22T13:25:08.670421+00:00",
+  "python_summary": "513 passed, 2 subtests passed in 196.13s (0:03:16)",
+  "javascript": {
+    "passed": 12,
+    "failed": 0
+  },
+  "pdf": {
+    "pages": 1,
+    "contract_id_matches": true,
+    "sha256_matches": true,
+    "visual_review_passed": true
+  },
+  "trace_content_enabled": true,
+  "trace_vault_raw_enabled": true,
+  "timer_cleanup_regression": {
+    "failed_before_fix": true,
+    "passed_after_fix": true
+  }
+}

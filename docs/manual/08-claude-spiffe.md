@@ -10,6 +10,8 @@ La sincronización requiere instalar la CLI oficial con `brew install anthropics
 
 ## 1. Entradas y orden de ejecución
 
+Si la API de administración devuelve 404 también mediante la CLI oficial, selecciona `export LUMEN_CLAUDE_SYNC_MODE=console` en la sesión. El instalador exportará `claude/issuer-keys.json`, sin afirmar que se haya sincronizado: reemplaza ese array en las claves en línea del emisor existente desde la consola. Los bloques de federación e inferencia de este capítulo siguen siendo obligatorios. En el lanzador se usa `LUMEN_CLAUDE_SYNC_MODE=console ./demo.sh start`; repetirlo tras la actualización si la primera comprobación se detuvo. No cambiar la regla, el sujeto, la audiencia ni los permisos.
+
 Preparar una organización Claude con acceso a la API, cuota y permiso para crear emisores, reglas y cuentas de servicio. En `.env` conservar las entradas comunes de 00 y `NGROK_DOMAIN`. Esta identidad es independiente de OpenAI y xAI; para el selector de la aplicación se preparan las tres ramas.
 
 ```bash

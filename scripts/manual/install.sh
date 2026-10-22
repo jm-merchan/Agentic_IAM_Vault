@@ -91,4 +91,4 @@ jq -e '.status=="ok" and ([.models[].provider]|sort)==["anthropic","openai","xai
 jq -n --slurpfile steps "$MANUAL/steps.jsonl" --slurpfile background "$MANUAL/background-blocks.jsonl" \
  '{steps:$steps,background_blocks:$background,services_ready:true,verification_pending:true,all_passed:all($steps[];.passed)}' > "$MANUAL_RUN/installation.json"
 cp "$MANUAL/health.json" "$MANUAL_RUN/health.json"
-printf 'Instalación local completada; falta actualizar JWKS de Claude y ejecutar verify: %s\n' "$MANUAL_RUN"
+printf 'Instalación local configurada. En modo console, actualiza las JWKS exportadas en Claude. Ejecuta verify para comprobar el recorrido: %s\n' "$MANUAL_RUN"

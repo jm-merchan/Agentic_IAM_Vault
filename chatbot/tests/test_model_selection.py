@@ -133,6 +133,30 @@ def test_bootstrap_loads_every_agent_and_always_revokes_token(monkeypatch, missi
     assert calls[-1] == '/v1/auth/token/revoke-self'
 
 
+@pytest.mark.parametrize('status', [403, 404, 429, 500, 503])
+def test_optional_model_catalog_distinguishes_absence_from_service_failure(monkeypatch, status):
+    calls = []
+    def handle(request):
+        calls.append(request.url.path)
+        if request.url.path.endswith('/revoke-self'):
+            return httpx.Response(204)
+        if request.url.path.endswith('/model'):
+            return httpx.Response(status)
+        if request.url.path.rsplit('/', 1)[-1] in ('task-agents', 'personal-spaces', 'contracts'):
+            return httpx.Response(404)
+        return httpx.Response(200, json={'data': {'data': {'client_id': 'test-only'}}})
+    client = httpx.Client
+    monkeypatch.setattr(httpx, 'Client', lambda **kw: client(transport=httpx.MockTransport(handle)))
+    monkeypatch.setattr(ssl, 'create_default_context', lambda **kw: None)
+    monkeypatch.setenv('CHATBOT_BOOTSTRAP_TOKEN', 'bootstrap-test')
+    if status in (403, 404):
+        assert load_config()['models'] == {}
+    else:
+        with pytest.raises(RuntimeError, match='catálogo'):
+            load_config()
+    assert calls[-1] == '/v1/auth/token/revoke-self'
+
+
 @pytest.mark.parametrize('default', ['auto', 'anthropic'])
 def test_catalog_publisher_keeps_all_profiles(tmp_path, default):
     import json

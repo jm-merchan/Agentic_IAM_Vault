@@ -50,7 +50,7 @@ def test_start_requires_real_claude_verification(tmp_path, sync_status, claude_s
     assert (result.returncode == 0) is report["completed"]
     if sync_status or claude_status:
         assert report["steps"][-1] == {
-            "name": ("Sincronizar claves públicas del emisor Claude" if sync_status
+            "name": ("Claves públicas del emisor Claude (API o consola)" if sync_status
                      else "Claude: federación SPIFFE e inferencia real"), "passed": False}
         assert "Demo lista" not in result.stdout
 

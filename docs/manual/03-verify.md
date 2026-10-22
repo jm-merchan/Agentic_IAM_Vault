@@ -321,10 +321,12 @@ Generar una contraseña inicial distinta de la definitiva:
 { printf 'Lu!9'; openssl rand -hex 18; } > "$MANUAL/initial-password"
 ```
 
-Preparar el payload del usuario:
+Preparar el payload del usuario con `pwdReset=true`. Así, si el POST se completa
+pero se pierde la respuesta, la siguiente ejecución detecta la activación pendiente
+y aplica la contraseña definitiva de Vault. El PATCH posterior elimina esa marca:
 
 ```bash
-jq --arg role "$ROLE" --rawfile initial "$MANUAL/initial-password" '{ schemas:["urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:ibm:2.0:User", "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification"], userName:.username,password:($initial|rtrimstr("\n")),active:true, name:{givenName:"Lumen",familyName:$role,formatted:("Lumen "+$role)},displayName:("Lumen "+$role), emails:[{type:"work",value:(.username+"@example.invalid"),primary:true}], "urn:ietf:params:scim:schemas:extension:ibm:2.0:User":{ userCategory:"regular",realm:"cloudIdentityRealm",pwdReset:false}, "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification":{notifyType:"NONE"} }' "$MANUAL/user-credential.json" > "$MANUAL/create-user.json"
+jq --arg role "$ROLE" --rawfile initial "$MANUAL/initial-password" '{ schemas:["urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:ibm:2.0:User", "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification"], userName:.username,password:($initial|rtrimstr("\n")),active:true, name:{givenName:"Lumen",familyName:$role,formatted:("Lumen "+$role)},displayName:("Lumen "+$role), emails:[{type:"work",value:(.username+"@example.invalid"),primary:true}], "urn:ietf:params:scim:schemas:extension:ibm:2.0:User":{ userCategory:"regular",realm:"cloudIdentityRealm",pwdReset:true}, "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification":{notifyType:"NONE"} }' "$MANUAL/user-credential.json" > "$MANUAL/create-user.json"
 ```
 
 Consultar el usuario y crearlo solo si falta. **Copiar el bloque completo.** `created_user` indica si esta pasada acaba de crearlo:

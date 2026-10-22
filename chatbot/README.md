@@ -1,5 +1,7 @@
 # Lumen · tu energía, con claridad
 
+**Última reinstalación · 22/10/2026:** 513 pruebas Python, 2 subtests, 12 pruebas JavaScript y 137 comprobaciones contra servicios reales. Incluye OpenAI, xAI, Claude, matrices de autorización y contratación CIBA aprobada. [Evidencias y alcance de la revisión visual](../docs/runs/20261022T122934Z-full-e2e/README.md).
+
 **Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](../docs/manual/17-contratacion-ciba.md).
 
 **Mi espacio de secretos** ofrece un laboratorio opcional KV v2 por entidad humana. Todos los perfiles tienen un espacio propio; Estándar/Creación pueden guardar y Consulta/Revelado solo leer. La política de Vault deniega el acceso cruzado, incluso para Supervisor. [Preparación, alcance y prueba](../docs/manual/16-espacios-personales.md).
@@ -17,6 +19,8 @@ La interfaz y las respuestas admiten **español e inglés**, con detección del 
 El chip **Flujo de llamadas / Live call flow**, abajo a la derecha, abre una mini secuencia de la ejecución actual en el chat, solicitudes, laboratorio RAR y espacio personal. Se actualiza cada 500 ms durante una operación: llamada activa, retorno con código HTTP cuando está registrado y duración al cerrar el span. Permanece colapsado al entrar; el panel evita el cuadro de escritura, admite desplazamiento y se cierra con Escape. **Abrir traza** lleva al inspector existente en otra pestaña. El badge **Lab HTTP local** identifica el acceso local sin pedir certificados.
 
 El componente reutiliza `build_flow`, con una proyección que excluye credenciales, cuerpos, rutas e identidades. Solo lee trazas de la sesión vigente y borra su vista al caducar o revocarse. `records_for(..., include_active=True)` añade snapshots locales de spans abiertos; la lectura por defecto, los exports OTLP, Grafana/Tempo y la página `/traces/{tid}` conservan su comportamiento. No utiliza SSE ni las APIs sensitive/replay. No requiere cambios de infraestructura; el código debe publicarse y el proceso reiniciarse según el procedimiento de actualización indicado más abajo.
+
+Al eliminar la página se cancela su temporizador mediante un callback sin argumentos. Esto evita que NiceGUI pase el cliente al parámetro exclusivo por nombre de `Timer.cancel`; la regresión ejecuta el borrado de un cliente real de NiceGUI.
 
 ![Lumen: catálogo obtenido por OBO con permisos de lectura](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg)
 
@@ -175,7 +179,11 @@ Todos los caminos siguientes son KV v2, namespace `verify`, mount `secrets`:
 | `tavily` | Clave obtenida por la identidad autónoma registrada |
 | `chatbot/users/reader`, `chatbot/users/writer`, `chatbot/users/supervisor` | Credenciales de prueba |
 
-`run.sh` genera un token de bootstrap de cinco minutos que solo lee la configuración y los clientes OAuth del chatbot. El proceso Python carga esos datos y revoca el token. No hereda el token raíz. La política de bootstrap no lee MySQL, Tavily, el cliente administrativo, `secrets/xai`, `secrets/xai_mgmt` ni `xai/creds/lumen`. Los accesos operativos se realizan con JWT de Verify.
+`run.sh` genera un token de bootstrap de cinco minutos que solo lee la configuración y los clientes OAuth del chatbot. El proceso Python carga esos datos y revoca el token. No hereda el token raíz. La política de bootstrap no lee MySQL, Tavily, el cliente administrativo, `secrets/xai`, `secrets/xai_mgmt` ni `xai/creds/lumen`. Los accesos OBO y autónomos presentan JWT de Verify directamente a Vault. La contratación CIBA utiliza un login JWT separado que emite un token nativo Vault de hasta 120 s; [flujo y permisos](../docs/manual/17-contratacion-ciba.md#quién-autoriza-cada-paso).
+
+El catálogo de modelos es opcional si Vault responde 403/404. Una respuesta 429
+o un error de servidor detiene el arranque con un diagnóstico; no se interpreta
+como una instalación sin modelos. El bootstrap se revoca también si falla la carga.
 
 La clave xAI dinámica se conserva en memoria y se reutiliza mientras su vigencia permita completar otra ejecución. Se reemplaza automáticamente cuando no queda tiempo suficiente. Tavily se lee cada búsqueda. Tras rotar los secretos OAuth, reiniciar Lumen. La sesión y el historial operativo están en memoria del servidor; el navegador se autentica con una cookie opaca HttpOnly/SameSite=Lax. La instrumentación del laboratorio persiste además mensajes y los intercambios con Vault, incluidos JWT y credenciales dinámicas, según los interruptores de observabilidad. Las preferencias de tema se guardan aparte. LangSmith tracing está desactivado. Los temporales de credenciales tienen permisos privados y se eliminan al terminar.
 
@@ -269,11 +277,35 @@ En la reconstrucción del 15/10 se verificaron los temas claro/oscuro, la acepta
 
 ## Verificación
 
+Las pruebas locales se ejecutan desde la raíz, con el entorno de
+`scripts/install.sh` ya preparado:
+
+```bash
+/tmp/vault-chatbot-venv/bin/python -m pytest -q
+```
+
+```bash
+node --test chatbot/tests/*.test.mjs
+```
+
+```bash
+python3 scripts/manual/validate.py
+```
+
+Usan servicios simulados y temporales; las trazas unitarias no se exportan a Tempo.
+La [revisión del 22/10](../docs/WORKSPACE_REVIEW.md#revisión-del-22-de-octubre-de-2026)
+registra el resultado y los casos de regresión. Para comprobar la instalación
+real, también desde la raíz:
+
 ```bash
 ./demo.sh verify
 ```
 
-114 pruebas de aplicación y dos subcasos, 18 de infraestructura, 12 de xAI dinámico, ocho del bloqueo/RAR de xAI y cinco del intercambio/inferencia OpenAI. Las pruebas unitarias escriben trazas en un temporal aislado y no las exportan a Tempo. Los 20 checks OBO se obtienen entrando realmente en Chrome con los tres perfiles cuando se inicia con `CHATBOT_VERIFY_ACCESS=1 ./demo.sh start`.
+La ejecución histórica del 15/10 registró 114 pruebas de aplicación y dos subcasos,
+18 de infraestructura, 12 de xAI dinámico, ocho del bloqueo/RAR de xAI y cinco del
+intercambio/inferencia OpenAI. Esos recuentos no describen la suite actual. Los
+20 checks OBO se obtienen entrando realmente en Chrome con los tres perfiles
+cuando se inicia con `CHATBOT_VERIFY_ACCESS=1 ./demo.sh start`.
 
 La [verificación manual por script del 16/10](../docs/runs/20261016T064722Z-manual-script/README.md) pasó 102 comprobaciones con OIDC/PKCE real para los tres perfiles, sin navegador. Incluye modelos, permisos, bloqueos y correlación con audit. Para repetirla: `bash scripts/manual/rehearse.sh rebuild` desde la raíz ([guía](../docs/manual/13-repeticion-script.md)). Las capturas y la revisión visual del 15/10 se conservan como [histórico](../docs/E2E_OPENAI_VERIFICATION.md). Para inspeccionar JWT, mensajes del modelo y cada petición de Vault: [guía de observabilidad](OBSERVABILITY.md).
 

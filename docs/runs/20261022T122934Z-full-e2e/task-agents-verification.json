@@ -1,0 +1,258 @@
+{
+  "cases": [
+    {
+      "role": "reader",
+      "task_agent": "legacy",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "07aefc23bcb78d9070aa1466011d588a",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T12:59:15.040455+00:00"
+    },
+    {
+      "role": "writer",
+      "task_agent": "legacy",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "556c9d8fd6c7b8a26a31b2445b830ce2",
+      "leases_revoked": 3,
+      "checked_at": "2026-10-22T12:59:22.639708+00:00"
+    },
+    {
+      "role": "supervisor",
+      "task_agent": "legacy",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "bf2c9215a776e20e1a0f68a1ab323431",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T12:59:31.480738+00:00"
+    },
+    {
+      "role": "reader",
+      "task_agent": "read",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "b19060a7c502f5a0a49f572af79a7e73",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T12:59:40.701220+00:00"
+    },
+    {
+      "role": "writer",
+      "task_agent": "read",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "ebe096241635f93c381d66066229c72d",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T12:59:49.594563+00:00"
+    },
+    {
+      "role": "supervisor",
+      "task_agent": "read",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "de940d84e8c3d164199305fca9cdb5fc",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T12:59:58.729933+00:00"
+    },
+    {
+      "role": "reader",
+      "task_agent": "write",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "21076c30b646beb5f5d885dd77578202",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T13:00:08.228968+00:00"
+    },
+    {
+      "role": "writer",
+      "task_agent": "write",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "d8bcabef154e5b92ebcd97e347016010",
+      "leases_revoked": 3,
+      "checked_at": "2026-10-22T13:00:17.464918+00:00"
+    },
+    {
+      "role": "supervisor",
+      "task_agent": "write",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "8ac6d0b520a85541112eccbd73ea168f",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T13:00:27.583472+00:00"
+    },
+    {
+      "role": "reader",
+      "task_agent": "reveal",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "6b3ccb17af574afe95d89fb717767bc2",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T13:00:36.662583+00:00"
+    },
+    {
+      "role": "writer",
+      "task_agent": "reveal",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "caecb8d128a86c221ed68159cd0bb1c8",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T13:00:44.669214+00:00"
+    },
+    {
+      "role": "supervisor",
+      "task_agent": "reveal",
+      "checks": [
+        {
+          "name": "nine_real_vault_decisions",
+          "passed": true
+        },
+        {
+          "name": "mysql_catalogue",
+          "passed": true
+        },
+        {
+          "name": "verify_rejects_different_actor",
+          "passed": true
+        }
+      ],
+      "trace_id": "06ee607612bd993e3e3966599ea7d994",
+      "leases_revoked": 2,
+      "checked_at": "2026-10-22T13:00:53.324579+00:00"
+    }
+  ],
+  "all_passed": true,
+  "scope": "Live Verify Authorization Code + PKCE, OBO, Vault ceilings, SQL catalogue; synthetic protection payloads; test DB leases revoked"
+}

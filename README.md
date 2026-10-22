@@ -1,313 +1,292 @@
 # Lumen · Vault Agentic IAM
 
-**Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](docs/manual/17-contratacion-ciba.md).
+Lumen es una demo de autorización para agentes de IA. Utiliza un asistente de
+energía como ejemplo: el usuario consulta tarifas, guarda solicitudes con datos
+protegidos y puede pedir la aprobación de un contrato ficticio.
 
-La ampliación [Espacios personales](docs/manual/16-espacios-personales.md) añade **Mi espacio de secretos** a la interfaz: KV por identidad humana, lectura/escritura según el techo del agente y pruebas reales de acceso cruzado con trazas.
+**IBM Verify autentica al usuario y Vault decide qué operaciones puede realizar
+el agente en su nombre.** La demo permite observar esas decisiones en las llamadas
+reales a Vault, MySQL y los proveedores de modelos. Todos los datos y contratos del
+recorrido son de prueba; ninguna acción contrata un suministro.
 
-Demo con **NiceGUI, LangChain Deep Agents y selección xAI/OpenAI/Claude**, login OIDC en IBM Verify, **OBO**, MySQL Enterprise con **KMIP**, protección **Transit/Transform** y trazas en **Grafana, Loki y Tempo**. xAI utiliza un Secret Engine dinámico; OpenAI y Claude utilizan **SPIFFE JWT-SVID emitidos por Vault** y tokens de corta duración. [Configuración manual de Claude](docs/manual/08-claude-spiffe.md).
+[Instalar](#instalación) · [Probar la demo](#probar-la-demo) ·
+[Verificar](#verificación) · [Operar o retirar](#operación) ·
+[Manual paso a paso](docs/manual/README.md)
 
-Lumen admite **español e inglés**: toma el idioma inicial del navegador y ofrece **EN / ES** arriba a la derecha. La elección se recuerda y se aplica a la interfaz, los formularios, las trazas y las siguientes respuestas del asistente. [Funcionamiento y mantenimiento](chatbot/README.md#idioma-español-e-inglés) · [Comprobación paso a paso](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+## Qué demuestra
+
+| Recorrido | Qué se comprueba |
+|---|---|
+| Consultar, guardar o revelar una solicitud | Vault combina permisos del usuario, límites del agente y restricciones RAR de la petición. Las credenciales MySQL son temporales. |
+| Proteger datos personales | Transit cifra los datos y Transform tokeniza DNI e IBAN. Los perfiles autorizados pueden recuperarlos. |
+| Cambiar de modelo | OpenAI y Claude usan identidades SPIFFE emitidas por Vault; xAI obtiene claves dinámicas. Se cambia de proveedor sin perder la conversación. |
+| Contratar con aprobación | Un Validador confirma en Verify mediante CIBA. Después se registra el contrato en MySQL y su propietario puede descargar el PDF. |
+| Inspeccionar una operación | La traza de Lumen y Grafana/Tempo/Loki muestran los intercambios y los resultados de autorización. |
+
+La aplicación está escrita con NiceGUI y LangChain Deep Agents. MySQL Enterprise
+utiliza KMIP para sus claves de cifrado. La búsqueda web usa Tavily. La interfaz
+admite español e inglés.
 
 ## Prerrequisitos
 
-Para una instalación desde cero, prepara las herramientas, cuentas y credenciales de esta sección. El lanzador crea Minikube, Vault, MySQL y los recursos de Lumen en Verify; las cuentas de los proveedores y sus credenciales administrativas se obtienen antes del primer arranque.
+El lanzador de este repositorio está preparado para **macOS** y utiliza `launchd`.
+Necesitas Podman o Docker arrancado, con capacidad para una VM de Minikube de
+**4 CPU y 8 GiB de memoria**. El contexto Kubernetes de la demo es `workshop`.
 
-### Herramientas y recursos locales
+Instala Bash, Python 3, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube,
+uv, ngrok, rsync, lsof y ripgrep. `plutil` y `launchctl` vienen con macOS. Node.js
+solo es necesario para ejecutar las pruebas JavaScript locales. La CLI `ant` se
+utiliza si eliges sincronizar Claude mediante su API administrativa.
 
-- **macOS**: los procesos locales se mantienen con `launchd`.
-- Bash, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube, uv, rsync, lsof y ripgrep (`rg`; `brew install ripgrep` — no el binario embebido de Cursor), además de `plutil` y `launchctl`, incluidos en macOS.
-- **Podman o Docker instalado y arrancado**. La plantilla usa Podman; para Docker, cambia tanto `CONTAINER_ENGINE` como `MINIKUBE_DRIVER` a `docker` en `.env`.
-- Recursos disponibles para Minikube: la configuración predeterminada asigna **4 CPU y 8 GiB de memoria**. La VM del motor de contenedores debe disponer de esa capacidad.
-- Conectividad con los proveedores y los registros de imágenes. Vault utiliza [`josemerchan/vault-xai:2.1.2-ent`](https://hub.docker.com/r/josemerchan/vault-xai), que incluye el plugin xAI para AMD64 y ARM64; Kubernetes descarga la imagen al desplegarlo.
+| Servicio externo | Qué debes tener preparado |
+|---|---|
+| IBM Verify | Tenant y cliente API administrativo con los permisos de [00 · Entorno](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). |
+| Vault Enterprise | Licencia con Agentic IAM, KMIP y Transform. |
+| Oracle Container Registry | Cuenta con acceso habilitado a la imagen de MySQL Enterprise. |
+| OpenAI | Organización con acceso API, cuota y clave administrativa para preparar proyecto, cuenta de servicio y federación. |
+| xAI | Management API key con acceso al equipo de la demo. |
+| Claude | Organización con acceso API, cuota y permiso para preparar la federación de una cuenta de servicio. |
+| Tavily | API key para la búsqueda web. |
+| ngrok | Cuenta y dominio propio para publicar discovery y claves públicas de SPIFFE. |
 
-También están publicadas las [imágenes 2.2.0 y 2.2.0-ent](docs/VAULT_IMAGES.md) para ambas arquitecturas. Su publicación no migra el clúster existente.
+**El arranque completo configura los tres proveedores.** Elegir uno con
+`--provider` cambia la selección inicial, pero no elimina los requisitos de los
+otros dos. El lanzador crea la infraestructura local y los recursos de Lumen en
+Verify; las cuentas externas y sus permisos se preparan previamente.
 
-La ampliación [Agentes por tarea](docs/manual/14-agentes-por-tarea.md) permite activar desde la interfaz Consulta, Creación de solicitudes o Revelado de datos, cada uno con su identidad y techo OBO. El modo inicial conserva el comportamiento anterior. Cambiar de agente inicia una sesión nueva mediante Verify. La comprobación de límites y cada paso de la traza identifican al agente de Vault y enlazan su registro, entidad, alias y políticas.
+## Instalación
 
-El panel incluye una matriz interactiva **usuario × agente**: resalta la sesión activa y permite comparar los permisos esperados y qué identidad limita cada operación. La vista previa no cambia la sesión; Vault sigue comprobando el usuario, el techo del agente y el RAR en cada llamada.
+Ejecuta los comandos desde la raíz del repositorio. Si prefieres avanzar una
+operación cada vez, usa el [instalador guiado](docs/manual/PASO-A-PASO.md). Para
+hacer cada operación con comandos individuales, sigue el [manual](docs/manual/README.md).
 
-El [Laboratorio RAR](docs/manual/15-parametros-rar.md), accesible desde la barra lateral y el panel de agentes, añade seis escenarios con `allowed_parameters`, `denied_parameters` y `required_parameters`. Compara peticiones reales con y sin esas restricciones y enlaza cada resultado con su llamada a Vault, RAR y cuerpo enviado. Es opcional y conserva la autorización habitual del chat.
+### Preparar `.env`
 
-### Cuentas, licencias y credenciales externas
-
-- **IBM Verify:** un tenant activo y un cliente API de aprovisionamiento con seis autorizaciones administrativas. Pasos de consola (Security → API access), tabla de permisos y valores de `.env` en [00 · Entorno](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). El lanzador o el capítulo 03 crearán las aplicaciones OIDC/STS, usuarios y grupos de Lumen; los agentes no reciben esos permisos administrativos.
-- **Proveedores de modelo:** prepara los tres: xAI con Management API key, OpenAI con Admin API key y WIF, y Claude con una organización con acceso API y permiso para crear WIF. Claude no usa API key estática: crea el emisor, regla y cuenta siguiendo [08](docs/manual/08-claude-spiffe.md), e inicia el perfil OAuth `lumen-admin` de la CLI `ant` para que el instalador sincronice las claves. El issuer usa el dominio ngrok configurado y Claude almacena las claves públicas de Vault en línea.
-- **Tavily:** una cuenta y una API key para las búsquedas.
-- **Oracle Container Registry:** una cuenta con acceso habilitado a la imagen de MySQL Enterprise. Completa previamente los requisitos de acceso del proveedor; el lanzador no crea cuentas ni acepta contratos.
-- **Vault Enterprise:** una licencia válida con **Agentic IAM, KMIP y Transform**.
-- Elige las contraseñas iniciales de **MySQL** y de los tres usuarios de prueba de Lumen. Se introducirán en `.env`; las cuentas se crearán durante el despliegue.
-
-## Preparar `.env`
-
-Desde la raíz del workspace, crea el archivo de configuración a partir de la plantilla. La copia conserva un `.env` existente:
+Crea la configuración sin sobrescribir una existente:
 
 ```bash
 cp -n .env.example .env
+```
+
+```bash
 chmod 600 .env
 ```
 
-Abre `.env` en tu editor, sustituye `VERIFY_TENANT` por la URL de tu organización y completa las credenciales comunes y las del proveedor elegido. `XAI_TEAM_ID` es opcional; los parámetros de despliegue tienen valores predeterminados en la plantilla.
+Abre `.env` en tu editor y completa las entradas de [`.env.example`](.env.example):
 
-| Variables | Procedencia / finalidad |
+- Tenant y credenciales administrativas de Verify.
+- Credenciales de xAI, OpenAI, Tavily y Oracle, y licencia de Vault.
+- Contraseñas iniciales de MySQL y de `lumen-reader`, `lumen-writer` y `lumen-supervisor`.
+- Tu `NGROK_DOMAIN`; añade `NGROK_AUTHTOKEN` si ngrok no está autenticado localmente.
+- Motor de contenedores. Para Docker, cambia **ambas** variables
+  `CONTAINER_ENGINE` y `MINIKUBE_DRIVER` a `docker`.
+
+Los IDs de federación OpenAI/Claude se completan en el siguiente paso. `.env` usa
+sintaxis Bash y está excluido de Git. No añadas `VAULT_TOKEN`, `VAULT_ADDR` ni
+`VAULT_CACERT`: el instalador genera el bootstrap de Vault y lo guarda en el
+directorio privado de estado.
+
+### Preparar OpenAI y Claude por primera vez
+
+Si ya tienes las federaciones de esta demo y sus IDs en `.env`, conserva esos
+recursos y pasa a la comprobación de prerrequisitos.
+
+**1. Prepara el emisor de Vault y los recursos OpenAI:**
+
+```bash
+./demo.sh prepare-openai
+```
+
+Este comando **ya despliega e inicializa Vault** si hace falta. Publica únicamente
+discovery/JWKS mediante ngrok y crea o reutiliza el proyecto y la cuenta de servicio
+OpenAI. Después completa el [proveedor WIF y su mapping](docs/OPENAI_SPIFFE.md#preparación-inicial-de-openai)
+en la consola OpenAI y guarda `OPENAI_IDENTITY_PROVIDER_ID` en `.env`.
+
+**2. Registra la federación Claude.** Reutiliza las claves públicas del emisor que
+acabas de preparar. Con el directorio de estado predeterminado, cópialas así:
+
+```bash
+(
+  source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/vault/config.env"
+  export VAULT_ADDR VAULT_TOKEN VAULT_CACERT
+  vault read -namespace=verify -format=json spiffe/.well-known/keys |
+    jq -c '.data.keys' | pbcopy
+)
+```
+
+Sigue la [configuración del emisor y la regla en Claude](docs/manual/08-claude-spiffe.md#3-registrar-la-federación-usando-el-portal-claude).
+La URL del emisor es `https://<tu-NGROK_DOMAIN>/v1/verify/spiffe`; la regla utiliza
+el sujeto y la audiencia indicados en esa guía. Guarda los cinco IDs
+`ANTHROPIC_*` de la plantilla en `.env`. El arranque creará el rol Vault de Claude.
+
+**3. Elige cómo mantener actualizadas las claves públicas de Claude:**
+
+| `LUMEN_CLAUDE_SYNC_MODE` | Preparación y comportamiento |
 |---|---|
-| `VERIFY_TENANT` | URL del tenant IBM Verify |
-| `VERIFY_ADMIN_CLIENT_ID`, `VERIFY_ADMIN_CLIENT_SECRET` | Cliente API de aprovisionamiento |
-| `XAI_MANAGEMENT_API_KEY`, `XAI_TEAM_ID` opcional | Management API de xAI; nunca una clave de inferencia |
-| `OPENAI_ADMIN_API_KEY` | Aprovisionamiento OpenAI; nunca se usa para inferencia |
-| `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID`, `OPENAI_IDENTITY_PROVIDER_ID` | Proyecto, cuenta y proveedor WIF; ver preparación OpenAI |
-| `ANTHROPIC_FEDERATION_ISSUER_ID`, `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`, `ANTHROPIC_SERVICE_ACCOUNT_ID`, `ANTHROPIC_WORKSPACE_ID` | IDs no secretos de la federación Claude |
-| `LUMEN_MODEL_PROVIDER`, `LUMEN_OPENAI_MODEL`, `LUMEN_XAI_MODEL`, `LUMEN_ANTHROPIC_MODEL` | Proveedor inicial (`auto`, `openai`, `xai` o `anthropic`) y modelos; los tres quedan disponibles en la interfaz |
-| `NGROK_DOMAIN`, `NGROK_AUTHTOKEN` opcional | Discovery/JWKS públicos de SPIFFE; token opcional si ngrok ya está autenticado |
-| `TAVILY_API_KEY` | API de búsqueda |
-| `ORACLE_REG_EMAIL`, `ORACLE_REG_PASSWORD` | Descarga de MySQL Enterprise |
-| `VAULT_LICENSE` | Licencia Enterprise con Agentic IAM, KMIP y Transform |
-| `MYSQL_ROOT_PASSWORD` | Contraseña inicial; debe coincidir al adoptar MySQL existente |
-| `LUMEN_READER_PASSWORD`, `LUMEN_WRITER_PASSWORD`, `LUMEN_SUPERVISOR_PASSWORD` | Usuarios de demo; se importan al crear su secreto en Vault |
+| `api` — valor de la plantilla | Instala `ant` e inicia el perfil administrativo indicado en la [guía Claude](docs/manual/08-claude-spiffe.md). El instalador actualiza y comprueba las claves del emisor existente. |
+| `console` | Actualiza las claves en línea desde la consola Claude. El instalador exporta `claude/issuer-keys.json` dentro del directorio de estado, pero no las guarda en Claude. |
 
-`.env` usa sintaxis Bash, permisos `600` y está excluido en `.gitignore`. Contiene las entradas externas y las contraseñas iniciales de la demo. **`VAULT_TOKEN`, `VAULT_ADDR` y `VAULT_CACERT` los genera el despliegue; no se rellenan en `.env`.** Las claves xAI se generan dinámicamente; los tokens OpenAI y Claude se obtienen mediante SPIFFE y no se guardan aquí. Los secretos OAuth y Grafana se generan y guardan en Vault. El proceso Python elimina de su entorno las credenciales administrativas importadas.
+Con `console`, después de recrear Vault debes guardar las nuevas claves en el
+emisor. Si `start` se detiene en la comprobación Claude, actualízalas y repite el
+comando. Ambos modos requieren que pasen la federación y la inferencia reales.
+[Sincronización y rotación](docs/OPERACION.md#sincronizar-las-claves-de-claude).
 
-Comprueba la preparación antes de desplegar:
+### Comprobar e instalar
+
+Con las entradas y federaciones preparadas:
 
 ```bash
 ./demo.sh check
 ```
 
-Este comando comprueba las herramientas, las variables obligatorias, el motor de contenedores y el discovery de Verify. La validez y los permisos de las demás credenciales se comprueban al usarlas durante `start`.
-
-## Configuración manual paso a paso
-
-Ejecuta `bash scripts/manual/paso-a-paso.sh` para recorrer la instalación **un paso cada vez**, ver el código y reanudar tras un error. Para continuar desde Verify: `bash scripts/manual/paso-a-paso.sh desde verify-base`. [Uso y alcance del script](docs/manual/PASO-A-PASO.md).
-
-Para ver y reproducir cada operación sin ejecutar notebooks ni el lanzador, consulta el [manual de configuración](docs/manual/README.md). Incluye entorno, Vault, MySQL/KMIP, Verify/OIDC, Agent Registry/OBO/RAR, Transit/Transform, xAI, OpenAI/SPIFFE, Claude/SPIFFE, observabilidad y bloqueos. Las operaciones de Vault están expresadas con **Vault CLI**; las APIs externas, con **curl**.
-
-## Arranque en un paso
-
-Una vez completados los prerrequisitos y `.env`, desde esta carpeta:
+Comprueba herramientas, variables, motor de contenedores y discovery de Verify.
+En modo Claude `api`, también comprueba el acceso administrativo al emisor y su
+regla. No despliega servicios ni acredita por sí solo todas las integraciones.
 
 ```bash
 ./demo.sh start
 ```
 
-El arranque prepara **OpenAI, xAI y Claude a la vez**. El banner permite cambiar de proveedor sin reiniciar, conservando la conversación. La elección es por sesión y se aplica a la siguiente consulta; durante una respuesta el selector queda bloqueado. `LUMEN_MODEL_PROVIDER` y `--provider` solo indican la selección inicial (`auto` usa OpenAI).
+El comando prepara Vault, MySQL, identidades y políticas, los tres proveedores,
+auditoría, observabilidad y la aplicación. Ejecuta pruebas de aplicación e
+infraestructura y una inferencia federada con Claude. Si falla, muestra la etapa
+y el log privado correspondiente.
 
-Modelos básicos preconfigurados: OpenAI `gpt-4.1-nano`, xAI `grok-4.3` y Claude `claude-haiku-5-5`; se pueden ajustar con las variables `LUMEN_*_MODEL`. Las identidades y credenciales temporales de Vault siguen separadas por proveedor.
+Se puede repetir: reutiliza recursos existentes y actualiza su configuración.
+Conserva solicitudes guardadas, pero reinicia Lumen y termina sus sesiones.
+[Detalle del arranque](docs/OPERACION.md#qué-configura-el-arranque).
 
-Para actualizar el **catálogo de proveedores** de una instalación que ya tiene las tres identidades, ejecuta `bash chatbot/scripts/configure-models.sh` y reinicia Lumen. El catálogo se publica en `secrets/chatbot/model` de Vault y la aplicación carga las tres integraciones al arrancar.
+## Probar la demo
 
-Para incorporar **solo los cambios de interfaz, EN/ES y visor**, basta actualizar el código y reiniciar Lumen; no hay nuevas variables de `.env`, permisos o recursos de Verify/Vault. Si lo arrancaste con el lanzador y la infraestructura sigue activa, ejecuta `bash scripts/demo/start.sh` desde la raíz: copia `chatbot/app/` y `chatbot/static/` al runtime gestionado, renueva los forwards de observabilidad y reinicia la aplicación. En ejecución manual, sigue [10 · Actualizar una instalación existente](docs/manual/10-aplicacion.md#actualizar-una-instalación-existente). El reinicio termina las sesiones y descarta los borradores y capturas que solo estaban en memoria; cambiar EN/ES durante una sesión conserva la conversación y el formulario.
+Abre **[http://localhost:8088](http://localhost:8088)**, pulsa **Entrar con Verify**
+y elige **Cloud Directory**. Usa `localhost`, porque el callback OIDC está
+configurado con ese nombre. Las contraseñas iniciales son las que elegiste en `.env`.
 
-`start` sincroniza las claves públicas actuales de Vault con el emisor Claude existente y vuelve a leerlo para comprobar el resultado. Después comprueba la federación y una inferencia breve antes de dar la demo por lista. Usa la API oficial; conserva la URL, la protección JTI, la regla, la cuenta y los permisos.
+| Usuario | Recorrido principal |
+|---|---|
+| `lumen-reader` | Consultar el catálogo y ver solicitudes enmascaradas. |
+| `lumen-writer` | Consultar y guardar solicitudes con datos protegidos. |
+| `lumen-supervisor` | Consultar y revelar datos mediante Vault; no guardar solicitudes. |
 
-Para habilitar esa sincronización, realiza una vez el inicio de sesión administrativo de la [CLI oficial de Claude](https://platform.claude.com/docs/en/manage-claude/wif-admin-api). El alcance `org:admin` da permisos de organización; queda en un perfil local exclusivo para el instalador, fuera de Vault y del proceso Lumen:
+1. Entra como Reader, pide las tarifas y pulsa **Comprobar límites en Vault**.
+2. Entra como Writer y crea una solicitud usando **Usar datos de prueba**.
+3. Entra como Supervisor, abre la solicitud y revela sus datos.
+4. Abre la traza de cada operación para ver la identidad, las llamadas y los
+   permisos aplicados. [Recorrido y observabilidad](chatbot/OBSERVABILITY.md).
 
-```bash
-brew install anthropics/tap/ant
-ant auth login --profile lumen-admin --scope org:admin
-```
+El selector OpenAI/xAI/Claude cambia el modelo para la siguiente consulta y
+conserva la conversación. **EN / ES** cambia el idioma. Estos controles no cambian
+los permisos del usuario.
 
-La CLI renueva ese token cuando el instalador lo necesita. `LUMEN_CLAUDE_ADMIN_PROFILE` permite indicar otro perfil. Si falta la sesión, los prerrequisitos detienen el arranque con el comando de acceso. No se usa una Admin API key, pues estos endpoints de Claude no la aceptan.
+Los recorridos adicionales tienen su propia guía:
 
-```bash
-./demo.sh start
-```
+- [Agentes por tarea](docs/manual/14-agentes-por-tarea.md): comparar distintos límites con el mismo usuario.
+- [Parámetros RAR](docs/manual/15-parametros-rar.md): restringir parámetros de una petición.
+- [Espacios personales](docs/manual/16-espacios-personales.md): verificar aislamiento KV entre usuarios.
+- [Contratación CIBA](docs/manual/17-contratacion-ciba.md): preparar un Validador, aprobar una solicitud y descargar el PDF. **Una instalación nueva deja esta función deshabilitada hasta completar su prueba real y habilitarla.**
 
-Cada arranque vuelve a comprobar las claves, también después de recrear Vault. Para sincronizarlas sin reinstalar: `bash scripts/demo/claude-issuer.sh`. El informe queda en `~/.local/state/lumen-vault-demo/claude/issuer-sync.json` y el array público en `claude/issuer-keys.json`. Con el modo de claves en línea, una rotación que ocurra mientras la demo permanece encendida requiere volver a sincronizar; este script no instala un servicio periódico.
+### Acceso a Vault y Grafana
 
-El comando despliega e inicializa Vault antes de configurar las integraciones. **No requiere un cluster de Vault previo, un root token en `.env` ni ejecutar notebooks.**
+- [Vault](https://127.0.0.1:8443/ui/): las integraciones están en el namespace `verify`.
+- [Grafana](http://localhost:3000/d/lumen-iam): panel de trazas y auditoría.
 
-`./demo.sh` sin argumentos y `./demo.sh up` son alias de `start`.
+Las instrucciones para recuperar sus credenciales están en
+[Acceso a Vault y Grafana](docs/OPERACION.md#acceso-a-vault-y-grafana).
 
-- **Lumen:** http://localhost:8088
-- **Vault:** https://127.0.0.1:8443/ui/
-- **Grafana:** http://localhost:3000/d/lumen-iam
+## Verificación
 
-Usar exactamente `localhost` para Lumen: el callback OIDC es `http://localhost:8088/auth/callback`. En Verify, elegir **Cloud Directory**.
-
-La [reinstalación manual por script del 16/10](docs/runs/20261016T064722Z-manual-script/README.md) completó la retirada, la instalación y 102 comprobaciones correctas, sin navegador ni notebooks. Incluye los tres perfiles, OBO/RAR, protección de datos, OpenAI/SPIFFE, xAI dinámico y correlación de trazas con audit. Para repetirla: `bash scripts/manual/rehearse.sh rebuild` ([alcance y prerrequisitos](docs/manual/13-repeticion-script.md)). El [ciclo automatizado anterior](docs/E2E_OPENAI_VERIFICATION.md) queda como referencia histórica.
-
-Las comprobaciones posteriores de la interfaz y los idiomas están en [VALIDACION](docs/manual/VALIDACION.md). El [informe bilingüe del 20/10/2026](chatbot/docs/language-verification.json) registra 194 pruebas Python y 4 JavaScript, detección del navegador, conservación de conversación/formulario y respuestas reales de los tres proveedores; no es una nueva reinstalación completa.
-
-Captura histórica del 15/10. Las [capturas de EN/ES](chatbot/docs/screenshots/lumen-en.png) y [móvil](chatbot/docs/screenshots/lumen-en-mobile.png) corresponden a la comprobación del 20/10.
-
-![Comprobación del lector en la instalación del 15/10](docs/runs/20261015T162854Z-manual-install/screenshots/reader-permissions.png)
-
-| Usuario | Grupo | Puede | No puede |
-|---|---|---|---|
-| `lumen-reader` | `chatbot-readers` | Consultar catálogo y solicitudes enmascaradas | Guardar solicitudes o revelar datos |
-| `lumen-writer` | `chatbot-writers` | Consultar y guardar solicitudes protegidas | Revelar DNI, IBAN o perfil |
-| `lumen-supervisor` | `chatbot-supervisors` | Consultar y revelar mediante Vault | Obtener SQL RW o guardar solicitudes |
-
-**Comprobar límites en Vault** verifica nueve rutas mediante OBO: SQL RO/RW, el secreto administrativo, cifrado/descifrado Transit y tokenización/recuperación Transform de DNI e IBAN. Muestra el resultado real y el esperado para el perfil. [Detalle y capturas](docs/PERMISSION_PROBES.md).
-
-Contraseñas en Vault, namespace `verify`, rutas `secrets/chatbot/users/{reader,writer,supervisor}`. Grafana usa `lumen-admin`, con contraseña en `secrets/chatbot/observability`.
-
-## Acceso a Vault y Grafana
-
-Los accesos se generan durante `./demo.sh start`. Los comandos siguientes utilizan el directorio de estado predeterminado; si configuraste `LUMEN_STATE_DIR`, sustituye `~/.local/state/lumen-vault-demo` por esa ruta.
-
-### Vault
-
-1. Abre https://127.0.0.1:8443/ui/.
-2. Selecciona el método **Token** y deja el namespace vacío.
-3. Copia el root token del laboratorio al portapapeles:
+Para comprobar pods, despliegues y endpoints locales:
 
 ```bash
-jq -jr '.root_token' \
-  ~/.local/state/lumen-vault-demo/vault/cluster-keys.json | pbcopy
+./demo.sh status
 ```
 
-Pégalo para iniciar sesión. Dentro de Vault, selecciona el namespace **`verify`** para ver las integraciones.
-
-### Grafana
-
-Abre http://localhost:3000 e inicia sesión con el usuario **`lumen-admin`**. Recupera su contraseña desde Vault y cópiala al portapapeles:
+Para ejecutar pruebas de aplicación e infraestructura y comprobar la federación
+e inferencia del proveedor elegido:
 
 ```bash
-(
-  source ~/.local/state/lumen-vault-demo/vault/config.env
-  export VAULT_ADDR VAULT_TOKEN VAULT_CACERT
-
-  vault kv get \
-    -namespace=verify \
-    -mount=secrets \
-    -field=password \
-    chatbot/observability | pbcopy
-)
+./demo.sh verify --provider openai
 ```
 
-Pega la contraseña y abre el [dashboard de Lumen](http://localhost:3000/d/lumen-iam). Los comandos copian las credenciales sin mostrarlas en la terminal; ejecuta cada uno cuando vayas a pegar su valor.
+También puedes usar `--provider xai` o `--provider anthropic`. Estas verificaciones
+requieren los servicios activos y consumen uso real de los proveedores. El login
+humano, las matrices de autorización, CIBA y la revisión visual tienen pruebas
+adicionales descritas en sus capítulos; `verify` no equivale a ejecutar todas ellas.
 
-## Qué configura el comando
-
-1. Comprueba herramientas, `.env`, motor de contenedores y discovery de Verify.
-2. Arranca/crea Minikube **workshop**, despliega/adopta Vault Enterprise con TLS y tres nodos Raft; inicializa solo un cluster vacío y desbloquea los nodos.
-3. Despliega/adopta MySQL Enterprise con `keyring_okv` y KMIP; conserva datos y certificados existentes.
-4. Prepara el namespace Vault **verify**, KV v2 y las entradas estáticas.
-5. Configura RAR, perfil OAuth, aplicaciones OIDC/STS, usuarios, grupos, entidades, políticas y agentes registrados.
-6. Crea roles MySQL RO/RW, catálogo, inventario de ejemplo, Transit, tokenización y tabla de solicitudes.
-7. Configura los tres proveedores: xAI dinámico con TTL 5 min / máximo 10 min, OpenAI con JWT-SVID de Vault y discovery/JWKS por ngrok, y Claude con su identidad SPIFFE y federación propias. Conserva los recursos externos OpenAI de la preparación inicial.
-8. Activa auditoría, aplica Grafana/Loki/Tempo/Alloy, abre puertos locales e inicia Lumen.
-9. Comprueba la federación SPIFFE y una inferencia real de Claude, y ejecuta pruebas de aplicación, permisos SQL, límites del agente y búsqueda real Tavily. Un fallo devuelve código distinto de cero e identifica la etapa fallida.
-
-Se puede repetir: reutiliza recursos por nombre, no elimina perfiles/PVC, no reinicializa Vault ni regenera secretos de clientes existentes. Actualiza configuración gestionada y reinicia Lumen para cargarla; las sesiones del chatbot se pierden en ese reinicio. Reconcilia el catálogo de tres planes y conserva las solicitudes.
-
-Contexto fijo: `workshop`; namespaces Kubernetes: `vault`, `mysql`, `lumen-observability`; namespace Vault: `verify`. Estos nombres están fijados en los manifiestos. Una instalación nueva prescinde de injector/CSI porque Lumen no los utiliza.
-
-### Inicialización de Vault y credenciales generadas
-
-El orden del bootstrap es:
-
-1. Leer las entradas externas de `.env`, sin necesitar un token de Vault.
-2. Desplegar Vault y, solo si no está inicializado, ejecutar `vault operator init`.
-3. Guardar el root token y las claves de desellado en `~/.local/state/lumen-vault-demo/vault/cluster-keys.json`, con permisos `600`.
-4. Desellar Vault y generar `vault/config.env` dentro de ese directorio de estado, con la conexión TLS y el token para aprovisionamiento.
-5. Configurar las integraciones usando ese archivo. La aplicación recibe después un token de bootstrap limitado, no el root token.
+Los informes del lanzador están en `~/.local/state/lumen-vault-demo/reports/` y el
+último resultado en `last-run.json`. La [ejecución del 22/10/2026](docs/runs/20261022T122934Z-full-e2e/README.md)
+documenta la reinstalación, los resultados y el paso de descarga de navegador que
+quedó sin confirmar. El [historial de validación](docs/manual/VALIDACION.md) conserva
+las demás ejecuciones con su fecha y alcance.
 
 ## Operación
 
-### Bloquear accesos en directo
+| Comando | Efecto |
+|---|---|
+| `./demo.sh start` | Preparar o reconciliar la demo y arrancar los procesos locales. |
+| `./demo.sh stop` | Detener los procesos locales gestionados; conserva el clúster y sus datos. |
+| `bash scripts/demo/start.sh` | Publicar el código de la aplicación y reiniciarla con la infraestructura ya activa. |
+| `./demo.sh blocks` | Consultar los bloqueos de acceso. |
+| `./demo.sh block database-write` | Bloquear nuevas escrituras y revocar los leases SQL afectados. |
+| `./demo.sh unblock database-write` | Retirar ese bloqueo. |
 
-```bash
-./demo.sh block xai
-./demo.sh block database-read
-./demo.sh block database-write
-./demo.sh block decrypt
-./demo.sh blocks
-./demo.sh unblock xai   # También admite database-read, database-write y decrypt
-```
-
-Son políticas `deny` reales en Vault, aplicadas a nuevas peticiones con JWT anteriores o nuevos. No necesitas reiniciar Lumen. Los bloqueos SQL/xAI revocan también sus leases. `database-read` bloquea RO y RW porque ambos permiten leer; `database-write` permite continuar consultando con RO. `decrypt` bloquea Transit decrypt y Transform decode. `start` conserva los bloqueos existentes. Consulta el [recorrido, RAR de xAI y funcionamiento de las políticas](docs/ACCESS_BLOCKS.md).
-
-### Servicios y ciclo de vida
-
-```bash
-./demo.sh check    # Preflight; no despliega servicios
-./demo.sh status   # Pods, despliegues y endpoints locales
-./demo.sh verify   # Tests e inferencia del proveedor seleccionado (auto por defecto)
-./demo.sh stop     # Solo procesos locales registrados por el lanzador
-./demo.sh remove --dry-run  # Inventario real; no detiene ni borra recursos
-./demo.sh remove            # Elimina la demo y sus datos, también en Verify
-./demo.sh start             # Reconstruye la demo a partir de .env
-```
+Los objetivos de bloqueo son `xai`, `database-read`, `database-write` y `decrypt`.
+[Funcionamiento y alcance](docs/ACCESS_BLOCKS.md). Para logs, claves, rotación,
+actualización y problemas de reloj, consulta la [guía de operación](docs/OPERACION.md).
 
 ### Volver a empezar desde cero
 
+Primero revisa el inventario:
+
 ```bash
-./demo.sh remove --dry-run  # Revisar primero el alcance y los IDs
-./demo.sh remove && ./demo.sh start
+./demo.sh remove --dry-run
 ```
 
-**`remove` elimina datos de forma irreversible**: los namespaces Kubernetes `vault`, `mysql` y `lumen-observability`, todo su contenido y sus PVC. Esto incluye todos los secretos y namespaces internos de ese Vault —también los ejercicios históricos guardados allí—, las solicitudes MySQL y los logs/trazas de Loki/Tempo. Desinstala la release Helm `vault`, incluyendo sus recursos de ámbito cluster. El perfil Minikube `workshop` y otros namespaces permanecen disponibles.
+Para ejecutar la retirada:
 
-En Verify elimina exclusivamente estos nombres, resolviendo y comprobando sus IDs por API:
+```bash
+./demo.sh remove
+```
 
-| Tipo | Recursos eliminados |
+**Elimina irreversiblemente los datos de Vault, MySQL y observabilidad**, sus
+namespaces Kubernetes y volúmenes, y los recursos de Lumen inventariados en Verify.
+Conserva el código, `.env`, Minikube, las federaciones externas OpenAI/Claude y la
+cuenta real del Validador. Lee el [alcance completo](docs/OPERACION.md#retirar-y-reconstruir)
+antes de ejecutarlo. Después, `./demo.sh start` crea de nuevo la demo; si usas
+Claude en modo `console`, tendrás que actualizar sus claves públicas.
+
+## Revisión y pruebas locales
+
+Estas comprobaciones usan servicios simulados y no necesitan desplegar la demo.
+Si falta el entorno Python, créalo con `bash chatbot/scripts/install.sh`.
+
+```bash
+/tmp/vault-chatbot-venv/bin/python -m pytest -q
+```
+
+```bash
+node --test chatbot/tests/*.test.mjs
+```
+
+```bash
+python3 scripts/manual/validate.py
+```
+
+La última valida sintaxis y enlaces locales de documentación, scripts y notebooks.
+Los notebooks de referencia deben conservarse sin salidas ni contadores de ejecución.
+
+## Documentación del repositorio
+
+| Documento | Para qué sirve |
 |---|---|
-| Aplicaciones | `vault-chatbot-oidc`, `vault-chatbot-research`, `vault-chatbot-xai`, `vault-chatbot-openai`, `vault-chatbot-anthropic` |
-| Cliente STS | `vault-chatbot-sts` |
-| Usuarios ficticios | `lumen-reader`, `lumen-writer`, `lumen-supervisor` |
-| Grupos | `chatbot-readers`, `chatbot-writers`, `chatbot-supervisors` |
+| [Manual de configuración](docs/manual/README.md) | Entender y ejecutar cada etapa con comandos individuales. |
+| [Instalador guiado](docs/manual/PASO-A-PASO.md) | Ejecutar los scripts una operación cada vez y reanudar tras un error. |
+| [Aplicación](chatbot/README.md) | Arquitectura, perfiles, proveedores y mantenimiento del código. |
+| [Observabilidad](chatbot/OBSERVABILITY.md) | Inspeccionar llamadas, datos capturados y auditoría; incluye la consola de peticiones reales. |
+| [Operación](docs/OPERACION.md) | Acceso administrativo, actualización, estado privado y retirada. |
+| [Revisión del código](docs/WORKSPACE_REVIEW.md) | Hallazgos, correcciones y pruebas de regresión. |
 
-Conserva `.env`, el cliente API administrativo, el esquema compartido `vault:path_access`, `vault-authn-entry`, `vault-obo-sts` y las demás cuentas/aplicaciones de Verify. No cambia Okta. Las bajas de usuarios/grupos usan `notifyType=NONE`, sin correos de notificación. Comprueba que son las cuentas ficticias de Cloud Directory y que los grupos no contienen miembros ajenos a la demo; ante duplicados o inventarios incompletos se detiene.
-
-Primero detiene Lumen y revoca de forma síncrona los leases de `verify/xai/creds/lumen/`. Después elimina los recursos Verify, detiene los túneles gestionados, retira MySQL/observabilidad y finalmente Vault. Si Verify, la revocación o la retirada de volúmenes falla, devuelve error y conserva las claves de recuperación. No usa `revoke-force` ni elimina finalizers para ocultar fallos. Si existen PV con política `Retain`, exige resolverlos antes de retirar datos.
-
-Tras comprobar la eliminación remota, borra del directorio de estado `vault/`, `mysql/`, `runtime/`, `vault-chatbot-storage/`, `services/` y `pids/`. Retira las copias compatibles de claves/conexión de `/tmp/vault` solo si coinciden con este despliegue, y el archivo local `/tmp/lumen-telemetry/spans.jsonl`. Conserva las fuentes, capturas, informes históricos, logs del lanzador y cachés de imágenes/dependencias. Por tanto, «clean» significa recursos operativos nuevos; los informes anteriores siguen siendo evidencia histórica.
-
-`remove` requiere acceso al perfil `workshop`; si está parado, arrancarlo con `minikube start -p workshop`. Si Vault existe y ya está inicializado, debe estar desellado y disponer de su bootstrap privado para revocar las claves externas. La autenticación administrativa de Verify procede directamente de `.env`, por lo que no depende de los secretos que se van a borrar. `remove` se puede repetir tras una ejecución parcial o cuando ya se han retirado los recursos.
-
-El inventario se guarda en `~/.local/state/lumen-vault-demo/remove-plan.json`; una retirada completada genera `last-remove.json`. `start` y `remove` comparten el bloqueo del lanzador para no ejecutarse simultáneamente. El siguiente `start` crea una nueva CA, claves de desellado/root token, datos y clientes OAuth; las contraseñas iniciales externas se conservan en `.env`.
-
-Validación automatizada anterior del **15 de octubre**: retirada real de 11 recursos Lumen de Verify y 10 volúmenes, comprobación del estado vacío y reconstrucción desde `.env`, con nuevas claves SPIFFE. Pasaron 114 pruebas de aplicación y dos subcasos, 18 comprobaciones de infraestructura, 20 checks OBO, los recorridos de los tres perfiles y la inferencia con OpenAI y xAI. Se correlacionaron 16 trazas de interfaz con 55 operaciones de Vault. El [informe de ese ciclo](docs/E2E_OPENAI_VERIFICATION.md) incluye incidencias, correcciones, capturas y alcance de los recursos externos conservados; el [ciclo del 14 de octubre](docs/E2E_VERIFICATION.md) queda como histórico.
-
-Referencias de las operaciones utilizadas: [baja de aplicaciones](https://docs.verify.ibm.com/verify/reference/deleteapplication), [cliente STS](https://docs.verify.ibm.com/verify/v2.0/reference/deletestsclient), [usuarios](https://docs.verify.ibm.com/verify/reference/deleteuser_0), [grupos](https://docs.verify.ibm.com/verify/reference/deletegroup) y [revocación síncrona de leases](https://developer.hashicorp.com/vault/api-docs/system/leases).
-
-`verify` presupone servicios levantados. Las pruebas hacen una búsqueda Tavily e inferencia real con el proveedor seleccionado: OpenAI valida SPIFFE/token exchange; xAI valida emisión, denegaciones y caducidad. Tras un arranque con `--provider`, usa el mismo valor en `verify`. El login humano, consentimiento OIDC y MFA, si la política lo exige, se realizan en el navegador; no se sustituyen por ROPC ni tokens simulados.
-
-Estado, logs privados y último informe: **`~/.local/state/lumen-vault-demo/`**, configurable con `LUMEN_STATE_DIR`. El bootstrap de Vault se conserva allí y se mantiene una copia compatible en `/tmp/vault/config.env`. Las claves son necesarias para desbloquear el cluster. Un directorio con claves de otro cluster provoca una parada explícita, sin sobrescribirlas.
-
-Lumen y los port-forward se ejecutan como servicios de usuario de `launchd`, con definiciones privadas dentro del directorio de estado. Siguen activos cuando termina el comando; `launchd` recupera los port-forward si terminan tras reiniciarse un pod; no se instalan para arrancar automáticamente al iniciar sesión. `start` reemplaza los túneles que coinciden con el contexto, namespace, destino y puertos de la demo para evitar conexiones a pods eliminados. Una ocupación incompatible de puerto produce error. Solo se reinicia una instancia `python -m app.main` cuyo directorio corresponda a este workspace o a su runtime gestionado. El código se copia a `runtime/chatbot` fuera de Google Drive para que `launchd` pueda ejecutarlo sin ampliar permisos de macOS.
-
-Se conserva el modo raw solicitado para el laboratorio: JWT y respuestas de Vault en rutas concretas, además de mensajes/herramientas. `LUMEN_VAULT_AUDIT_MODE` y `LUMEN_TRACE_VAULT_RAW` se controlan en `.env`. [Detalle y límites](chatbot/OBSERVABILITY.md).
-
-### Adoptar un laboratorio existente (opcional)
-
-Esta sección solo aplica si ya tienes recursos desplegados. El flujo de instalación desde cero utiliza las credenciales externas introducidas directamente en `.env`.
-
-Si Vault ya está inicializado, se necesitan sus claves guardadas: el lanzador reutiliza el estado privado o migra `/tmp/vault/cluster-keys.json` del laboratorio anterior. No puede regenerar las claves de un cluster existente ni volver a inicializarlo para recuperarlas.
-
-`bash scripts/import-env.sh` es una **migración opcional desde un laboratorio ya operativo**: recoge las entradas de Vault, `oracle.env` y `vault.hclic` sin mostrarlas. No se ejecuta al arrancar desde cero ni importa el root token; en una instalación nueva las credenciales externas se rellenan directamente en `.env`. No sobrescribe un `.env` que ya tenga la integración.
-
-### Reloj de la VM
-
-Después de suspender macOS, comprueba que la VM de Podman conserva la hora correcta. `start` detecta desviaciones de más de 60 segundos antes de emitir certificados o inicializar Vault; un desfase también puede invalidar JWT. Si utilizas Podman y su VM está atrasada respecto al host, consulta su nombre con `podman machine list`. Por ejemplo, para `podman-machine-default`:
-
-```bash
-podman machine ssh podman-machine-default sudo -n date -u -s "@$(date -u +%s)" </dev/null
-./demo.sh start
-```
-
-El comando sincroniza el reloj de la VM con el del host. No desactiva la validación TLS ni reinicializa Vault. Durante una demostración larga puede usarse `caffeinate -i -m` en otra terminal para evitar la suspensión automática.
-
-El perfil OAuth de Vault y el cliente aplican **15 segundos de tolerancia** al validar fechas de JWT. Evita rechazar tokens recién emitidos por pequeñas diferencias entre Verify y la VM; no corrige un reloj atrasado varios minutos. [Parámetro oficial `clock_skew_leeway`](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server).
-
-## Documentación y alcance
-
-- [Aplicación, flujos y capturas](chatbot/README.md).
-- [Recorrido por usuario y observabilidad](chatbot/OBSERVABILITY.md).
-- [Revisión y validación del workspace](docs/WORKSPACE_REVIEW.md).
-- [Instalación manual y validación más reciente](docs/manual/VALIDACION.md).
-- [Validación Claude con Vault SPIFFE JWT-SVID](docs/runs/20261016-claude-spiffe/README.md).
-- [Reconstrucción automatizada con OpenAI, 15 de octubre (histórico)](docs/E2E_OPENAI_VERIFICATION.md). [Histórico xAI, 14 de octubre](docs/E2E_VERIFICATION.md).
-- Notebooks de consulta: [1 Vault](1_Deploy_Vault_minikube.ipynb), [2 MySQL/KMIP](2_vault-demo-kmip-mysql.ipynb), [3 roles SQL](3_Database_Secret_Engine.ipynb), [4 xAI](4_XAI_Secret_Engine.ipynb), [6 Lumen](6_Lumen_Chatbot_Vault_IAM.ipynb), [7 observabilidad](7_Lumen_Observability.ipynb), [8 solicitudes](8_Lumen_Protected_Applications.ipynb), [9 OpenAI/SPIFFE](9_OpenAI_Vault_SPIFFE.ipynb), [10 tokens con oauth2c](10_OAuth2c_Verify_Vault.ipynb).
-- [Ejemplos oauth2c sobre Lumen instalado](10_OAuth2c_Verify_Vault.ipynb): Client Credentials, login PKCE, intercambio OBO con RAR y uso del JWT delegado con Vault. Incluye callback temporal 9876 y su retirada, inspección de tokens y ejemplo condicional de refresh. [Alcance de las pruebas locales](verify/docs/oauth2c-notebook-validation.json).
-- [Verify base, bootstrap UI y creación de usuarios](verify/README.md) conserva el ejercicio histórico `verify-agent`. Lumen configura su propio OIDC/STS y no requiere el login guardado de aquel ejercicio.
-- [Okta](okta/README.md) permanece aparcado y fuera del comando. Las conexiones/static roles de pagos del namespace raíz tampoco son dependencias de Lumen.
-
-Las capturas e informes anteriores describen ejecuciones con fecha; no certifican el estado actual. Tempo/Loki retienen siete días. El último despliegue se acredita con `last-run.json` y las nuevas pruebas, no con IDs históricos.
-
-El chat mantiene su [ámbito de energía mediante un control previo al agente](docs/ENERGY_SCOPE_AND_SVID.md). La misma guía muestra dónde inspeccionar el JWT-SVID completo y sus claims en las trazas de Lumen/Grafana.
-
-**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
-
-La [contratación CIBA](docs/manual/17-contratacion-ciba.md) usa `database/creds/chatbot-contract`. Los bloqueos `database-read` y `database-write` incluyen este rol y revocan sus leases. El rol JWT CIBA también adjunta el bloqueo de descifrado.
+Los notebooks de la raíz documentan etapas de la demo y reutilizan sus scripts;
+no son un requisito del lanzador. [Verify](verify/README.md) y [Okta](okta/README.md)
+conservan ejercicios separados. La ruta activa de Lumen usa **IBM Verify**; Okta
+está fuera de su instalación.

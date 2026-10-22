@@ -115,6 +115,78 @@ async def test_expiration_while_waiting_for_lock_is_checked():
     item.expires_at=time.time()-1;item.lock.release()
     assert (await task)['status']=='expired' and not item.snapshot
 
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('elapsed', [1, 601])
+async def test_cleanup_does_not_clear_or_forget_an_inflight_confirmation(elapsed):
+    manager,session,item=setup()
+    manager._verify_request=AsyncMock(return_value=(200,{'id_token':'id','access_token':'access'}))
+    manager.services.identity=SimpleNamespace(validate=lambda *a:{'sub':'validator','iat':time.time()})
+    async def commit(*args):
+        # Simulate the periodic cleanup firing while a slow SQL commit is awaited.
+        item.expires_at=time.time()-elapsed
+        manager.purge()
+        assert manager.requests[item.id] is item
+        assert item.status=='waiting' and item.snapshot['snapshot_hash']=='hash'
+        item.contract_id=item.id
+    manager.formalize=AsyncMock(side_effect=commit)
+    assert (await manager.poll(session,item.id))['status']=='ready'
+    assert not item.snapshot and not item.auth_req_id
+    item.expires_at=time.time()-601
+    manager.purge()
+    assert item.id not in manager.requests
+
+
+@pytest.mark.asyncio
+async def test_cancelled_confirmation_is_terminal_and_clears_sensitive_state():
+    manager,session,item=setup()
+    manager._verify_request=AsyncMock(side_effect=asyncio.CancelledError())
+    with pytest.raises(asyncio.CancelledError):
+        await manager.poll(session,item.id)
+    assert item.status=='error' and not item.snapshot and not item.auth_req_id
+    assert not item.lock.locked()
+
+
+@pytest.mark.asyncio
+async def test_cancelled_ciba_start_does_not_leave_an_unusable_pending_request():
+    manager,session,item=setup();manager.requests.clear()
+    manager.services.database.return_value=[item.snapshot]
+    manager._verify_request=AsyncMock(side_effect=asyncio.CancelledError())
+    with pytest.raises(asyncio.CancelledError):
+        await manager.start(session,item.application_id)
+    saved=next(iter(manager.requests.values()))
+    assert saved.status=='error' and not saved.snapshot and not saved.auth_req_id
+    assert not manager.start_lock.locked()
+
+
+@pytest.mark.asyncio
+async def test_queued_pdf_download_rechecks_the_current_session():
+    manager,session,item=setup();manager.download=AsyncMock(return_value=b'%PDF')
+    identity=SimpleNamespace(sessions={'sid':session})
+    lock=asyncio.Lock();await lock.acquire()
+    app=FastAPI();app.include_router(contract_download_router(identity,manager,'lumen_session',{'sid':lock}))
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test',cookies={'lumen_session':'sid'}) as client:
+        task=asyncio.create_task(client.post(f'/api/contracts/{item.id}/pdf',headers={'Origin':'http://test','X-Lumen-PDF':'1'}))
+        await asyncio.sleep(0)
+        identity.sessions.pop('sid')
+        lock.release()
+        response=await task
+    assert response.status_code==403
+    manager.download.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_pdf_is_not_returned_if_login_expires_during_download():
+    manager,session,item=setup()
+    async def expire(*args):
+        session.expires_at=time.time()-1
+        return b'%PDF-private'
+    manager.download=AsyncMock(side_effect=expire)
+    app=FastAPI();app.include_router(contract_download_router(SimpleNamespace(sessions={'sid':session}),manager,'lumen_session',{}))
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test',cookies={'lumen_session':'sid'}) as client:
+        response=await client.post(f'/api/contracts/{item.id}/pdf',headers={'Origin':'http://test','X-Lumen-PDF':'1'})
+    assert response.status_code==403 and b'%PDF-private' not in response.content
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize('wrong',['absent','status','hash','contract_id'])
 async def test_download_requires_committed_owned_contract_and_matching_pdf(wrong):

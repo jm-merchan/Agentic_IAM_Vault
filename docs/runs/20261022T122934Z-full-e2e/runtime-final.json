@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-10-22T13:25:08.670421+00:00",
+  "source_runtime_mismatches": [],
+  "runtime_isolation_passed": true,
+  "health_status_passed": true,
+  "timer_error_after_last_restart": false,
+  "tracebacks_after_last_restart": 0,
+  "services": {
+    "lumen": true,
+    "grafana": true,
+    "tempo": true,
+    "loki": true
+  },
+  "vault_pods_ready": 3,
+  "mysql_pods_ready": 1,
+  "observability_deployments_available": 4
+}

@@ -2,7 +2,11 @@
 
 **Trabajo aparcado.** Material agrupado en `okta/` para retomarlo cuando esté disponible el SKU NHI. Los comandos de este documento se ejecutan desde esta carpeta (`cd okta` desde la raíz del laboratorio).
 
-Configuración aplicada con Terraform el **13 de octubre de 2026**. Vault está en Minikube (`2.1.2+ent`) y Okta es `integrator-7081230.okta.com`, con **Integrator Free Plan**.
+Configuración aplicada con Terraform el **13 de octubre de 2026**. En esa ejecución, Vault estaba en Minikube (`2.1.2+ent`) y Okta era `integrator-7081230.okta.com`, con **Integrator Free Plan**. Los resultados siguientes son históricos; no acreditan el estado actual del tenant ni de Vault.
+
+La revisión del **22/10/2026** comprobó `terraform fmt -check` y `terraform validate`
+con los providers del lockfile y la caché local del wrapper. No ejecutó `plan`,
+`apply` ni pruebas contra Okta. [Alcance de la revisión](../docs/WORKSPACE_REVIEW.md#revisión-del-22-de-octubre-de-2026).
 
 El procedimiento ejecutable está en [4_Okta_Vault_Agentic_IAM_OBO.ipynb](4_Okta_Vault_Agentic_IAM_OBO.ipynb). La [preparación inicial de Terraform](docs/bootstrap-okta.md) conserva los pasos y capturas del bootstrap.
 

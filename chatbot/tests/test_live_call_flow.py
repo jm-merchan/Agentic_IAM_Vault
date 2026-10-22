@@ -8,6 +8,19 @@ from app.live_call_flow_ui import LiveCallFlow, live_snapshot
 from app.telemetry import ACTIVE_SPANS, RECORDS, records_for, span, trace_id
 
 
+def test_deleting_client_cancels_flow_timer_without_callback_errors(monkeypatch):
+    from nicegui import core, ui
+    from nicegui.client import Client
+
+    errors = []
+    monkeypatch.setattr(core.app, 'handle_exception', errors.append)
+    with Client(ui.page('/test-live-flow-cleanup')) as client:
+        widget = LiveCallFlow(None)
+    client.delete()
+    assert not errors
+    assert widget.timer._is_canceled
+
+
 def test_inflight_is_opt_in_and_return_appears_only_after_completion():
     with span('lumen.action'):
         tid = trace_id()

@@ -1,0 +1,1307 @@
+{
+  "vault": {
+    "version": "2.1.2+ent",
+    "initialized": true,
+    "sealed": false
+  },
+  "cases": [
+    {
+      "checked_at": "2026-10-22T13:01:01.706633+00:00",
+      "role": "reader",
+      "mode": "legacy",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "e0d6701147cb3965e6c6b69d097f6013",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "273c4b71681ff728aea156fe708442a5",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 404,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "e28d630aea44b62a8d89bfab3972508a",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "df41d44bba368edae2ea8010a9b5267e",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "read_back",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "714dd27350afd79d14914af7f0cb9d78",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "stale_version_rejected",
+          "status": 400,
+          "expected": [
+            400
+          ],
+          "passed": true,
+          "trace_id": "8d6a3af3594f4f9cc07480a5e40e7dbb",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "d92e1058e1d26cf262ee72c77331fd8d",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "a3612e63a9fd5ce9847b3972cf90481a",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "cross_write_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "7e0cb4a7dbc3714b415546af62f9a0c2",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/cross-check"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "6e4f3e41fc132323e4e841315b174e32",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "14400ac1989b07900cb6a10a90896701",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "cross_write_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "0a3aa7580f661b01b2fdd0ab406617bc",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/cross-check"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:01:09.933346+00:00",
+      "role": "writer",
+      "mode": "legacy",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "37e2d71dd860216d133d0d6794d3b2ed",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "38bdb285e5f827ffc1c24b836bb3f322",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 404,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "a19699fb86b754a23214f9cbe8f92824",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "41d245d12ce5bab19e5219d7b2a58323",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "read_back",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "01b98a2fadc956dc42c7bb3588f972cd",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "stale_version_rejected",
+          "status": 400,
+          "expected": [
+            400
+          ],
+          "passed": true,
+          "trace_id": "5f08da6dbdc463ef45df3a2957420b23",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "01968b042e66087a41f4cd9397a0a186",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "7ee2250b533a8f044e201c12b11d7701",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_write_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3a6ba1ec47f8f2fb5e140a07712f9225",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/cross-check"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "5550f06c4cb11dec140242bc2bd94ca4",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3032f5cf659d170c6b9de0ae4edee01c",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "cross_write_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "0cd72654f7985cb6c1507cdb6a24fcd3",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/cross-check"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:01:17.760260+00:00",
+      "role": "supervisor",
+      "mode": "legacy",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "771ad4b8e196c4e2125324b9d8481617",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "e8ad0c60eaea7c1e96d939f079cd3270",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 404,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "4009ebb464d2f03a6d2ecc302198b74a",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "2b7de0bc50dfa00007fe25af096466f7",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "read_back",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "d15680544671e272a2ee1d1cf882e9c4",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "stale_version_rejected",
+          "status": 400,
+          "expected": [
+            400
+          ],
+          "passed": true,
+          "trace_id": "3ad6ad8716780478ae7fe8ba538472c6",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "4841f3c4751a36bfc748928a9b8678fb",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3c2f254044315aa7d464983c71e6df52",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_write_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "f09837fc60f75aa62acb73a47fdce25f",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/cross-check"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "221331297c8e011c0fefdb28544eb8da",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "03fa4c0743f94ff520a407044ee4da4c",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "cross_write_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "822fadc21727891831eaf8d3b74302ea",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/cross-check"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:01:24.247788+00:00",
+      "role": "reader",
+      "mode": "read",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "fc8c5f6d417805ade06645bb9dc76474",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "3b714e45f63c6efed0df2e9f485c8231",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "4fe0289b1d9b7efb02fe149dd1930873",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "b34d8945b503a0159026778a881aecc5",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "ff2d977529888e07be5bc5ab5df1155b",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "dbe05043c8f87359168b75c65643f934",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "9faa346fc15a8dc0146333a169128c62",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "0354081e3250724db3b368f94dc06a61",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:01:30.183790+00:00",
+      "role": "writer",
+      "mode": "read",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "a35700ecbf09e2e190f93e057efd007d",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "e32dfe721af32f2fcb50e65222f80108",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "ddab61452d3c4fe96a7bbf5b84d3eaf8",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "1e08cbd0b8796e1bc2c63d91392dff40",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "45054b4dc199e751178a4bcfb11535ed",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "1c52d85f237e5fc453c620d2f4c66cf0",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "7b968c4fdd9af339f819d9a19b724bf1",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "d491791d8aac2ae69e2218c724bf751e",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:01:36.622525+00:00",
+      "role": "supervisor",
+      "mode": "read",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "d5145fd01c26e6cc92b72aecd1d71926",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "a82f5be0e85ec1fda6b7f4fffafb17da",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "8410094c17f2d80df62930bd88964686",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "70f069e343cdf21576ada69ccbbb0514",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "b09ded9df3c2dd2e4fdbe3b1e735d3ff",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "18870155b6b5780329fdcec3839cb54c",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "8d75f84ca30bad587a5bbbbb9b81f0ab",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "bf3fdcca44a5dc5d56f4dd4ac7ecf030",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:01:47.372227+00:00",
+      "role": "reader",
+      "mode": "write",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "6ebdc7f522b550ca8b254229a4ceaf33",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "bf2dba72f8b0e8118508e0bf77d39dce",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "5eb4bb920eb30ba2bb5a7e3e5b877d17",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "0519c5c8b134b8e5a9db226ac84c69be",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "read_back",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "aba440b0bd45c9150eba7ae34be6d713",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "stale_version_rejected",
+          "status": 400,
+          "expected": [
+            400
+          ],
+          "passed": true,
+          "trace_id": "aeb60e4b734a3a94888f54aa06607e51",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "b4268f3e508a81b4d81319efd0bd5aca",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "359fcbb5fa9249494e7f0940a4624e5b",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "cross_write_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "ee6dbf921e8ba6bec64953cb35368293",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/cross-check"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "96619cba7eb509f7b52f4082bc297220",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "f461de0ad9719d46cd314a5d4d3e3c97",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "cross_write_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "043fe4ec594a4dfc07a180869e214a5e",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/cross-check"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:02:01.511388+00:00",
+      "role": "writer",
+      "mode": "write",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "966a97ce1df0971f9d4c562c539152a5",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "41fb837caa1840cf5573489b775ead7f",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "081c459231a07d394cde574ecb6f3927",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "a74bb47316348b294ffb1cdb3b7b8783",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "read_back",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "d15182a2e68b9c48b2129f6808890706",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "stale_version_rejected",
+          "status": 400,
+          "expected": [
+            400
+          ],
+          "passed": true,
+          "trace_id": "4ce3fa4f5f6395c0287dda9c2c91d1fc",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "29f0e458828f05bda091f13c340dfb4b",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3a018be29967e911232a5503634a0049",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_write_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "875cb862a885a9d406e1aad6b52c819d",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/cross-check"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "130f20eb43fb60a97d07c41a17eb690a",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "1fa5d41c23bcd771aaa2121a9d245278",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "cross_write_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "827cb3677f7aad176e5bbff3f9ca61c6",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/cross-check"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:02:12.919705+00:00",
+      "role": "supervisor",
+      "mode": "write",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "ae74d50dee5dde47b516f57c80513ed5",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "6d351e89fb9ffaeed57fbab26a6d057a",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "c708dbc6f6cc0e77e647851acba1c6cf",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "9c866c0c69eca05e40bb944985ee9e64",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "read_back",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "15e1b8c2642d1d000679ea6efbe75fd8",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "stale_version_rejected",
+          "status": 400,
+          "expected": [
+            400
+          ],
+          "passed": true,
+          "trace_id": "93ddb2746978ce815cf263f3aab5057d",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "79b7d8b13ae1e5ba7e244ad2584ac607",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "1039c3d4073e3c02bd2f74b88c46661b",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_write_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "9a18e57971098b149dd597f45243d340",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/cross-check"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "a698551df36b08aca938611cda212d30",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3cf72080672cbc15b42854c9ad39a096",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "cross_write_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "1356c6153a3fd8b7bc1f991cb9db52bc",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/cross-check"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:02:20.861659+00:00",
+      "role": "reader",
+      "mode": "reveal",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "139de4aa22a7e915cb1e89db0ad059a8",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "63a16bf8c75589e83341f2dc11c82e59",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "6b8c14781f99ff9b69714f5fb43b4da9",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "a49277e14bb1e9775a8af2779636607d",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/verification"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "c6f7e14b9564f3bf4847904b79fe00f6",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3313a1df02dacdd67ba6a553f987887f",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "cc3984dc8d3355a973b2fdd64799cf58",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "5aae616a7969859da840422f6f0d61d2",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:02:28.382775+00:00",
+      "role": "writer",
+      "mode": "reveal",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "25cdb15c5079eca1aa4fb44fded41fdf",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "2fe96a897d12b5cbd3ab3268ac1bcdbf",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "65652406ed0edc761a9abeed4e5f938f",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "94babbbe3cd7094ee1771770735c7d83",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "43124d7840c8bd4cda1f205898fb0a88",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "51d1b08912a389f5500a007555a3994e",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_read_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "87b52f295db04b562355cc3128f00309",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "cross_list_supervisor",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "bea31695379050cb1dfc08495cfda847",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T13:02:36.219033+00:00",
+      "role": "supervisor",
+      "mode": "reveal",
+      "checks": [
+        {
+          "test": "own_read",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "096c4857e5844cf8fa24e6b663d6324a",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/demo"
+        },
+        {
+          "test": "own_list",
+          "status": 200,
+          "expected": [
+            200
+          ],
+          "passed": true,
+          "trace_id": "63cd66a1d9b38597ae2ba207274ae200",
+          "path": "secrets/metadata/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/"
+        },
+        {
+          "test": "existing_test_version",
+          "status": 200,
+          "expected": [
+            200,
+            404
+          ],
+          "passed": true,
+          "trace_id": "e07ccadd4fd834f820a7653089f32f52",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "own_write",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "9cc899f1858c9bdfe78ea136295feab1",
+          "path": "secrets/data/lumen-personal/b3ad09e2-a651-5826-30dd-f2bc1b6f5f71/verification"
+        },
+        {
+          "test": "cross_read_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "5b89fcfbdbe08bfbefe7f7ccb7bcfe2a",
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo"
+        },
+        {
+          "test": "cross_list_reader",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "c282e264af59b94658582cbad00ff3cd",
+          "path": "secrets/metadata/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/"
+        },
+        {
+          "test": "cross_read_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "47d24b6ec4b31586d41a8697a9e1582a",
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo"
+        },
+        {
+          "test": "cross_list_writer",
+          "status": 403,
+          "expected": [
+            403
+          ],
+          "passed": true,
+          "trace_id": "3a8a0383026efaf2787cc95e35a3d26c",
+          "path": "secrets/metadata/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/"
+        }
+      ]
+    }
+  ],
+  "all_passed": true,
+  "scope": "Real Verify PKCE/OBO, per-human KV template, cross-owner read/list/write denials, task ceilings and CAS; synthetic personal values only"
+}

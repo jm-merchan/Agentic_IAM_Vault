@@ -205,6 +205,28 @@ def test_remove_is_scoped_ordered_and_repeatable(lab):
     assert result.returncode==0,result.stderr+result.stdout
 
 
+@pytest.mark.parametrize('alteration', [None, 'active', 'unmarked', 'admin', 'other-app'])
+def test_disabled_legacy_pdf_app_requires_ownership_markers(lab, alteration):
+    data=json.loads(lab['data'].read_text())
+    legacy={'name':'vault-chatbot-pdf-approval', 'templateId':'998',
+            'description':'Lumen PDF approval through CIBA',
+            'applicationState':False, 'signonState':False,
+            'providers':{'oidc':{'properties':{}}}, 'fixture_lumen':True}
+    if alteration=='active': legacy['applicationState']=True
+    if alteration=='unmarked': legacy['description']='Another application'
+    if alteration=='admin': legacy['providers']['oidc']['properties']['clientId']='admin'
+    if alteration=='other-app': legacy['name']='vault-chatbot-contract'
+    data['resources']['/v1.0/applications/legacy-pdf']=legacy
+    change(lab,resources=data['resources'])
+    result=run(lab)
+    if alteration is None:
+        assert result.returncode==0,result.stderr+result.stdout
+        assert '/v1.0/applications/legacy-pdf' not in json.loads(lab['data'].read_text())['resources']
+    else:
+        assert result.returncode!=0
+        assert not any(is_delete(e) or e[0]=='launchctl' for e in events(lab))
+
+
 def test_namespace_lookup_error_is_not_treated_as_absence(lab):
     change(lab,namespace_error=True); result=run(lab)
     assert result.returncode!=0

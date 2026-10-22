@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-22T12:36:53.017698+00:00",
+  "remove_dry_run_passed": true,
+  "remove_regression_tests": {
+    "passed": 15
+  },
+  "static_validation": {
+    "checked_at": "2026-10-22T12:36:09.693821+00:00",
+    "documents": 36,
+    "bash_blocks": 264,
+    "shell_scripts": 92,
+    "local_links": 645,
+    "python_files": 88,
+    "notebooks": 11,
+    "bash_cells": 73,
+    "errors": [],
+    "all_passed": true,
+    "scope": "Static syntax and local links only. No provisioning, credentials issuance, inference, revocation or deletion."
+  },
+  "claude_admin_profile_available": false,
+  "resources_deleted": false
+}

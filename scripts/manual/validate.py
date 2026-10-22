@@ -1,4 +1,4 @@
-"""Validate manual links and Bash syntax without executing installation blocks."""
+"""Validate workspace docs and source syntax without executing installation code."""
 from datetime import datetime, timezone
 import ast
 import json
@@ -16,7 +16,9 @@ def bash_blocks(path):
 
 def validate(root=ROOT):
     errors = []
-    documents = sorted((root / 'docs/manual').glob('*.md'))
+    document_folders = ('', 'docs', 'docs/manual', 'chatbot', 'verify', 'okta', 'okta/docs',
+                        'chatbot/static/service-icons')
+    documents = sorted(path for folder in document_folders for path in (root / folder).glob('*.md'))
     count = links = 0
     for path in documents:
         for index, block in enumerate(bash_blocks(path), 1):
@@ -33,7 +35,8 @@ def validate(root=ROOT):
                 errors.append(f'{path.name}: missing link {target}')
     # Include the executable files used by the guided installer and their shell
     # helpers, not just the scripts that extract the historical Markdown blocks.
-    scripts = sorted(path for folder in ('scripts/manual', 'scripts/demo', 'verify/scripts', 'chatbot/scripts')
+    script_folders = ('', 'scripts', 'scripts/manual', 'scripts/demo', 'verify/scripts', 'chatbot/scripts', 'okta/scripts')
+    scripts = sorted(path for folder in script_folders
                      for path in (root / folder).glob('*.sh'))
     for path in scripts:
         result = subprocess.run(['bash', '-n', str(path)], text=True, capture_output=True)
@@ -45,13 +48,36 @@ def validate(root=ROOT):
                 ast.parse(source)
             except SyntaxError as exc:
                 errors.append(f'{path.name}: embedded Python: {exc}')
-    for path in (root / 'scripts/manual').glob('*.py'):
+    python_files = sorted(path for folder in (*script_folders, 'chatbot/app', 'chatbot/tests')
+                          for path in (root / folder).glob('*.py'))
+    for path in python_files:
         try:
             ast.parse(path.read_text())
         except SyntaxError as exc:
-            errors.append(f'{path.name}: {exc}')
+            errors.append(f'{path.relative_to(root)}: {exc}')
+    notebooks = sorted(path for folder in ('', 'verify', 'okta') for path in (root / folder).glob('*.ipynb'))
+    bash_cells = 0
+    for path in notebooks:
+        try:
+            notebook = json.loads(path.read_text())
+            if notebook.get('nbformat') != 4 or not isinstance(notebook.get('cells'), list):
+                raise ValueError('expected nbformat 4 and a cells array')
+            for index, cell in enumerate(notebook['cells'], 1):
+                if cell.get('cell_type') != 'code':
+                    continue
+                if cell.get('outputs') or cell.get('execution_count') is not None:
+                    errors.append(f'{path.name} cell {index}: saved execution output/count')
+                source = ''.join(cell.get('source', []))
+                if source.startswith('%%bash\n'):
+                    bash_cells += 1
+                    result = subprocess.run(['bash', '-n'], input=source[7:], text=True, capture_output=True)
+                    if result.returncode:
+                        errors.append(f'{path.name} cell {index}: {result.stderr.strip()}')
+        except (ValueError, TypeError, AttributeError) as exc:
+            errors.append(f'{path.name}: invalid notebook: {exc}')
     return {'checked_at': datetime.now(timezone.utc).isoformat(), 'documents': len(documents),
             'bash_blocks': count, 'shell_scripts': len(scripts), 'local_links': links,
+            'python_files': len(python_files), 'notebooks': len(notebooks), 'bash_cells': bash_cells,
             'errors': errors, 'all_passed': not errors,
             'scope': 'Static syntax and local links only. No provisioning, credentials issuance, inference, revocation or deletion.'}
 

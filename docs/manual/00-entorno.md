@@ -36,7 +36,7 @@ Este cliente es el **bootstrap de aprovisionamiento**: el capítulo [03](03-veri
 | `manageAuthDetailTypes` | Registrar el tipo RAR `vault:path_access` |
 | `manageSTSClients` | Crear el cliente STS de token exchange (OBO) |
 | `readUsers` | Leer usuarios SCIM al configurar identidades |
-| `manageUserStandardGroups` | Crear y asignar grupos `lumen-readers` / `lumen-writers` / `lumen-supervisors` |
+| `manageUserStandardGroups` | Crear y asignar grupos `chatbot-readers` / `chatbot-writers` / `chatbot-supervisors` |
 | `manageUsersPwdReset` | Fijar la contraseña definitiva de los usuarios de laboratorio |
 
 5. Continúa el asistente. Deja restricciones de población/grupos en los valores por defecto (sin limitar a subconjuntos) salvo que tu tenant exija lo contrario: con `manageUserStandardGroups` Verify puede rechazar ciertas restricciones de grupo.

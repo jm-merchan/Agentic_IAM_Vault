@@ -83,9 +83,8 @@ class ClaudeAPI:
             raise ValueError("No se pudo conectar con la API de Claude para sincronizar el emisor.") from None
 
 
-def sync(api, issuer_id, rule_id, account_id, issuer_url, keys):
-    path = "/federation_issuers/" + issuer_id
-    before = api("GET", path)
+def inspect_target(api, issuer_id, rule_id, account_id, issuer_url):
+    before = api("GET", "/federation_issuers/" + issuer_id)
     rule = api("GET", "/federation_rules/" + rule_id)
     if (before.get("id") != issuer_id or before.get("archived_at")
             or before.get("issuer_url") != issuer_url
@@ -93,6 +92,12 @@ def sync(api, issuer_id, rule_id, account_id, issuer_url, keys):
             or rule.get("target", {}).get("service_account_id") != account_id
             or rule.get("oauth_scope") not in {"workspace:developer", "workspace:inference"}):
         raise ValueError("El emisor o la regla Claude no coincide con la identidad configurada. No se ha modificado.")
+    return before
+
+
+def sync(api, issuer_id, rule_id, account_id, issuer_url, keys):
+    path = "/federation_issuers/" + issuer_id
+    before = inspect_target(api, issuer_id, rule_id, account_id, issuer_url)
     desired = {"type": "inline", "keys": keys}
     current = before.get("jwks", {})
     changed = current.get("type") != "inline" or canonical(current.get("keys", [])) != canonical(keys)
@@ -112,12 +117,26 @@ def sync(api, issuer_id, rule_id, account_id, issuer_url, keys):
 
 def main():
     os.umask(0o077)
+    mode = os.environ.get("LUMEN_CLAUDE_SYNC_MODE", "api")
+    if mode not in {"api", "console"}:
+        raise ValueError("LUMEN_CLAUDE_SYNC_MODE debe ser api o console.")
     profile = os.environ.get("LUMEN_CLAUDE_ADMIN_PROFILE", "lumen-admin")
     if not re.fullmatch(r"[A-Za-z0-9_-]+", profile):
         raise ValueError("LUMEN_CLAUDE_ADMIN_PROFILE no es un nombre de perfil válido.")
     if sys.argv[1:] == ["--check-auth"]:
-        admin_token(profile)
-        print("Perfil administrativo de Claude disponible.")
+        if mode == "api":
+            token = admin_token(profile)
+            # Check access before provisioning, not just the existence of a CLI login.
+            target = [os.environ.get(name) for name in (
+                "ANTHROPIC_FEDERATION_ISSUER_ID", "ANTHROPIC_FEDERATION_RULE_ID",
+                "ANTHROPIC_SERVICE_ACCOUNT_ID", "NGROK_DOMAIN")]
+            if all(target):
+                issuer_id, rule_id, account_id, domain = target
+                inspect_target(ClaudeAPI(token), issuer_id, rule_id, account_id,
+                               f"https://{domain}/v1/verify/spiffe")
+            print("Perfil administrativo de Claude disponible.")
+        else:
+            print("Claude: actualización de claves por consola seleccionada; la inferencia real sigue siendo obligatoria.")
         return
     state = Path(os.environ["LUMEN_STATE_DIR"]) / "claude"
     state.mkdir(parents=True, exist_ok=True)
@@ -138,6 +157,14 @@ def main():
     except (OSError, subprocess.SubprocessError, KeyError, TypeError, json.JSONDecodeError):
         raise ValueError("No se pudieron obtener las claves públicas actuales de Vault.") from None
     save(state / "issuer-keys.json", keys)
+    if mode == "console":
+        save(report, {"checked_at": datetime.now(timezone.utc).isoformat(),
+                      "issuer_id": issuer_id, "method": "console", "verification_pending": True,
+                      "key_ids": [key["kid"] for key in keys]})
+        print(f"Claude: copia {state / 'issuer-keys.json'} en las claves en línea del emisor {issuer_id}.")
+        print("https://platform.claude.com/settings/workload-identity-federation")
+        print("Solo se ha exportado material público. El arranque exige después una federación e inferencia reales.")
+        return
     api = ClaudeAPI(admin_token(profile))
     checked = sync(api, issuer_id, rule_id, account_id, f"https://{domain}/v1/verify/spiffe", keys)
     save(report, checked)

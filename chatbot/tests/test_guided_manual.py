@@ -333,13 +333,19 @@ else:
                 assert method == "POST"
                 uid = kind+"-"+str(len(resources)+1)
                 result = user(payload["userName"], uid) if kind == "Users" else {**payload, "id": uid}
+                if kind == "Users":
+                    result["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"]["pwdReset"] = payload["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"]["pwdReset"]
+                    result["test_password"] = payload["password"]
                 resources[uid] = result
+                if kind == "Users" and state.pop("interrupt_user_create", False):
+                    fail("Simulated lost response after successful user creation")
         else:
             uid = path.rsplit("/", 1)[-1]
             result = resources[uid]
             if method == "PATCH":
                 if kind == "Users":
                     result["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"]["pwdReset"] = False
+                    result["test_password"] = payload["Operations"][0]["value"]
                 else: result.setdefault("members", []).extend(payload["Operations"][0]["value"])
     else: fail("Unsupported API route")
     out(result, output)
@@ -461,6 +467,21 @@ def test_user_resume_repairs_ids_without_recreating_or_repeating_password_patch(
         assert credential["user_id"]
         assert credential["password"] == "synthetic-password-"+role
     assert len(data["kv"]["chatbot/directory"]["users"]) == 3
+
+
+def test_user_resume_after_lost_post_response_installs_the_managed_password(service_lab):
+    state, run = service_lab
+    data = json.loads(state.read_text())
+    data['interrupt_user_create'] = True
+    state.write_text(json.dumps(data))
+    assert run('03-verify-users.sh').returncode != 0
+    result = run('03-verify-users.sh')
+    assert result.returncode == 0, result.stderr
+    data = json.loads(state.read_text())
+    assert len(data['Users']) == 3
+    for role in ('reader', 'writer', 'supervisor'):
+        credential = data['kv']['chatbot/users/' + role]
+        assert data['Users'][credential['user_id']]['test_password'] == credential['password']
 
 
 def test_invalid_user_credential_stops_before_any_scim_write(service_lab):

@@ -139,7 +139,9 @@ def configure(vault, verify, validator=None, enable=False):
     for old in (a for a in apps if a['name'] == 'vault-chatbot-pdf-approval'):
         old_path = '/v1.0/applications/' + old['_links']['self']['href'].split('/')[-1]
         old_app = api('GET', old_path)
-        if old_app['providers']['oidc']['properties']['clientId'] == prior_validator.get('client_id'):
+        # Verify omits the OAuth client ID after this legacy app is disabled.
+        old_client_id = old_app['providers']['oidc']['properties'].get('clientId')
+        if old_client_id and old_client_id == prior_validator.get('client_id'):
             old_app.update(applicationState=False, signonState=False)
             api('PUT', old_path, old_app)
     application = one([a for a in apps if a['name'] == APP_NAME], APP_NAME)

@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-22T13:02:01.281Z",
+  "method": "Chrome real OIDC login and visible UI",
+  "user": "lumen-writer",
+  "checks": {
+    "oidc_login": true,
+    "permission_probe_9_of_9": true,
+    "claude_selected": true,
+    "three_catalogue_plans_visible": true,
+    "oidc_login_after_final_restart": true,
+    "contract_persists_after_restart": true,
+    "contract_download_backend_trace_succeeded": true
+  },
+  "traces": {
+    "permission_probe": "0364f7c974e1a3eaf6edd25f565c1ee0",
+    "claude_catalogue": "8a52ccaf979369beecabcd715d398ecf",
+    "contract_download": "31cfdaaa42bbaa5bbe5b94cfb288e334"
+  },
+  "last_checked_at": "2026-10-22T13:25:08.670421+00:00",
+  "browser_download": {
+    "file_save_verified": false,
+    "reason": "Download event timed out after 20 seconds on both attempts; backend download spans completed without errors."
+  }
+}

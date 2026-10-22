@@ -20,8 +20,9 @@ for role in reader writer supervisor; do
     kv_read "chatbot/users/$role" > "$TMP_WORK/credential.json"
     # Use a disposable initial password; the activation PATCH installs the
     # intended credential from Vault/.env without triggering password reuse.
+    # Keep pwdReset=true until that PATCH so a lost POST response is resumable.
     { printf 'Lu!9'; openssl rand -hex 18; } > "$TMP_WORK/initial-password"
-    jq --arg role "$role" '{schemas:["urn:ietf:params:scim:schemas:core:2.0:User","urn:ietf:params:scim:schemas:extension:ibm:2.0:User","urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification"],userName:.username,password:.password,name:{givenName:"Lumen",familyName:$role,formatted:("Lumen "+$role)},displayName:("Lumen "+$role),active:true,emails:[{type:"work",value:(.username+"@example.invalid"),primary:true}],"urn:ietf:params:scim:schemas:extension:ibm:2.0:User":{userCategory:"regular",realm:"cloudIdentityRealm",pwdReset:false},"urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification":{notifyType:"NONE"}}' "$TMP_WORK/credential.json" > "$TMP_WORK/create-user.json"
+    jq --arg role "$role" '{schemas:["urn:ietf:params:scim:schemas:core:2.0:User","urn:ietf:params:scim:schemas:extension:ibm:2.0:User","urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification"],userName:.username,password:.password,name:{givenName:"Lumen",familyName:$role,formatted:("Lumen "+$role)},displayName:("Lumen "+$role),active:true,emails:[{type:"work",value:(.username+"@example.invalid"),primary:true}],"urn:ietf:params:scim:schemas:extension:ibm:2.0:User":{userCategory:"regular",realm:"cloudIdentityRealm",pwdReset:true},"urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification":{notifyType:"NONE"}}' "$TMP_WORK/credential.json" > "$TMP_WORK/create-user.json"
     jq --rawfile password "$TMP_WORK/initial-password" '.password=($password|rtrimstr("\n"))' "$TMP_WORK/create-user.json" > "$TMP_WORK/create-initial.json"
     scim POST /v2.0/Users "$TMP_WORK/user.json" --data-binary "@$TMP_WORK/create-initial.json"
     uid=$(jq -er .id "$TMP_WORK/user.json")

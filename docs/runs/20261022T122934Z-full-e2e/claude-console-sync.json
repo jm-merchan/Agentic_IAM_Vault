@@ -1,0 +1,13 @@
+{
+  "checked_at": "2026-10-22T12:56:01.296Z",
+  "method": "Claude Console UI",
+  "issuer_id": "fdis_01WW7ri14c9BK9AHsC8gdG3q",
+  "public_keys_match": true,
+  "key_ids": [
+    "79db447d-99f4-2b49-6d6c-0271a50f4e12",
+    "e2050399-4b94-97ef-39d9-0f930714aa3a"
+  ],
+  "issuer_url_preserved": true,
+  "jti_protection_enabled": true,
+  "max_lifetime_hours": 1
+}

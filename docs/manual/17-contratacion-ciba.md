@@ -142,11 +142,17 @@ ficticios. El contenido no se envía al LLM.
   alcance. Administradores de Vault/MySQL también quedan fuera de esta barrera.
 - Un cambio del borrador durante la espera impide formalizar el snapshot antiguo.
   El rechazo no crea un contrato.
+- La limpieza periódica respeta una confirmación en curso; la operación comprueba
+  la caducidad antes de formalizar y conserva el snapshot hasta terminar. Una
+  cancelación marca la petición como error y elimina su estado sensible. Si ya
+  había un commit en curso, actualiza la bandeja para conocer el resultado persistido.
 - Si hay commit pero falla la publicación KV, el contrato ya existe. Actualiza
   la bandeja, intenta descargar y usa **Recuperar PDF con CIBA**. El procedimiento
   devuelve el contrato original y se publica su PDF original, sin duplicarlo.
 - La descarga se limita al Writer propietario; Reader y Supervisor no reciben
-  acceso a estos PDFs por su rol. Supervisor conserva el revelado de solicitudes.
+  acceso a estos PDFs por su rol. Se comprueba que la sesión siga vigente y sea
+  la misma tras esperar el bloqueo y antes de entregar el PDF. Supervisor conserva
+  el revelado de solicitudes.
 - La consola de trazas conserva las peticiones reales cuando la captura está
   activada. Repetir una credencial revocada o un código consumido devuelve el error
   real del servicio. No se renueva automáticamente para simular éxito.
@@ -154,6 +160,12 @@ ficticios. El contenido no se envía al LLM.
 Las pruebas reales y su fecha están en
 [contracts-verification.json](../../chatbot/docs/contracts-verification.json).
 Son evidencia de esa ejecución, no una garantía sobre cambios posteriores.
+
+El [ensayo del 22/10/2026](../runs/20261022T122934Z-full-e2e/README.md) incluye
+aprobación real del Validador, nueve comprobaciones correctas, un único commit
+idempotente y dos descargas del backend con el mismo SHA-256. Chrome mostró el
+contrato persistido después de reiniciar y ejecutó su botón PDF; la recepción
+del archivo en el navegador no quedó confirmada por la herramienta.
 
 ## Referencias
 

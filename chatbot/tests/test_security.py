@@ -85,7 +85,8 @@ async def test_exchange_rejects_wrong_subject_actor_or_rar(monkeypatch, changed)
         async def __aenter__(self): return self
         async def __aexit__(self, *args): pass
         async def post(self, *args, **kwargs):
-            return SimpleNamespace(status_code=200, json=lambda: {'access_token': 'fake-exchanged-token'})
+            return httpx.Response(200, json={'access_token': 'fake-exchanged-token'},
+                                  request=httpx.Request('POST', args[0]))
     monkeypatch.setattr(httpx, 'AsyncClient', lambda **kwargs: Client())
     session = Session('s', subject='user', access_token='fake-human-token', expires_at=time.time()+60)
     with pytest.raises(AccessDenied):

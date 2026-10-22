@@ -190,7 +190,12 @@ def load_config() -> dict:
             # Explicitly optional: the UI and authorization tests work before the LLM is connected.
             res = client.get(addr + '/v1/secrets/data/chatbot/model',
                              headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
-            config['model'] = res.json()['data']['data'] if res.status_code == 200 else {}
+            if res.status_code == 200:
+                config['model'] = res.json()['data']['data']
+            elif res.status_code in (403, 404):
+                config['model'] = {}
+            else:
+                raise RuntimeError('No se ha podido consultar el catálogo de proveedores en Vault.')
             from .model_config import PROVIDER_LABELS
             profiles = config['model'].pop('providers', None)
             if profiles is None:

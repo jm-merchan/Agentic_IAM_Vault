@@ -69,7 +69,9 @@ class LiveCallFlow(Element, component='live_call_flow.js'):
         # Idle ticks only check session/trace identity. Rebuild during an action,
         # on a new trace, and once when the operation releases the session lock.
         self.timer = ui.timer(.5, self.refresh)
-        self.client.on_delete(self.timer.cancel)
+        # NiceGUI passes the client to callbacks with one parameter; cancel's
+        # only parameter is keyword-only, so expose an explicit zero-arg hook.
+        self.client.on_delete(lambda: self.timer.cancel())
 
     def refresh(self):
         session = self.session

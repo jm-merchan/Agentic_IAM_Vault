@@ -1,0 +1,6 @@
+{
+  "removed_at": "2026-10-22T12:52:19Z",
+  "remaining_namespaces": [],
+  "remaining_volumes": [],
+  "verified_by": "demo.sh remove final namespace and PV checks, followed by independent kubectl listing"
+}

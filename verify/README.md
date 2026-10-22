@@ -2,9 +2,14 @@
 
 **Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](../docs/manual/17-contratacion-ciba.md).
 
-> Este documento conserva el ejercicio base `verify-agent` y su bootstrap por UI. Para desplegar **Lumen completo**, usar [`./demo.sh`](../README.md): no requiere la sesión `verify-human-session` ni ejecutar este notebook. La configuración RAR/perfil compartida se prepara con `scripts/configure-base.sh`. Los resultados y capturas siguientes corresponden a sus fechas de ejecución. La retirada completa del 14/10/2026 eliminó aquel estado de Vault; `start` recrea las identidades de Lumen, no `verify-agent`. El estado actual está en el [informe end-to-end](../docs/E2E_VERIFICATION.md).
+> Este documento conserva el ejercicio base `verify-agent` y su bootstrap por UI. Para desplegar **Lumen completo**, usar [`./demo.sh`](../README.md): no requiere la sesión `verify-human-session` ni ejecutar este notebook. La configuración RAR/perfil compartida se prepara con `scripts/configure-base.sh`. Los resultados y capturas siguientes corresponden a sus fechas de ejecución. La retirada completa del 14/10/2026 eliminó aquel estado de Vault; `start` recrea las identidades de Lumen, no `verify-agent`. El [informe end-to-end](../docs/E2E_VERIFICATION.md) acredita aquella ejecución; el alcance de revisiones posteriores se recoge en [VALIDACION](../docs/manual/VALIDACION.md).
 
 Para practicar con **oauth2c y los clientes actuales de Lumen**, utiliza el [notebook 10](../10_OAuth2c_Verify_Vault.ipynb): Client Credentials, Authorization Code + PKCE, OBO con RAR, acceso directo a Vault e inspección de tokens. Usa `chatbot/oidc`, `chatbot/sts` y `chatbot/research`; no depende de las identidades ni sesiones del ejercicio histórico de abajo. [Validación local y alcance](docs/oauth2c-notebook-validation.json).
+
+La [revisión local del 22/10](../docs/WORKSPACE_REVIEW.md#revisión-del-22-de-octubre-de-2026)
+comprueba también estos scripts y notebooks. Los usuarios nuevos de Lumen se crean
+con activación pendiente hasta instalar su contraseña definitiva; así se puede
+reanudar si se pierde la respuesta del POST. [Procedimiento manual](../docs/manual/03-verify.md#5-crear-los-tres-usuarios-de-prueba).
 
 Tenant: `https://merchan.verify.ibm.com`. Configuración del laboratorio siguiendo la [guía de HashiCorp](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
 

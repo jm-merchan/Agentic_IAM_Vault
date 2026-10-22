@@ -83,10 +83,12 @@ class Contracts:
     def purge(self):
         now = time.time()
         for item in self.requests.values():
-            if now >= item.expires_at and item.status not in TERMINAL:
+            # The polling task owns the snapshot until it finishes, including a
+            # commit/publication already in flight when the deadline is reached.
+            if not item.lock.locked() and now >= item.expires_at and item.status not in TERMINAL:
                 item.status = 'expired'
                 item.clear()
-        self.requests = {k:v for k,v in self.requests.items() if now < v.expires_at + 600}
+        self.requests = {k:v for k,v in self.requests.items() if v.lock.locked() or now < v.expires_at + 600}
 
     def owned(self, session, request_id):
         session.require_login()
@@ -180,7 +182,7 @@ class Contracts:
                 item.traces.append(trace_id())
                 self.services.event(session,'Contratación solicitada',item.binding_message)
                 return item.public()
-            except Exception:
+            except (Exception, asyncio.CancelledError):
                 item.status='error'; item.clear()
                 raise
             finally:
@@ -195,6 +197,10 @@ class Contracts:
         item = self.owned(session,request_id)
         async with item.lock:
             self.owned(session,request_id)
+            # purge() deliberately skips locked requests. Recheck the deadline
+            # here because it may have elapsed while this caller awaited the lock.
+            if item.status == 'waiting' and time.time() >= item.expires_at:
+                item.status='expired'; item.clear()
             if item.status != 'waiting' or time.time() < item.next_poll:
                 return item.public()
             if not self.eligible(session):
@@ -223,7 +229,7 @@ class Contracts:
                     item.status='ready';item.clear()
                 self.services.event(session,'Contratación',item.application_id+' · '+item.status)
                 return item.public()
-            except Exception:
+            except (Exception, asyncio.CancelledError):
                 item.status='error';item.clear()
                 raise
             finally:

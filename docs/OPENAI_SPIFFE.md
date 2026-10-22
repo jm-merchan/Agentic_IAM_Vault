@@ -29,14 +29,17 @@ SPIFFE_TRUST_DOMAIN=lumen.demo
 
 Usa un dominio que pertenezca a tu cuenta ngrok. La API key administrativa se utiliza únicamente para preparar/verificar el proyecto y la cuenta de servicio, y se almacena además en `verify/secrets/openai-admin`. No se carga en el proceso Python ni se utiliza para inferencia. La organización necesita acceso al modelo elegido y facturación/cuota disponibles.
 
-| Configuración | Selección |
+El arranque completo configura **OpenAI, xAI y Claude** y exige las entradas de
+los tres. La selección solo determina el proveedor inicial del chat:
+
+| Configuración | Selección inicial |
 |---|---|
-| Solo `XAI_MANAGEMENT_API_KEY` | xAI |
-| Solo `OPENAI_ADMIN_API_KEY` | OpenAI |
-| Ambas y `auto` | OpenAI |
-| `LUMEN_MODEL_PROVIDER=xai` u `openai` | Proveedor explícito; exige su credencial administrativa |
-| `./demo.sh start --provider xai` u `openai` | Prevalece sobre `.env` para esa ejecución |
-| Ninguna | Error de prerrequisitos; no hay fallback a claves de inferencia estáticas |
+| `LUMEN_MODEL_PROVIDER=auto` con las entradas completas | OpenAI |
+| `LUMEN_MODEL_PROVIDER=openai`, `xai` o `anthropic` | Proveedor explícito |
+| `./demo.sh start --provider openai`, `xai` o `anthropic` | Prevalece sobre `.env` para esa ejecución |
+
+`prepare-openai` es la excepción: prepara únicamente la base necesaria para
+registrar la federación OpenAI antes del primer arranque completo.
 
 ## Preparación inicial de OpenAI
 
@@ -70,13 +73,17 @@ La UI agrupa `api.model.read` como **List models → Read** y `api.model.request
 
 ```bash
 ./demo.sh start --provider openai
-./demo.sh verify --provider openai
-
-# Volver al motor dinámico de xAI si su management key está configurada
-./demo.sh start --provider xai
 ```
 
-El arranque completo conserva datos y reconstruye la configuración gestionada del proveedor seleccionado. El cambio reinicia Lumen, por lo que hay que entrar de nuevo con Verify. `verify` comprueba además el intercambio real y una inferencia breve; guarda únicamente metadatos del resultado en `chatbot/docs/openai-spiffe-verification.json` cuando se ejecuta.
+```bash
+./demo.sh verify --provider openai
+```
+
+El arranque completo conserva datos y reconcilia las tres integraciones; reinicia
+Lumen, por lo que hay que entrar de nuevo con Verify. Para cambiar a xAI o Claude
+durante una conversación, utiliza el selector de la interfaz. `verify` comprueba
+el intercambio real y una inferencia del proveedor indicado; guarda los metadatos
+OpenAI en `chatbot/docs/openai-spiffe-verification.json`.
 
 `stop` detiene también ngrok y el publicador de JWKS. `remove` elimina la infraestructura local y los clientes de Lumen en Verify, incluido `vault-chatbot-openai`. **Conserva el proyecto, la cuenta de servicio, el proveedor y el mapping de OpenAI**, junto con sus IDs en `.env`. Al reconstruir Vault, el mismo issuer publica las nuevas claves; OpenAI puede actualizar JWKS al encontrar un `kid` nuevo.
 

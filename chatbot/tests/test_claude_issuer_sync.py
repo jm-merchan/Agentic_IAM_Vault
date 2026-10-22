@@ -78,6 +78,24 @@ def test_private_key_material_is_never_exported():
     assert issuer_sync.public_keys([{**KEY, 'd': 'PRIVATE', 'p': 'PRIVATE', 'q': 'PRIVATE'}]) == [KEY]
 
 
+def test_preflight_checks_configured_issuer_access(monkeypatch):
+    monkeypatch.setenv('LUMEN_CLAUDE_SYNC_MODE', 'api')
+    for name, value in {'ANTHROPIC_FEDERATION_ISSUER_ID':'fdis_fixture',
+                        'ANTHROPIC_FEDERATION_RULE_ID':'fdrl_fixture',
+                        'ANTHROPIC_SERVICE_ACCOUNT_ID':'svac_fixture',
+                        'NGROK_DOMAIN':'example'}.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(issuer_sync.sys, 'argv', ['claude_issuer.py', '--check-auth'])
+    monkeypatch.setattr(issuer_sync, 'admin_token', lambda profile: 'synthetic')
+    api=API()
+    monkeypatch.setattr(issuer_sync, 'ClaudeAPI', lambda token: api)
+    issuer_sync.main()
+    assert len(api.calls)==2 and all(method=='GET' for method, _, _ in api.calls)
+    api.issuer['archived_at']='2026-01-01'
+    with pytest.raises(ValueError, match='No se ha modificado'):
+        issuer_sync.main()
+
+
 def test_cli_login_ignores_inference_credentials_and_refreshes_named_profile(tmp_path, monkeypatch):
     ant = tmp_path / 'ant'
     ant.write_text("""#!/usr/bin/env python3
@@ -102,3 +120,24 @@ def test_auth_failure_does_not_print_cli_credentials(tmp_path, monkeypatch):
         issuer_sync.admin_token('lumen-admin')
     assert 'PRIVATE-CANARY' not in str(error.value)
     assert 'ant auth login --profile lumen-admin --scope org:admin' in str(error.value)
+
+
+def test_console_export_is_pending_and_never_calls_admin_api(tmp_path, monkeypatch):
+    monkeypatch.setenv('LUMEN_CLAUDE_SYNC_MODE', 'console')
+    monkeypatch.setenv('LUMEN_STATE_DIR', str(tmp_path))
+    for name, value in {'ANTHROPIC_FEDERATION_ISSUER_ID':'fdis_fixture',
+                        'ANTHROPIC_FEDERATION_RULE_ID':'fdrl_fixture',
+                        'ANTHROPIC_SERVICE_ACCOUNT_ID':'svac_fixture',
+                        'NGROK_DOMAIN':'example'}.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(issuer_sync.sys, 'argv', ['claude_issuer.py'])
+    monkeypatch.setattr(issuer_sync.subprocess, 'run', lambda *args, **kwargs:
+                        subprocess.CompletedProcess(args, 0, json.dumps({'data':{'keys':[{**KEY,'d':'PRIVATE'}]}})))
+    def forbidden(*args, **kwargs):
+        pytest.fail('Console mode must not request administrative credentials')
+    monkeypatch.setattr(issuer_sync, 'admin_token', forbidden)
+    issuer_sync.main()
+    assert json.loads((tmp_path/'claude/issuer-keys.json').read_text()) == [KEY]
+    report=json.loads((tmp_path/'claude/issuer-sync.json').read_text())
+    assert report['verification_pending'] is True
+    assert 'public_keys_match' not in report

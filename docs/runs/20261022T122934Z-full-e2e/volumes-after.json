@@ -1,0 +1,52 @@
+[
+  {
+    "name": "pvc-0a555fee-7fc8-4439-a21b-852f1a86ac3b",
+    "namespace": "lumen-observability",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-0ce4e7f6-314b-458c-82e7-e648e988365c",
+    "namespace": "vault",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-1f29f4d4-e36b-4c4c-ac23-158b7e95255e",
+    "namespace": "vault",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-6638155e-bfa9-480f-b762-c140b94884c1",
+    "namespace": "mysql",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-85459294-38fe-45a1-86a1-bc65da12464f",
+    "namespace": "vault",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-8619c163-3498-4ab0-91fb-f15a55782d92",
+    "namespace": "vault",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-89ba3758-24d4-45c9-b202-6e02eb9ded71",
+    "namespace": "vault",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-9f36f71f-c81f-4f7b-abef-8d96ddaeafdb",
+    "namespace": "vault",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-cd00f8af-46eb-4ba4-bbc3-ae9db3b4c45f",
+    "namespace": "lumen-observability",
+    "phase": "Bound"
+  },
+  {
+    "name": "pvc-e4268f68-9d84-4fb7-a833-95414060c59c",
+    "namespace": "lumen-observability",
+    "phase": "Bound"
+  }
+]

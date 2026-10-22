@@ -1,0 +1,15 @@
+{
+  "checks": {
+    "three_new_namespaces": true,
+    "ten_new_volumes": true,
+    "all_verify_ids_new": true
+  },
+  "verify_removed": 19,
+  "verify_created": 17,
+  "volumes_removed": 10,
+  "volumes_created": 10,
+  "retired_legacy_resources": [
+    "lumen-validator",
+    "vault-chatbot-pdf-approval"
+  ]
+}

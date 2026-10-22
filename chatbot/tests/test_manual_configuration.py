@@ -300,6 +300,22 @@ def test_manual_links_and_bash_blocks_are_valid():
     assert result['all_passed'], result['errors']
 
 
+def test_static_validation_covers_readme_entrypoint_application_and_notebook(tmp_path):
+    spec = importlib.util.spec_from_file_location('workspace_validate', ROOT / 'scripts/manual/validate.py')
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    (tmp_path / 'README.md').write_text('[missing](missing.md)\n')
+    (tmp_path / 'demo.sh').write_text('if true; then\n')
+    app = tmp_path / 'chatbot/app'; app.mkdir(parents=True)
+    (app / 'broken.py').write_text('def broken(:\n')
+    (tmp_path / 'example.ipynb').write_text(json.dumps({'nbformat': 4, 'cells': [
+        {'cell_type': 'code', 'source': ['%%bash\n', 'echo example\n'],
+         'execution_count': 1, 'outputs': [{'output_type': 'stream', 'text': ['historical']}]}]}))
+    result = module.validate(tmp_path)
+    assert not result['all_passed']
+    for filename in ('README.md', 'demo.sh', 'broken.py', 'example.ipynb'):
+        assert any(filename in error for error in result['errors'])
+
+
 @pytest.mark.parametrize('existing_count', [0, 1, 2])
 def test_manual_sts_creation_refreshes_inventory_and_does_not_repeat_post(lab, existing_count):
     root, env = lab

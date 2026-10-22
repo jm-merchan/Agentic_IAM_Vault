@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-10-22T13:25:08.670421+00:00",
+  "removal_completed": true,
+  "installation_completed": true,
+  "service_e2e_completed": true,
+  "browser_e2e_completed": false,
+  "phase": "verified_with_browser_download_limitation",
+  "claude_jwks_method": "console",
+  "claude_admin_api_http": 404,
+  "claude_cli_admin_login_verified": true,
+  "claude_saved_jwks_verified": true,
+  "all_service_workflow_checks_passed": true,
+  "contracts_enabled": true,
+  "browser_download_file_save_verified": false
+}

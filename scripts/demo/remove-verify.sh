@@ -72,7 +72,16 @@ remove_validate_target() {
   case "$kind" in
     app)
       jq -e --arg name "$name" --arg admin "$VERIFY_ADMIN_CLIENT_ID" \
-        '.name==$name and .providers.oidc.properties.clientId!=null and .providers.oidc.properties.clientId!=$admin' "$REMOVE_WORK/detail.json" >/dev/null || fail "La aplicación $name no coincide o es el cliente administrativo";;
+        '.name==$name and (
+          (.providers.oidc.properties.clientId!=null and .providers.oidc.properties.clientId!=$admin)
+          or (
+            $name=="vault-chatbot-pdf-approval"
+            and .description=="Lumen PDF approval through CIBA"
+            and .templateId=="998"
+            and .applicationState==false and .signonState==false
+            and .providers.oidc.properties.clientId==null
+          )
+        )' "$REMOVE_WORK/detail.json" >/dev/null || fail "La aplicación $name no coincide o es el cliente administrativo";;
     sts)
       jq -e --arg name "$name" --arg admin "$VERIFY_ADMIN_CLIENT_ID" '.clientName==$name and .clientId!=$admin' "$REMOVE_WORK/detail.json" >/dev/null || fail 'STS inesperado';;
     user)

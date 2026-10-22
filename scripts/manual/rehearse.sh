@@ -16,7 +16,7 @@ set +a
 pending_verification() {
  printf '%s\n' "$MANUAL_RUN" > "$MANUAL/pending-verification-run"
  printf '{"verification_pending":true,"reason":"Run live workflow verification"}\n' > "$MANUAL_RUN/verification-state.json"
- printf 'Instalación terminada y claves Claude sincronizadas. Ejecuta: bash scripts/manual/rehearse.sh verify\n'
+ printf 'Instalación configurada. En modo console, actualiza las JWKS exportadas en Claude. Ejecuta: bash scripts/manual/rehearse.sh verify\n'
 }
 case ${1:-} in
  verify)

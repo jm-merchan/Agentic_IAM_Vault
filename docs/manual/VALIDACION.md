@@ -1,5 +1,55 @@
 # Validación actual e historial de reinstalación manual
 
+## Retirada, reinstalación y verificación real · 22 de octubre de 2026
+
+Se retiraron 3 namespaces, 10 volúmenes y 19 recursos de Verify propiedad de
+Lumen. Se crearon 3 namespaces, 10 volúmenes y 17 recursos Verify con IDs nuevos;
+los dos recursos antiguos restantes se retiraron definitivamente. Se conservaron
+las cuentas externas, las federaciones y el Validador real.
+
+Pasaron **513 pruebas Python y 2 subtests**, **12 pruebas JavaScript**, 18 pruebas
+de infraestructura y **137 comprobaciones reales con 54 trazas**. Las matrices
+adicionales cubren 12 combinaciones de agentes, 12 de espacios personales y
+4 casos RAR. El Validador aprobó CIBA: se confirmó un único contrato y dos
+descargas del backend devolvieron el mismo PDF, revisado visualmente.
+
+Chrome confirmó login OIDC, 9 permisos, catálogo con Claude y persistencia del
+contrato después del reinicio. El botón PDF ejecutó correctamente las llamadas
+del backend, pero la automatización no recibió el evento de descarga ni pudo
+confirmar el archivo guardado por Chrome. Este último paso queda sin acreditar.
+
+La API administrativa Claude devolvió 404; se actualizaron las JWKS públicas
+en la consola y se comprobaron tanto las claves guardadas como la inferencia
+federada. `.env` conserva sus entradas anteriores y añade
+`LUMEN_CLAUDE_SYNC_MODE=console`. El informe registra los fallos iniciales,
+las correcciones y los resultados finales: [ejecución completa](../runs/20261022T122934Z-full-e2e/README.md).
+
+## Revisión local del código y documentación · 22 de octubre de 2026
+
+La [revisión del workspace](../WORKSPACE_REVIEW.md#revisión-del-22-de-octubre-de-2026)
+corrige la carga del catálogo ante errores de Vault, la concurrencia/cancelación
+CIBA, la vigencia de la sesión al descargar un contrato y la reanudación del alta
+de usuarios después de perder la respuesta del POST. El manual y el script de
+usuarios mantienen `pwdReset=true` hasta completar la activación. El instalador
+también informa correctamente de la sincronización de claves Claude ya realizada.
+
+Pasaron **505 pruebas Python y 2 subtests**, **12 pruebas JavaScript**,
+`uv pip check`, `terraform fmt -check` y `terraform validate` del módulo archivado
+de Okta. Las configuraciones YAML y JSON son válidas. La
+[validación estática](validacion.json) comprueba ahora también README, entrada
+`demo.sh`, Python de la aplicación y notebooks, además de los manuales y scripts.
+
+El notebook 10 vuelve a estar sin salidas ni contadores de ejecución. Se conserva
+una copia privada íntegra de su versión ejecutada, con ruta y hash en el informe;
+los comandos no cambian. Esto resuelve el fallo descrito en las entradas históricas
+del 20 y 21 de octubre. `pytest.ini` permite ejecutar toda la suite desde la raíz.
+
+**Alcance:** pruebas locales con servicios simulados y simulación UI de NiceGUI.
+No se desplegaron los cambios ni se hicieron llamadas reales a Verify/Vault/MySQL,
+inferencias, aprobaciones CIBA o verificaciones visuales en navegador. Las
+evidencias de los apartados siguientes conservan su fecha y no validan este código
+en el runtime.
+
 ## Explicación del aislamiento en la traza · 21 de octubre de 2026
 
 Se amplió **Aislamiento del espacio personal** en ES/EN con el origen del UUID,

@@ -1,4 +1,76 @@
-# Revisión del workspace — 14 y 15 de octubre de 2026
+# Revisión del workspace
+
+## Reinstalación y correcciones verificadas · 22 de octubre de 2026
+
+Después de la revisión local descrita abajo se ejecutaron la retirada y la
+reinstalación solicitadas. [Informe y evidencias](runs/20261022T122934Z-full-e2e/README.md).
+La suite final pasó **513 pruebas Python y 2 subtests**, además de **12 pruebas
+JavaScript** y **137 comprobaciones reales**. Los cambios están publicados en
+el runtime; las matrices de agentes, espacios personales, RAR y CIBA también pasaron.
+
+| Hallazgo durante la ejecución real | Corrección y evidencia |
+|---|---|
+| La API administrativa Claude devolvía 404 pese al login OAuth válido | Preflight de acceso real al emisor/regla y modo explícito `api`/`console`. El segundo exporta solo JWKS públicas y deja la sincronización pendiente; la inferencia real sigue siendo obligatoria. Las claves se actualizaron y compararon en la consola. |
+| Un cliente PDF antiguo y deshabilitado ya no exponía `clientId` | La retirada acepta únicamente el nombre, descripción, plantilla y estados exactos de ese recurso; sigue protegiendo el cliente administrador. El configurador CIBA tolera el campo ausente. Pruebas de aceptación y rechazo de recursos ajenos. |
+| Tres dobles HTTP de prueba carecían del `request` que necesita la captura de trazas | Se usan respuestas `httpx.Response` con petición asociada. Suite completa con ambos modos de captura activados. |
+| El guardrail rechazó la frase técnica del harness que nombraba `buscar_en_web` | Se usa una petición natural de autoconsumo solar y se comprueban por separado ámbito, llamada real y fuentes HTTPS. Se conserva el intento fallido; no se modifica el guardrail. |
+| NiceGUI pasaba el cliente al parámetro keyword-only de `Timer.cancel` al cerrar páginas | Callback explícito sin argumentos. La prueba con un cliente real reprodujo el `TypeError` antes del cambio y pasa después; runtime actualizado. |
+
+La descarga CIBA del backend produjo dos PDFs iguales y el contrato persistió
+tras reiniciar. La recepción del archivo desde Chrome sigue sin confirmarse:
+el botón generó una traza correcta, pero la automatización agotó la espera del
+evento de descarga. El informe distingue esa limitación de las pruebas del backend.
+
+## Revisión del 22 de octubre de 2026
+
+Revisión local de la aplicación, instaladores y documentación. Se contrastaron los
+flujos de OIDC/OBO, modelos, espacios personales y contratación CIBA con sus
+políticas y pruebas. Los cambios se aplicaron a los archivos del repositorio;
+no se desplegaron ni se modificaron recursos de Verify, Vault o MySQL.
+
+| Incoherencia | Corrección y comprobación |
+|---|---|
+| `pytest` desde la raíz no encontraba `app` y fallaba durante la colección | `pytest.ini` fija la ruta de la aplicación y el directorio de pruebas. La suite completa se ejecuta desde la raíz. |
+| Una respuesta 429/500/503 al leer el catálogo se interpretaba como ausencia de modelos | El arranque falla con un diagnóstico y revoca el bootstrap. Se mantiene el catálogo opcional únicamente para 403/404. Pruebas HTTP simuladas de los cinco casos. |
+| La limpieza periódica CIBA podía vaciar el snapshot o eliminar una petición durante su formalización | La limpieza respeta el bloqueo de la operación; el sondeo vuelve a comprobar la caducidad al adquirirlo. Pruebas de limpieza concurrente y caducidad durante la espera. |
+| Cancelar una tarea CIBA dejaba la petición en `waiting` con datos sensibles y un intercambio que podía haberse consumido | Tanto el inicio como el sondeo pasan a `error`, limpian el estado y propagan la cancelación. Se comprueban ambas interrupciones. |
+| Una descarga PDF en espera conservaba una referencia a una sesión retirada; también podía entregar el PDF después de caducar | Se comprueba la identidad de la sesión y su vigencia tras la espera y antes de entregar el documento. Pruebas HTTP de retirada y caducidad. |
+| El alta de usuarios utilizaba una contraseña provisional con `pwdReset=false`; perder la respuesta del POST podía dejar una credencial distinta de Vault | Se crea con `pwdReset=true` y se completa el PATCH de activación al reanudar. El simulador reproduce un POST completado con respuesta perdida y verifica las tres contraseñas sin recrear usuarios. Manual y script usan el mismo procedimiento. |
+| El notebook 10 conservaba 11 celdas ejecutadas e impedía completar la suite invocada por `demo.sh` | Se conservaron todos los comandos y metadatos; se limpiaron salidas y contadores tras guardar una copia privada completa. |
+| El instalador anunciaba que faltaba sincronizar las JWKS de Claude después de hacerlo | El mensaje final refleja la sincronización ya completada y pide ejecutar la verificación funcional. |
+| La validación estática no cubría el README principal, `demo.sh`, toda la aplicación ni los notebooks | `scripts/manual/validate.py` incorpora esos archivos y detecta salidas guardadas. Un caso con archivos defectuosos comprueba que los cuatro tipos de problema se detectan. |
+| La documentación mezclaba proveedor inicial con requisitos del arranque, JWT OBO con token nativo CIBA y resultados históricos con estado actual | README principal, chatbot, Verify, Okta e índice/manual actualizados. |
+
+Las pruebas de las nuevas incidencias se ejecutaron primero contra el código
+anterior y reprodujeron los fallos de catálogo, concurrencia/cancelación CIBA,
+sesión de descarga y respuesta perdida del alta de usuarios.
+
+La copia del notebook con sus salidas originales está fuera del repositorio, en
+`~/.local/state/lumen-code-review/20261022T122212Z/10_OAuth2c_Verify_Vault.ipynb`,
+con permisos `600`. SHA-256 original:
+`cf2299241cacf147a025278de1e76a7d8d6cd1574d9cd473cdf962c57ff4914b`.
+No se reescribió el historial Git ni se ejecutaron las celdas.
+
+### Validación local
+
+Resultado: **505 pruebas Python y 2 subtests correctos** (168,44 s), **12 pruebas
+JavaScript correctas** y cero errores en la validación estática. El entorno Python
+contiene 124 paquetes compatibles. También se analizaron las siete configuraciones
+YAML sin claves duplicadas y los cinco JSON de configuración/aplicación.
+
+Los comandos reproducibles están en [README](../README.md#revisión-y-pruebas-locales).
+El informe de sintaxis, enlaces y notebooks está en
+[validacion.json](manual/validacion.json). Se comprobó también la compatibilidad
+de las dependencias con `uv pip check` y el Terraform archivado con
+`terraform fmt -check` y `terraform validate`, usando los providers ya instalados
+en `~/.local/share/okta-vault-agentic/data`.
+
+Estas comprobaciones no incluyen un despliegue, inferencia, aprobación CIBA real,
+pruebas contra los tenants ni una revisión visual en navegador. Las pruebas UI
+Python utilizan la simulación local de NiceGUI. Los informes históricos siguientes
+conservan sus fechas y alcance; no acreditan estos cambios desplegados.
+
+## Revisión del 14 y 15 de octubre de 2026
 
 La ruta activa es **Lumen + IBM Verify + Vault Agentic IAM**, con MySQL/KMIP, Transit/Transform, xAI dinámico, Tavily y observabilidad. Okta y el antiguo ejercicio de pagos no forman parte de la ejecución automática.
 

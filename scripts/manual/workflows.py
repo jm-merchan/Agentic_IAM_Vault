@@ -121,9 +121,11 @@ async def main():
             svid=json.loads(minted['spiffe.jwt_svid']);decoded=json.loads(minted['spiffe.jwt_svid.decoded'])
             check(provider+' SVID trace signature and subject',decoded['signature_verified'] and decoded['claims']['sub']==config['models'][provider]['spiffe_id'])
             check(provider+' SVID absent from prompts',all(svid not in json.dumps(r['attributes']) for r in model_records))
-        result=await action(provider+'.agent.tavily',lambda:reply(services,reader,'Busca ahora en la web información de autoconsumo solar con tu herramienta buscar_en_web y cita las fuentes.'))
+        result=await action(provider+'.agent.tavily',lambda:reply(services,reader,'Busca en la web información sobre autoconsumo solar y cita las fuentes.'))
         names={r['name'] for r in records_for({traces[-1]['trace_id']})}
-        check(provider+' Deep Agents Tavily tool', 'tool.buscar_en_web' in names and 'https://' in result)
+        check(provider+' scope allows energy search',result!=OUT_OF_SCOPE)
+        check(provider+' Deep Agents Tavily tool', 'tool.buscar_en_web' in names)
+        check(provider+' Tavily cited sources','https://' in result)
         blocked=await action(provider+'.guardrail.weather',lambda:reply(services,reader,'¿Qué tiempo hace hoy en Palencia?'))
         check(provider+' weather rejected',blocked==OUT_OF_SCOPE)
         reader.messages.extend([{'role':'user','content':'¿Qué tiempo hace hoy en Palencia?'},{'role':'assistant','content':blocked}])
