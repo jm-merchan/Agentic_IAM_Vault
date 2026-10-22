@@ -39,6 +39,8 @@ app.on_shutdown(SERVICES.agent_inspector.close)
 app.timer(60, SERVICES.contracts.purge)
 COOKIE = 'lumen_session'
 app.include_router(inspection_router(IDENTITY, records_for, COOKIE))
+from .vault_decision import decision_router
+app.include_router(decision_router(IDENTITY, records_for, COOKIE))
 app.include_router(workbench_router(IDENTITY, records_for, COOKIE, vault_origin=CONFIG['vault_addr'], vault_tls=SERVICES.vault_tls))
 LOCKS: dict[str, asyncio.Lock] = {}
 
@@ -156,8 +158,9 @@ def home(request: Request):
     role_label = ('Supervisor · datos sensibles' if session and SERVICES.can_reveal(session) else
                   {'readonly': 'Solo lectura', 'readwrite': 'Gestor · crear solicitudes'}.get(role, 'Sin acceso a datos'))
     dark = ui.dark_mode()
-    # Theme is a browser preference only, never an identity or authorization input.
-    dark.bind_value(app.storage.browser, 'dark')
+    # User storage can persist changes made after the initial HTTP response.
+    # This preference is never an identity or authorization input.
+    dark.bind_value(app.storage.user, 'dark')
     busy = False
     message_rows = session.display_messages if session else []
     profiles = model_profiles(CONFIG)
@@ -449,7 +452,7 @@ async def application_page(request, renderer):
     ui.colors(primary='#708558')
     ui.add_css(STYLE)
     dark = ui.dark_mode()
-    dark.bind_value(app.storage.browser, 'dark')
+    dark.bind_value(app.storage.user, 'dark')
     session = IDENTITY.sessions.get(request.cookies.get(COOKIE, ''))
     t = page_language(request, session)
     mount_live_call_flow(session, language=t.language,
@@ -533,6 +536,8 @@ async def personal_workspace(request: Request):
 async def trace_page(tid: str, request: Request):
     t = page_language(request)
     ui.add_css(STYLE)
+    dark = ui.dark_mode()
+    dark.bind_value(app.storage.user, 'dark')
     with ui.row().classes('trace-language-bar'):
         language_switch(request, t)
     session = IDENTITY.sessions.get(request.cookies.get(COOKIE, ''))

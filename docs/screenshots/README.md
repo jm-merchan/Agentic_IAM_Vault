@@ -2,7 +2,8 @@
 
 Las guías activas y los notebooks usan las imágenes de [current](current).
 Son capturas reales del navegador, tomadas durante la
-[revisión del 22 de octubre](../runs/20261022T140230Z-workspace-review/README.md).
+[revisión del 22 de octubre](../runs/20261022T140230Z-workspace-review/README.md)
+y la [incorporación del desplegable de Vault](../runs/20261022T154444Z-vault-decision/README.md).
 El [manifiesto](current/manifest.json) identifica página, fecha, descripción y
 SHA-256. Los datos de solicitudes son ficticios.
 

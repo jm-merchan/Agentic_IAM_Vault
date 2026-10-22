@@ -20,7 +20,7 @@ instalada, abre **http://localhost:8088** y entra con Verify.
 | Agentes por tarea | Intersección de permisos humanos, techo del agente y RAR | [Selección y matriz](../docs/manual/14-agentes-por-tarea.md) |
 | Laboratorio RAR | Control y restricciones de parámetros sobre peticiones reales | [Escenarios RAR](../docs/manual/15-parametros-rar.md) |
 | Mi espacio de secretos | KV v2 por identidad humana, con denegación de acceso cruzado | [Espacios personales](../docs/manual/16-espacios-personales.md) |
-| Trazas | Llamadas, autorización y resultados; correlación con Vault y Grafana | [Observabilidad](OBSERVABILITY.md) |
+| Trazas | Llamadas, autorización y resultados; «Cómo decide Vault» despliega la evidencia de auditoría de cada llamada a Vault | [Observabilidad](OBSERVABILITY.md#cómo-decide-vault) |
 
 Las capturas de esta guía corresponden a la interfaz revisada el **22/10/2026**.
 La [revisión integral](../docs/runs/20261022T140230Z-workspace-review/README.md)

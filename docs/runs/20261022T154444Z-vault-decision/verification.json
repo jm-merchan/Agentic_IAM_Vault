@@ -1,0 +1,87 @@
+{
+  "run": "20261022T154444Z-vault-decision",
+  "checked_at": "2026-10-22T16:00:00.900615+00:00",
+  "base_commit": "b0a62fe11ae1295246f6963732b330098343a2a0",
+  "python": {
+    "command": "/tmp/vault-chatbot-venv/bin/python -m pytest chatbot/tests -q",
+    "passed": 565,
+    "subtests_passed": 2,
+    "failed": 0,
+    "seconds": 201.31,
+    "note": "Full suite before final theme binding; focused suite repeated afterwards."
+  },
+  "focused_final": {
+    "passed": 89,
+    "failed": 0,
+    "seconds": 0.99,
+    "files": [
+      "test_vault_decision.py",
+      "test_trace_flow.py",
+      "test_i18n.py"
+    ]
+  },
+  "javascript": {
+    "command": "node --test chatbot/tests/*.test.mjs",
+    "passed": 15,
+    "failed": 0
+  },
+  "runtime": {
+    "health": {
+      "status": 200,
+      "healthy": true
+    },
+    "files": [
+      {
+        "file": "chatbot/app/vault_decision.py",
+        "sha256": "6fdc2c2784ec58da0e66a90f9326ec093a067869532c8734d345d67cac8c95f8",
+        "runtime_matches": true
+      },
+      {
+        "file": "chatbot/app/main.py",
+        "sha256": "dfa630e348ae901628b92dfefa0f89af0a963978ac498c8cabebedc03e333446",
+        "runtime_matches": true
+      },
+      {
+        "file": "chatbot/app/trace_flow.js",
+        "sha256": "7d3ad39ce8736b22e1b976665446032db4a1be0ade10c1bddcb055d7a672726e",
+        "runtime_matches": true
+      },
+      {
+        "file": "chatbot/app/translations_en.json",
+        "sha256": "83f3c24cd70ca0e6f96c16f1712756065e9062374255ec34bf24881697d7f772",
+        "runtime_matches": true
+      },
+      {
+        "file": "chatbot/app/spiffe.py",
+        "sha256": "9871a5050d2bec8f0403c6085f9bd40caf6e48a4c3a3512a53bae53a0defdad1",
+        "runtime_matches": true
+      },
+      {
+        "file": "chatbot/static/trace_flow.css",
+        "sha256": "291aeab47a266586c0ef2bd3fbe02300269ff9f5f8ea8380984c99fd5eeb4242",
+        "runtime_matches": true
+      }
+    ]
+  },
+  "notebook": {
+    "code_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  "logs": "Full test and runtime logs kept outside the repository in the private run directory.",
+  "static": {
+    "checked_at": "2026-10-22T16:05:10.982787+00:00",
+    "documents": 38,
+    "bash_blocks": 273,
+    "shell_scripts": 92,
+    "local_links": 708,
+    "python_files": 92,
+    "notebooks": 11,
+    "bash_cells": 73,
+    "current_screenshots": 46,
+    "errors": [],
+    "all_passed": true,
+    "scope": "Static syntax, local links/anchors, notebook Markdown and screenshot provenance only. No provisioning, credentials issuance, inference, revocation or deletion."
+  },
+  "report_links_checked": 14,
+  "diff_check_passed": true
+}

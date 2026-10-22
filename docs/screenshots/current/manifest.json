@@ -496,8 +496,21 @@
       "media_type": "image/jpeg",
       "sha256": "fff0a4500a6d311e6beb35e934938e29a3bd12a917bdd095b5b6adb8cbe9e373",
       "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision.jpg",
+      "description": "Versión final: botón junto al estado HTTP con lógica y auditoría de una lectura OBO permitida",
+      "url": "http://localhost:8088/traces/fe265bdaa4c5af97a6b3aa159561bd93",
+      "captured_at": "2026-10-22T16:04:44.535Z",
+      "width": 1270,
+      "height": 1153,
+      "media_type": "image/jpeg",
+      "sha256": "8e4363e2e6724397e4264c279d2da2c760b403d0022be443dfacc5dd5dfc137a",
+      "visually_reviewed": true,
+      "source_run": "20261022T154444Z-vault-decision"
     }
   ],
   "reviewed_at": "2026-10-22T15:07:47.253358+00:00",
-  "capture_format": "Browser JPEG bytes preserved without image editing; filenames match actual format."
+  "capture_format": "Browser JPEG bytes preserved without image editing; filenames match actual format.",
+  "latest_run": "20261022T154444Z-vault-decision"
 }

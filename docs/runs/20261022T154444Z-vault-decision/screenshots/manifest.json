@@ -1,0 +1,86 @@
+{
+  "run": "20261022T154444Z-vault-decision",
+  "captures": [
+    {
+      "file": "vault-decision-allowed.jpg",
+      "description": "Desplegable de Vault: lectura OBO permitida con políticas y RAR de la auditoría",
+      "url": "http://localhost:8088/traces/3cac7688ca89f4cded371ebb53463526",
+      "captured_at": "2026-10-22T15:47:01.252Z",
+      "width": 1270,
+      "height": 1209,
+      "media_type": "image/jpeg",
+      "sha256": "6dc5dc6783a0c8e024146e898d17578965985defa727dbf4ab4e17a5ec6c942a",
+      "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision-denied.jpg",
+      "description": "Vault registra una denegación OBO; la interfaz no inventa la regla causante",
+      "url": "http://localhost:8088/traces/3cac7688ca89f4cded371ebb53463526",
+      "captured_at": "2026-10-22T15:48:49.780Z",
+      "width": 1270,
+      "height": 1209,
+      "media_type": "image/jpeg",
+      "sha256": "971c687648d31fcd937025a8f82addbb9b764e486ab7696d5f07ab36a8e5e8f8",
+      "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision-en.jpg",
+      "description": "Explicación de autorización en inglés con evidencia sin traducir",
+      "url": "http://localhost:8088/traces/3cac7688ca89f4cded371ebb53463526",
+      "captured_at": "2026-10-22T15:49:40.729Z",
+      "width": 1270,
+      "height": 1209,
+      "media_type": "image/jpeg",
+      "sha256": "d9db0a9bbeeec350bb007c750b400bf11cda4568035da936f3bd6b8c271eb2da",
+      "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision-mobile.jpg",
+      "description": "Desplegable en inglés a 390 px, sin desbordamiento horizontal",
+      "url": "http://localhost:8088/traces/3cac7688ca89f4cded371ebb53463526",
+      "captured_at": "2026-10-22T15:50:31.592Z",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "width": 390,
+      "height": 844,
+      "media_type": "image/jpeg",
+      "sha256": "5c35f653994f0cd1a05ee146d9b1d611278ce015804dd3a544cde88b80e91e17",
+      "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision-public.jpg",
+      "description": "Ruta pública JWKS con auditoría correlacionada; no se atribuyen políticas de usuario",
+      "url": "http://localhost:8088/traces/07f3e66d72cf875ed79afacbcbe97aa1",
+      "captured_at": "2026-10-22T15:56:14.395Z",
+      "width": 1270,
+      "height": 1153,
+      "media_type": "image/jpeg",
+      "sha256": "65c1e1a315360e385c7cd854ece75ffccab3553b94e6dc5c5e485e9f5990f648",
+      "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision-dark.jpg",
+      "description": "Explicación y flechas legibles en tema oscuro; preferencia conservada al abrir y recargar la traza",
+      "url": "http://localhost:8088/traces/fe265bdaa4c5af97a6b3aa159561bd93",
+      "captured_at": "2026-10-22T16:04:16.650Z",
+      "width": 1270,
+      "height": 1153,
+      "media_type": "image/jpeg",
+      "sha256": "c629f9a2406630b7894bbb432c5e7635d1b5bc484004e940f90cad9348c15f3e",
+      "visually_reviewed": true
+    },
+    {
+      "file": "vault-decision-final.jpg",
+      "description": "Versión final: botón junto al estado HTTP con lógica y auditoría de una lectura OBO permitida",
+      "url": "http://localhost:8088/traces/fe265bdaa4c5af97a6b3aa159561bd93",
+      "captured_at": "2026-10-22T16:04:44.535Z",
+      "width": 1270,
+      "height": 1153,
+      "media_type": "image/jpeg",
+      "sha256": "8e4363e2e6724397e4264c279d2da2c760b403d0022be443dfacc5dd5dfc137a",
+      "visually_reviewed": true
+    }
+  ]
+}

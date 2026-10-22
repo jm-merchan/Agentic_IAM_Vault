@@ -13,14 +13,17 @@ export default {
   data() { return { selectedId: this.initialSelectedId || this.flow.calls[0]?.id, filter: "all", returns: true,
     inspection: null, inspecting: false, loading: false, inspectionError: "", sectionKey: "", copied: "",
     workbench: false, templateId: "", draft: null, sending: false, replayResult: null, replayError: "", exported: "",
-    requestGeneration: 0, controller: null, expiryTimer: null }; },
+    requestGeneration: 0, controller: null, expiryTimer: null,
+    decisionOpen: false, vaultDecision: null, decisionLoading: false, decisionError: "",
+    decisionGeneration: 0, decisionController: null }; },
   mounted() {
-    this.onVisibility = () => { if (document.hidden) this.hideSensitive(); };
+    this.onVisibility = () => { if (document.hidden) { this.hideSensitive(); this.closeVaultDecision(); } };
     document.addEventListener("visibilitychange", this.onVisibility);
     if (this.initialSelectedId) this.$nextTick(() => this.$refs.diagram?.querySelector('[aria-pressed="true"]')?.scrollIntoView({block: "nearest"}));
   },
   beforeUnmount() {
     this.hideSensitive();
+    this.closeVaultDecision();
     document.removeEventListener("visibilitychange", this.onVisibility);
   },
   computed: {
@@ -47,8 +50,31 @@ export default {
     actor(id) { return this.flow.actors.find(a => a.id === id)?.name || id; },
     x(id) { return (this.flow.actors.findIndex(a => a.id === id) + 0.5) * 1000 / this.flow.actors.length; },
     ms(value) { return new Intl.NumberFormat(this.locale || "es-ES", { maximumFractionDigits: 2 }).format(value) + " ms"; },
-    select(call) { if (call.id !== this.selectedId) this.hideSensitive(); this.selectedId = call.id; },
+    select(call) { if (call.id !== this.selectedId) { this.hideSensitive(); this.closeVaultDecision(); } this.selectedId = call.id; },
     format(value) { return typeof value === "string" ? value : JSON.stringify(value, null, 2); },
+    closeVaultDecision() {
+      this.decisionGeneration++; this.decisionController?.abort();
+      this.decisionOpen = false; this.vaultDecision = null; this.decisionLoading = false; this.decisionError = "";
+    },
+    async toggleVaultDecision() {
+      if (this.decisionOpen) { this.closeVaultDecision(); return; }
+      if (this.selected?.target !== 'vault') return;
+      this.decisionOpen = true; this.decisionLoading = true; this.decisionError = "";
+      const generation = ++this.decisionGeneration, sid = this.selected.id;
+      this.decisionController = new AbortController();
+      try {
+        const response = await fetch(`/traces/${encodeURIComponent(this.traceId)}/steps/${encodeURIComponent(sid)}/vault-decision`,
+          {credentials: "same-origin", cache: "no-store", signal: this.decisionController.signal});
+        const data = await response.json();
+        if (generation !== this.decisionGeneration || sid !== this.selected?.id) return;
+        if (response.ok) this.vaultDecision = data;
+        else this.decisionError = this.t(data.message || 'No se pudo consultar la auditoría.');
+      } catch (error) {
+        if (error.name !== 'AbortError' && generation === this.decisionGeneration)
+          this.decisionError = this.t('No se pudo consultar la auditoría.');
+      } finally { if (generation === this.decisionGeneration) this.decisionLoading = false; }
+    },
+    retryVaultDecision() { this.closeVaultDecision(); return this.toggleVaultDecision(); },
     hideSensitive() {
       this.requestGeneration++;
       this.controller?.abort();
@@ -158,7 +184,7 @@ export default {
         this.$nextTick(() => this.$refs.diagram.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: "nearest", behavior: "smooth" }));
       }
     },
-    changeFilter() { this.hideSensitive(); this.selectedId = this.visible[0]?.id; },
+    changeFilter() { this.hideSensitive(); this.closeVaultDecision(); this.selectedId = this.visible[0]?.id; },
   },
   template: `
     <section class="tf" :aria-label="t('Flujo interactivo de llamadas')">
@@ -231,6 +257,53 @@ export default {
           </div>
           <h3>{{ selected.title }}</h3>
           <div class="tf-status" :class="{'tf-error-status': selected.state === 'error'}">{{ selected.status }}</div>
+          <section v-if="selected.target === 'vault' && traceId" class="tf-vault-decision">
+            <button type="button" class="tf-vault-toggle" :aria-expanded="decisionOpen"
+                    :aria-controls="'vault-decision-' + selected.id" @click="toggleVaultDecision">
+              <span aria-hidden="true">{{ decisionOpen ? '▾' : '▸' }}</span> {{ t('Cómo decide Vault') }}
+            </button>
+            <div v-if="decisionOpen" :id="'vault-decision-' + selected.id" class="tf-vault-body"
+                 role="region" :aria-label="t('Cómo decide Vault')" :aria-busy="decisionLoading">
+              <p v-if="decisionLoading" role="status">{{ t('Consultando la auditoría de esta llamada…') }}</p>
+              <p v-if="decisionError" role="alert">{{ decisionError }}</p>
+              <template v-if="vaultDecision">
+                <strong>{{ t(vaultDecision.mode_label) }}</strong>
+                <p class="tf-vault-logic">{{ t(vaultDecision.logic) }}</p>
+                <span class="tf-eyebrow">{{ t('DECISIÓN OBSERVADA') }}</span>
+                <p>{{ t(vaultDecision.decision) }}</p>
+                <template v-if="vaultDecision.audit_state === 'matched'">
+                  <p class="tf-vault-source">{{ t('Fuente: auditoría de Vault correlacionada con esta llamada.') }}</p>
+                  <p v-if="!vaultDecision.evidence.request_recorded || !vaultDecision.evidence.response_recorded" class="tf-note">{{ t('Evidencia parcial: falta el evento de petición o el de respuesta.') }}</p>
+                  <dl>
+                    <template v-if="vaultDecision.evidence.entity_id"><dt>{{ t('Entidad registrada por Vault') }}</dt><dd>{{ vaultDecision.evidence.entity_id }}</dd></template>
+                    <template v-if="vaultDecision.evidence.actor"><dt>{{ t('Agente delegado') }}</dt><dd>{{ vaultDecision.evidence.actor }}</dd></template>
+                    <dt>{{ t('Políticas que conceden acceso') }}</dt>
+                    <dd v-if="vaultDecision.evidence.granting_policies.length">
+                      <div v-for="policy in vaultDecision.evidence.granting_policies" :key="policy.namespace + policy.name"><code>{{ policy.name }}</code></div>
+                    </dd><dd v-else>{{ t('No constan en este evento. Su ausencia no identifica una regla de denegación.') }}</dd>
+                    <dt>{{ t('RAR registrado por Vault') }}</dt>
+                    <dd v-if="vaultDecision.evidence.authorization_details.length">
+                      <div v-for="(entry, index) in vaultDecision.evidence.authorization_details" :key="index" class="tf-vault-rar">
+                        <code>{{ entry.path }}</code><br>{{ entry.capabilities.join(', ') }}
+                        <small v-for="key in ['allowed_parameters', 'denied_parameters', 'required_parameters'].filter(k => entry[k])" :key="key"><br>{{ key }}: {{ entry[key].join(', ') }}</small>
+                      </div>
+                      <small>{{ t('Las restricciones de parámetros muestran los nombres de los campos, sin sus valores.') }}</small>
+                    </dd><dd v-else>{{ t('Sin RAR legible en esta evidencia; no se presupone que fuera obligatorio ni que se evaluara.') }}</dd>
+                  </dl>
+                  <details class="tf-vault-evidence"><summary>{{ t('Evidencia de la decisión') }}</summary>
+                    <pre tabindex="0"><code>{{ format(vaultDecision.evidence) }}</code></pre>
+                  </details>
+                </template>
+                <p v-else class="tf-note">{{ t(vaultDecision.audit_state === 'ambiguous'
+                  ? 'Hay registros incompatibles; no se atribuye una decisión a esta llamada.'
+                  : vaultDecision.audit_state === 'limited' ? 'La consulta excede el límite de evidencia; no se presenta un resultado incompleto como concluyente.'
+                  : vaultDecision.audit_state === 'unavailable' ? 'La auditoría no está disponible. No se ha repetido la operación en Vault.'
+                  : 'No se encontró auditoría correlacionada. Puede estar pendiente de ingestión o fuera de retención.') }}</p>
+                <p class="tf-note">{{ t(vaultDecision.note) }}</p>
+              </template>
+              <button v-if="!decisionLoading && (decisionError || vaultDecision?.audit_state !== 'matched')" class="tf-vault-toggle" type="button" @click="retryVaultDecision">{{ t('Volver a consultar') }}</button>
+            </div>
+          </section>
           <section v-if="selected.approval" class="tf-rar-summary">
             <strong>{{ t(selected.approval.operation === 'contract' ? 'Autorización de la contratación' : 'Autorización del PDF') }}</strong>
             <p>{{ t('Referencia') }}: {{ selected.approval.application }}</p>

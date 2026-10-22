@@ -9,7 +9,7 @@ from opentelemetry import trace
 
 from .security import AccessDenied
 from .model_config import model_config
-from .telemetry import operation, span
+from .telemetry import headers, operation, span
 from .trace_content import VaultTraceRecorder
 from . import lab_capture
 
@@ -41,10 +41,11 @@ class SpiffeModelServices:
         async with httpx.AsyncClient(event_hooks={'request': [request_hook]}, verify=self.vault_tls, timeout=15) as client:
             with span('vault.jwks', **{'vault.path': 'spiffe/.well-known/keys',
                                      'vault.namespace': 'verify', 'http.request.method': 'GET'}) as keys_span:
+                keys_headers = {'X-Vault-Namespace': 'verify', **headers()}
                 lab_capture.request(keys_span, 'GET', self.config['vault_addr'] + '/v1/spiffe/.well-known/keys',
-                                    None, headers={'X-Vault-Namespace': 'verify'})
+                                    None, headers=keys_headers)
                 jwks = await client.get(self.config['vault_addr'] + '/v1/spiffe/.well-known/keys',
-                                        headers={'X-Vault-Namespace': 'verify'})
+                                        headers=keys_headers)
                 keys_span.set_attribute('http.response.status_code', jwks.status_code)
                 lab_capture.response(keys_span, jwks)
         if jwks.status_code != 200:

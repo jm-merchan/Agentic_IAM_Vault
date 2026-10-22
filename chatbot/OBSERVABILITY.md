@@ -56,6 +56,39 @@ En Lumen: **Ver última traza → Ver en Grafana**. El enlace incluye la ventana
 
 **Ver última traza** abre primero un diagrama interactivo: Lumen aparece como origen y cada servicio como destino. Seleccionar una flecha muestra la operación, ruta, tipo de credencial, respuesta prevista, estado observado y referencia del span. Se puede filtrar por servicio, avanzar llamada a llamada y mostrar u ocultar los retornos. La tabla completa y los contenidos capturados se conservan debajo.
 
+### Cómo decide Vault
+
+Al seleccionar cualquier llamada a Vault, el panel de la derecha ofrece un botón
+pequeño **Cómo decide Vault**, junto al estado HTTP. Empieza cerrado. Al abrirlo
+consulta la auditoría de esa petición y muestra el tipo de autenticación, la
+lógica aplicable, las políticas que concedieron acceso y el RAR registrado.
+Funciona con lecturas y escrituras de cualquier ruta mostrada en el diagrama,
+incluidos Transit, Transform, Database, KV, SPIFFE, login y revocación.
+
+La explicación distingue OBO, OAuth autónomo, token nativo, root, login y JWKS
+públicas. No aplica la fórmula usuario ∩ agente ∩ RAR a todos los mecanismos.
+El resultado de políticas y el HTTP se presentan por separado: una evaluación
+permitida no garantiza que el motor haya completado la operación. Ante una
+denegación, no atribuye la causa a una regla que la auditoría no identifica.
+
+**Evidencia de la decisión** permite inspeccionar una proyección de los eventos:
+Request ID, fecha, entidad, actor, políticas y RAR. No incluye tokens, cuerpos,
+credenciales ni valores de parámetros RAR. Los registros se correlacionan por
+Trace/Span ID o Request ID, comprobando también ruta y namespace. Las copias de
+forwarding se distinguen del resultado final. La consulta usa Loki local y no
+repite la operación ni modifica políticas de Vault.
+
+El visor conserva el acceso limitado a las trazas de la sesión propietaria,
+incluida una segunda comprobación al terminar la consulta. No necesita activar
+la captura raw: utiliza los metadatos de auditoría disponibles. Si faltan eventos,
+hay resultados incompatibles o Loki no está disponible, lo indica. **Volver a
+consultar** permite esperar a la ingestión. No reconstruye una decisión histórica
+con las políticas actuales ni presenta el panel como una traza interna del motor ACL.
+
+Disponible en ES/EN y móvil. [Pruebas y alcance](../docs/runs/20261022T154444Z-vault-decision/README.md).
+
+![Explicación de una decisión real de Vault](../docs/screenshots/current/vault-decision.jpg)
+
 ### Relacionar parámetros RAR con el acceso
 
 El [Laboratorio RAR](../docs/manual/15-parametros-rar.md) emite dos tokens OBO por

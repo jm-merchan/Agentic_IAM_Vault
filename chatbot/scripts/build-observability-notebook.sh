@@ -61,6 +61,10 @@ En Grafana abre un span `xai.chat`, `openai.chat` o `anthropic.chat` y revisa `l
 
 El visor local ofrece un diagrama interactivo con iconos por servicio, filtros de destino, flechas de petición/retorno y detalles de cada llamada. En laboratorio, **Ver valores sensibles / View sensitive values** abre los valores de OAuth y HTTP Basic (incluido `client_secret`), JWT-SVID, credenciales MySQL y cuerpos de cifrado/descifrado. Las nuevas capturas permanecen en memoria diez minutos; las capturas raw de Vault/SPIFFE mantienen la retención de trazas. [Alcance completo](chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
 
+Cada paso de Vault incluye **Cómo decide Vault / How Vault decides**, un desplegable independiente de los valores sensibles. Consulta la auditoría correlacionada para mostrar la identidad, el actor OBO, las políticas que concedieron acceso y el RAR registrado. Distingue OAuth, OBO, token nativo, login y claves públicas; si faltan eventos o no identifican la causa de una denegación, lo indica sin reconstruir políticas históricas con la configuración actual. [Datos disponibles y límites](chatbot/OBSERVABILITY.md#cómo-decide-vault).
+
+![Lógica y evidencia de una decisión de Vault](docs/screenshots/current/vault-decision.jpg)
+
 **EN / ES** cambia títulos, explicaciones, formatos y paginación según la preferencia de Lumen; los valores originales nunca se traducen. El idioma inicial procede del navegador, salvo elección manual guardada. Grafana conserva su propio idioma. [Comprobación bilingüe](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües) · [Evidencia del 20/10](chatbot/docs/language-verification.json).
 
 - Chat: <http://localhost:8088>

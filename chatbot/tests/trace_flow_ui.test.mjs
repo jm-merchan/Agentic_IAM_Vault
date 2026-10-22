@@ -13,6 +13,73 @@ function view() {
   return vm;
 }
 
+test("Vault explanation is on demand, isolated from sensitive capture and cleared on collapse", async () => {
+  const vm = view(), previous = globalThis.fetch;
+  vm.flow.calls[0].target = 'vault';
+  vm.inspection = {sections: [{key: 'secret', value: 'KEEP_SEPARATE'}]};
+  let calls = 0;
+  globalThis.fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, '/traces/trace/steps/a/vault-decision');
+    assert.equal(options.credentials, 'same-origin');
+    assert.equal(options.cache, 'no-store');
+    return {ok: true, json: async () => ({audit_state: 'matched', mode: 'obo', evidence: {policy_allowed: true}})};
+  };
+  try {
+    assert.equal(vm.decisionOpen, false);
+    await vm.toggleVaultDecision();
+    assert.equal(vm.decisionOpen, true);
+    assert.equal(vm.vaultDecision.mode, 'obo');
+    assert.equal(vm.inspection.sections[0].value, 'KEEP_SEPARATE');
+    await vm.toggleVaultDecision();
+    assert.equal(vm.vaultDecision, null);
+    assert.equal(calls, 1);
+    vm.select(vm.flow.calls[1]);
+    await vm.toggleVaultDecision();
+    assert.equal(calls, 1); // No audit lookup for another service.
+  } finally {globalThis.fetch = previous; vm.closeVaultDecision();}
+});
+
+test("Vault explanation ignores late responses after changing step or filter", async () => {
+  const vm = view(), previous = globalThis.fetch;
+  vm.flow.calls.forEach(call => {call.target = 'vault';});
+  let resolve;
+  globalThis.fetch = () => new Promise(r => {resolve = r;});
+  try {
+    const pending = vm.toggleVaultDecision();
+    vm.select(vm.flow.calls[1]);
+    resolve({ok: true, json: async () => ({mode: 'OLD_CALL'})});
+    await pending;
+    assert.equal(vm.vaultDecision, null);
+    assert.equal(vm.decisionOpen, false);
+    const next = vm.toggleVaultDecision();
+    vm.filter = 'all'; vm.changeFilter();
+    resolve({ok: true, json: async () => ({mode: 'OLD_FILTER'})});
+    await next;
+    assert.equal(vm.vaultDecision, null);
+    assert.equal(vm.decisionLoading, false);
+  } finally {globalThis.fetch = previous; vm.closeVaultDecision();}
+});
+
+test("Vault audit errors can be retried without repeating the Vault operation", async () => {
+  const vm = view(), previous = globalThis.fetch;
+  vm.flow.calls[0].target = 'vault'; let calls = 0;
+  vm.messages = {'No se pudo consultar la auditoría.': 'Audit unavailable'};
+  globalThis.fetch = async (url, options) => {
+    assert.ok(url.endsWith('/vault-decision'));
+    assert.equal(options.method, undefined);
+    if (++calls === 1) throw new Error('offline');
+    return {ok: true, json: async () => ({mode: 'native', audit_state: 'matched'})};
+  };
+  try {
+    await vm.toggleVaultDecision();
+    assert.equal(vm.decisionError, 'Audit unavailable');
+    await vm.retryVaultDecision();
+    assert.equal(vm.vaultDecision.mode, 'native');
+    assert.equal(vm.decisionError, '');
+  } finally {globalThis.fetch = previous; vm.closeVaultDecision();}
+});
+
 test("changing step clears values and ignores the previous in-flight response", async () => {
   const vm = view();
   let resolve;

@@ -288,6 +288,7 @@ Los notebooks de referencia deben conservarse sin salidas ni contadores de ejecu
 | [Observabilidad](chatbot/OBSERVABILITY.md) | Inspeccionar llamadas, datos capturados y auditoría; incluye la consola de peticiones reales. |
 | [Operación](docs/OPERACION.md) | Acceso administrativo, actualización, estado privado y retirada. |
 | [Revisión integral del 22/10](docs/runs/20261022T140230Z-workspace-review/README.md) | Interfaz actual, capturas, servicios y límites de la verificación. |
+| [Cómo decide Vault · 22/10](docs/runs/20261022T154444Z-vault-decision/README.md) | Desplegable de autorización en cada llamada a Vault, con auditoría correlacionada y sus límites. |
 | [Revisión del código](docs/WORKSPACE_REVIEW.md) | Hallazgos, correcciones y pruebas de regresión. |
 
 Los notebooks de la raíz documentan etapas de la demo y reutilizan sus scripts;

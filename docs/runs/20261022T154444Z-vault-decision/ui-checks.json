@@ -1,0 +1,67 @@
+{
+  "run": "20261022T154444Z-vault-decision",
+  "browser": "Chrome",
+  "checks": [
+    {
+      "case": "Vault OBO allowed",
+      "trace_id": "3cac7688ca89f4cded371ebb53463526",
+      "step": 3,
+      "http_status": 200,
+      "policy_allowed": true
+    },
+    {
+      "case": "Vault OBO denied",
+      "trace_id": "3cac7688ca89f4cded371ebb53463526",
+      "step": 6,
+      "http_status": 403,
+      "policy_allowed": false
+    },
+    {
+      "case": "Autonomous agent OAuth",
+      "trace_id": "07f3e66d72cf875ed79afacbcbe97aa1",
+      "step": 2,
+      "mode": "oauth",
+      "policy_allowed": true
+    },
+    {
+      "case": "Public JWKS",
+      "trace_id": "07f3e66d72cf875ed79afacbcbe97aa1",
+      "step": 3,
+      "mode": "public",
+      "policy_allowed": true
+    },
+    {
+      "case": "Non-Vault step",
+      "vault_button_visible": false
+    },
+    {
+      "case": "Switching call",
+      "disclosure_closed": true,
+      "previous_evidence_cleared": true
+    },
+    {
+      "case": "ES and EN",
+      "translated_labels": true,
+      "evidence_values_unchanged": true
+    },
+    {
+      "case": "390 px mobile",
+      "viewport_width": 390,
+      "content_width": 390,
+      "disclosure_operable": true
+    },
+    {
+      "case": "Expired session",
+      "message": "Traza no disponible para esta sesión.",
+      "evidence_returned": false
+    },
+    {
+      "case": "Final theme persistence and contrast",
+      "trace_id": "fe265bdaa4c5af97a6b3aa159561bd93",
+      "dark_after_navigation_and_reload": true,
+      "explanation_legible": true,
+      "light_restored": true,
+      "policy_allowed": true
+    }
+  ]
+}

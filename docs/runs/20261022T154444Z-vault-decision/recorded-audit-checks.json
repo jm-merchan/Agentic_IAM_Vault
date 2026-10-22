@@ -1,0 +1,133 @@
+[
+  {
+    "case": "oauth",
+    "trace_id": "48c189cf712ada6b3c063a2ee9ff9394",
+    "span_id": "dd6390b9a6d6d66a",
+    "mode": "oauth",
+    "mode_label": "Identidad OAuth",
+    "logic": "Políticas de la identidad ∩ RAR, cuando se aplica",
+    "audit_state": "matched",
+    "path": "spiffe/role/lumen-anthropic/mintjwt",
+    "namespace": "verify",
+    "http_status": 200,
+    "decision": "Vault registró una evaluación de políticas permitida. El resultado de la operación se comprueba también en la respuesta HTTP.",
+    "evidence": {
+      "request_id": "b3b3a52e-1f74-7ae3-a348-c6f3ed0af126",
+      "recorded_at": "2026-10-22T14:54:51.390759711Z",
+      "operation": "update",
+      "entity_id": "29040947-489f-c6f0-776b-1ff09e9e76b5",
+      "actor": "",
+      "policies": [
+        "chatbot-anthropic"
+      ],
+      "granting_policies": [
+        {
+          "name": "chatbot-anthropic",
+          "namespace": "verify/"
+        }
+      ],
+      "authorization_details": [
+        {
+          "type": "vault:path_access",
+          "path": "spiffe/role/lumen-anthropic/mintjwt",
+          "capabilities": [
+            "update"
+          ]
+        }
+      ],
+      "policy_allowed": true,
+      "request_recorded": true,
+      "response_recorded": true,
+      "error_recorded": false
+    },
+    "note": "La lógica describe los controles aplicables; no es una traza interna del motor ACL. No se consultan políticas actuales para explicar una petición histórica."
+  },
+  {
+    "case": "obo_allowed",
+    "trace_id": "653324f2273f9f453849ddf3e2c4275d",
+    "span_id": "edcd6879070ba194",
+    "mode": "obo",
+    "mode_label": "Delegación OBO",
+    "logic": "Permisos del usuario ∩ techo del agente ∩ RAR, cuando se aplica",
+    "audit_state": "matched",
+    "path": "database/creds/chatbot-readonly",
+    "namespace": "verify",
+    "http_status": 200,
+    "decision": "Vault registró una evaluación de políticas permitida. El resultado de la operación se comprueba también en la respuesta HTTP.",
+    "evidence": {
+      "request_id": "7448d813-840b-ad38-d2e6-c9b6bfea1c7e",
+      "recorded_at": "2026-10-22T15:34:56.296589102Z",
+      "operation": "read",
+      "entity_id": "595373d9-ae80-7b79-8d6c-c0c36c8dc154",
+      "actor": "chatbot-oidc",
+      "policies": [
+        "chatbot-writer",
+        "lumen-contract-owner",
+        "lumen-personal-user"
+      ],
+      "granting_policies": [
+        {
+          "name": "chatbot-writer",
+          "namespace": "verify/"
+        },
+        {
+          "name": "chatbot-data-ceiling",
+          "namespace": "verify/"
+        }
+      ],
+      "authorization_details": [
+        {
+          "type": "vault:path_access",
+          "path": "database/creds/chatbot-readonly",
+          "capabilities": [
+            "read"
+          ]
+        }
+      ],
+      "policy_allowed": true,
+      "request_recorded": true,
+      "response_recorded": true,
+      "error_recorded": false
+    },
+    "note": "La lógica describe los controles aplicables; no es una traza interna del motor ACL. No se consultan políticas actuales para explicar una petición histórica."
+  },
+  {
+    "case": "obo_denied",
+    "trace_id": "8a94085605c10c909f3eb31858cd53ca",
+    "span_id": "8104e60a20ef5113",
+    "mode": "obo",
+    "mode_label": "Delegación OBO",
+    "logic": "Permisos del usuario ∩ techo del agente ∩ RAR, cuando se aplica",
+    "audit_state": "matched",
+    "path": "database/creds/chatbot-readwrite",
+    "namespace": "verify",
+    "http_status": 403,
+    "decision": "Vault registró una denegación de políticas. El registro no identifica por separado qué capa o regla la causó.",
+    "evidence": {
+      "request_id": "9fc52ebd-5ef7-290b-0e03-0c4b6eb13719",
+      "recorded_at": "2026-10-22T14:55:44.227384469Z",
+      "operation": "read",
+      "entity_id": "b3ad09e2-a651-5826-30dd-f2bc1b6f5f71",
+      "actor": "chatbot-task-read",
+      "policies": [
+        "chatbot-supervisor",
+        "lumen-personal-user"
+      ],
+      "granting_policies": [],
+      "authorization_details": [
+        {
+          "type": "vault:path_access",
+          "path": "database/creds/chatbot-readwrite",
+          "capabilities": [
+            "read"
+          ]
+        }
+      ],
+      "policy_allowed": false,
+      "request_recorded": true,
+      "response_recorded": true,
+      "error_recorded": true
+    },
+    "note": "La lógica describe los controles aplicables; no es una traza interna del motor ACL. No se consultan políticas actuales para explicar una petición histórica."
+  }
+]
