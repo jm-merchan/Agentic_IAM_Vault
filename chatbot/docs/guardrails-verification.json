@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-10-15T13:05:42.320244+00:00",
+  "checked_at": "2026-10-22T14:47:12.604938+00:00",
   "provider": "openai",
-  "model": "gpt-4.1-mini",
-  "trace_id": "02513e793a59cc054080fe4279c0754f",
+  "model": "gpt-4.1-nano",
+  "trace_id": "ad367be94543eccc867b0a0c953de115",
   "cases": [
     {
       "case": "weather",
@@ -47,6 +47,24 @@
       "passed": true
     },
     {
+      "case": "solar_web_search",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "solar_web_after_rejection",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "unrelated_web_search",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
       "case": "weather_energy_relation",
       "expected_allowed": true,
       "observed_allowed": true,
@@ -60,6 +78,12 @@
     },
     {
       "case": "demo",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "demo_delegation",
       "expected_allowed": true,
       "observed_allowed": true,
       "passed": true

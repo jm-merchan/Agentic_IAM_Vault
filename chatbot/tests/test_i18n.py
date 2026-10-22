@@ -41,9 +41,34 @@ def test_switch_cannot_redirect_outside_supported_pages(path):
     assert safe_return_path(path) == '/'
 
 
-@pytest.mark.parametrize('path', ['/', '/solicitud', '/solicitudes', '/traces/' + 'a'*32])
+@pytest.mark.parametrize('path', ['/', '/solicitud', '/solicitudes', '/traces/' + 'a'*32,
+                                '/traces/' + 'a'*32 + '?span=' + 'b'*16])
 def test_switch_keeps_current_page(path):
     assert safe_return_path(path) == path
+
+
+@pytest.mark.parametrize('suffix', ['?span=https://example.org', '?span=' + 'b'*16 + '&next=https://example.org', '?span=' + 'b'*15])
+def test_trace_switch_rejects_unexpected_query(suffix):
+    assert safe_return_path('/traces/' + 'a'*32 + suffix) == '/'
+
+
+@pytest.mark.asyncio
+async def test_language_button_keeps_linked_trace_step(monkeypatch):
+    from urllib.parse import parse_qs, urlsplit
+    from nicegui import ui
+    from nicegui.testing.user_simulation import user_simulation
+    from app.i18n import language_switch
+
+    path = '/traces/' + 'a'*32
+    request = Request({'type': 'http', 'path': path, 'query_string': b'span=' + b'b'*16, 'headers': []})
+    navigate = Mock()
+    async with user_simulation(lambda: language_switch(request, Translator('es'))) as user:
+        await user.open('/')
+        monkeypatch.setattr(ui.navigate, 'to', navigate)
+        user.find('EN', kind=ui.button).click()
+        target = navigate.call_args.args[0]
+        assert urlsplit(target).path == '/language/en'
+        assert parse_qs(urlsplit(target).query)['next'] == [path + '?span=' + 'b'*16]
 
 
 def test_translations_and_placeholders_never_modify_inserted_values():
@@ -95,7 +120,7 @@ def test_model_uses_selected_language_instead_of_old_history(monkeypatch):
     agent.make_agent(services, session, config={'model': 'test', 'provider': 'openai'}, model=object(), language='en')
     prompt = factory.call_args.kwargs['system_prompt']
     assert prompt.startswith('Reply in English')
-    assert 'Continue application' in prompt and 'Save application' in prompt
+    assert 'Continue application' in prompt and 'Save draft' in prompt
     assert 'Habla en español' not in prompt
     assert session.language == 'es'  # Page preference cannot mutate another tab's locale.
 

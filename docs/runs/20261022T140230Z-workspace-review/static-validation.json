@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-22T15:15:02.490825+00:00",
+  "documents": 38,
+  "bash_blocks": 273,
+  "shell_scripts": 92,
+  "local_links": 701,
+  "python_files": 90,
+  "notebooks": 11,
+  "bash_cells": 73,
+  "current_screenshots": 45,
+  "errors": [],
+  "all_passed": true,
+  "scope": "Static syntax, local links/anchors, notebook Markdown and screenshot provenance only. No provisioning, credentials issuance, inference, revocation or deletion."
+}

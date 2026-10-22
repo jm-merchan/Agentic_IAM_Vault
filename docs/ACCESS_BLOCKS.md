@@ -44,7 +44,7 @@ La asociación depende del flujo:
 
 - **Contratación CIBA:** los tres bloqueos se asignan al token nativo mediante `auth/ciba-contract/role/validator`; este paso no utiliza OBO.
 - **xAI autónomo:** `lumen-block-xai` forma parte de las políticas de la entidad `chatbot-xai`. Es lo que limita Client Credentials.
-- **MySQL y protección de datos OBO:** los tres bloqueos forman parte de `ceiling_policies` del agente `chatbot-oidc`. Vault comprueba tanto los permisos del usuario como ese límite del actor. Las políticas límite del registro se aplican a OBO; por sí solas no bloquean el acceso autónomo. [Agent registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry).
+- **MySQL y protección de datos OBO:** los tres bloqueos forman parte de `ceiling_policies` de `chatbot-oidc` y de los agentes por tarea. Vault comprueba tanto los permisos del usuario como ese límite del actor. Las políticas límite del registro se aplican a OBO; por sí solas no bloquean el acceso autónomo. [Agent registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry).
 
 `start` conserva las políticas de bloqueo existentes. `remove` elimina el Vault de la demo; el siguiente `start` crea las cuatro políticas inactivas. Las verificaciones de funcionamiento normal presuponen que no hay bloqueos: consulta `./demo.sh blocks` antes de ejecutar `verify`.
 
@@ -82,9 +82,9 @@ En Vault 2.1.2 de esta imagen, `/sys/capabilities-self` rechazó los JWT externo
 
 ## Recorrido en la interfaz
 
-1. **xAI:** escribe una pregunta general. Ejecuta `block xai` y envía otra: aparece la ruta denegada y HTTP 403. Ejecuta `unblock xai` y repite: se obtiene una clave nueva y vuelve la respuesta.
+1. **xAI:** selecciona xAI y escribe una pregunta sobre energía. Ejecuta `block xai` y envía otra: aparece la ruta denegada y HTTP 403. Ejecuta `unblock xai` y repite: se obtiene una clave nueva y vuelve la respuesta.
 2. **Lectura:** entra como lector o gestor. Abre Planes de energía, ejecuta `block database-read` y pulsa otra vez el botón. Tras `unblock database-read`, repite sin cerrar sesión.
-3. **Escritura:** entra como gestor y completa una solicitud ficticia hasta Revisar. Ejecuta `block database-write` y pulsa Guardar solicitud. La lectura sigue disponible; el INSERT no llega a MySQL. Ejecuta `unblock database-write` y reintenta.
+3. **Escritura:** entra como gestor y completa una solicitud ficticia hasta Revisión. Ejecuta `block database-write` y pulsa **Guardar borrador**. La lectura sigue disponible; el INSERT no llega a MySQL. Ejecuta `unblock database-write` y reintenta.
 4. **Descifrado:** entra como supervisor. Abre Solicitudes, ejecuta `block decrypt` y pulsa Revelar datos. La lista permanece enmascarada. Tras `unblock decrypt`, la misma operación vuelve a funcionar.
 
 `Comprobar límites en Vault` hace peticiones reales a las nueve rutas SQL/Transit/Transform. La columna Esperado describe los permisos normales del perfil; un bloqueo administrativo produce una diferencia deliberada entre esa columna y Resultado.
@@ -101,30 +101,21 @@ El root token administrativo no queda bloqueado por estas políticas de Lumen. L
 
 [Prueba real xAI](../chatbot/docs/xai-rar-block-verification.json): JWT sin RAR y con RAR incorrecto denegados; mismo JWT permitido → bloqueado → permitido; token nuevo también denegado durante el bloqueo; lease emitido revocado. Se puede repetir con `bash chatbot/scripts/test-xai-block.sh` después de exportar `VAULT_ENV_FILE` apuntando a la conexión generada. La prueba requiere xAI inicialmente desbloqueado y lo deja desbloqueado.
 
-Validación del 15 de octubre: **96 tests y dos subcasos**, ocho comprobaciones reales de RAR/bloqueo xAI, doce del ciclo de vida xAI y doce peticiones OBO repetidas con los mismos JWT anteriores al bloqueo. En Chrome se verificó xAI permitido/bloqueado/restaurado, una consulta SQL denegada, Guardar solicitud denegado y después completado con la misma referencia, y Revelar datos denegado/restaurado. Todos los controles quedaron desbloqueados al terminar.
+El [ensayo de reinstalación del 22/10](runs/20261022T122934Z-full-e2e/README.md)
+y la [revisión integral posterior](runs/20261022T140230Z-workspace-review/README.md)
+registran los resultados con la instalación actual. Comprueba la fecha y el alcance
+de cada informe antes de reutilizar un resultado.
 
-[Resumen](runs/20261015-rar-blocks/summary.json) · [JWT anteriores al bloqueo](runs/20261015-rar-blocks/previous-jwt-checks.json) · [IDs de trazas por escenario](runs/20261015-rar-blocks/ui-traces.json) · [Correlación de auditoría](runs/20261015-rar-blocks/observability.json).
-
-Se comprobaron 11 trazas, 159 spans y 41 operaciones de Vault contra sus 82 eventos originales de petición/respuesta. **Loki conserva una limitación de ingestión:** faltan copias raw completas para dos operaciones Transit decrypt (la prueba inicial del gestor y la denegación del supervisor). Los pares originales están completos en los logs de los pods de Vault; el informe mantiene `loki_raw_all_passed=false` y no presenta la correlación raw de Loki como completa. Las trazas nuevas de autorización xAI sí incluyen la ruta añadida a la auditoría.
-
-### Capturas actuales
-
-La traza xAI bloqueada termina en HTTP 403 y no invoca el LLM:
-
-![RAR xAI y rechazo de Vault antes del LLM](runs/20261015-rar-blocks/screenshots/xai-blocked-trace.jpg)
-
-[La misma traza en Grafana: seis spans y rechazo en vault.read, sin llamada al modelo](runs/20261015-rar-blocks/screenshots/grafana-xai-blocked.jpg).
-
-El gestor conserva el formulario para reintentar después de `unblock database-write`:
-
-![Guardar solicitud denegado por Vault](runs/20261015-rar-blocks/screenshots/database-write-blocked.jpg)
-
-[Solicitud guardada después de desbloquear](runs/20261015-rar-blocks/screenshots/database-write-restored.jpg).
-
-El supervisor no puede recuperar los datos con `decrypt` bloqueado:
-
-![Descifrado denegado para el supervisor](runs/20261015-rar-blocks/screenshots/decrypt-blocked.jpg)
-
-[Descifrado restaurado — todos los valores son ficticios](runs/20261015-rar-blocks/screenshots/decrypt-restored.jpg) · [Lectura SQL bloqueada](runs/20261015-rar-blocks/screenshots/database-read-blocked.jpg) · [Clave xAI reutilizada con reautorización](runs/20261015-rar-blocks/screenshots/xai-rar-reuse.jpg) · [xAI recuperado](runs/20261015-rar-blocks/screenshots/xai-restored.jpg).
+El [ensayo del 15/10](runs/20261015-rar-blocks/summary.json) y su
+[correlación de auditoría](runs/20261015-rar-blocks/observability.json) se conservan
+como histórico. La falta de algunas copias raw de Loki observada allí se corrigió
+en la [reconstrucción posterior de ese día](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría).
+No se presenta como una limitación pendiente ni se usan sus capturas como interfaz actual.
 
 La [contratación CIBA](manual/17-contratacion-ciba.md) usa `database/creds/chatbot-contract`. Los bloqueos `database-read` y `database-write` incluyen este rol y revocan sus leases. El rol JWT CIBA también adjunta el bloqueo de descifrado.
+
+## Bloqueo comprobado en la interfaz actual
+
+![Supervisor denegado durante el bloqueo de descifrado](screenshots/current/decrypt-blocked.jpg)
+
+![Misma solicitud recuperada después de retirar el bloqueo](screenshots/current/supervisor-reveal-success.jpg)

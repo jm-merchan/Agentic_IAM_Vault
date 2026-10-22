@@ -85,7 +85,7 @@ Guardar en `.env` los IDs que presenta el asistente: `ANTHROPIC_FEDERATION_ISSUE
 
 La sección de prueba del portal es opcional: cada JWT con `jti` solo se intercambia una vez. Un token usado allí no se puede reutilizar en curl. Las pruebas de los pasos 8–10 emiten sus propios tokens nuevos.
 
-![Emisor Claude con las dos claves públicas de Vault](../runs/20261016-claude-spiffe/screenshots/02-issuer-inline-jwks.jpg)
+[Captura histórica: Emisor Claude con las dos claves públicas de Vault](../runs/20261016-claude-spiffe/screenshots/02-issuer-inline-jwks.jpg)
 
 ```bash
 source "$MANUAL/session.sh"
@@ -301,20 +301,20 @@ printf 'RAR, audiencia y aislamiento del agente: comprobados.\n'
 
 Continuar con [09](09-observabilidad.md) y [10](10-aplicacion.md). El capítulo 10 publica el catálogo y arranca Lumen. Después, elegir **Claude** en el banner; debe mostrar `claude-haiku-5-5`. Cambiar de proveedor no requiere reiniciar. Las capturas siguientes documentan la interfaz anterior al selector.
 
-![Lumen ejecutándose con Claude y SPIFFE JWT-SVID](../runs/20261016-claude-spiffe/screenshots/04-lumen-claude-banner.jpg)
+![Lumen ejecutándose con Claude y SPIFFE JWT-SVID](../screenshots/current/claude-catalogue.jpg)
 
 Cada ejecución obtiene un JWT-SVID y un access token nuevos. La ejecución está limitada a 180 segundos, exige más de 210 segundos de vigencia disponible y reserva 30 de margen. No se mantiene una API key estática ni se reutiliza una assertion en la siguiente consulta. La renovación consiste en emitir otra identidad y canjearla de nuevo.
 
 La rama del modelo no cambia los permisos de los tres usuarios: el catálogo, las solicitudes, Transit y Transform siguen usando OBO; Tavily usa su agente registrado. En **Ver última traza → Ver en Grafana**, revisar `spiffe.mint_jwt_svid`, `anthropic.token_exchange`, `anthropic.chat` y los spans de herramientas/Vault. En modo raw, `spiffe.jwt_svid` y `anthropic.exchange.assertion` muestran el JWT; el access token Claude no se añade a los prompts ni a las trazas.
 
-![Traza de verificación con dos identidades nuevas y dos intercambios Claude](../runs/20261016-claude-spiffe/screenshots/05-grafana-claude-trace.jpg)
+[Captura histórica: Traza de verificación con dos identidades nuevas y dos intercambios Claude](../runs/20261016-claude-spiffe/screenshots/05-grafana-claude-trace.jpg)
 
-![Claims y metadatos del JWT-SVID emitido por Vault](../runs/20261016-claude-spiffe/screenshots/06-grafana-jwt-svid-attributes.jpg)
+[Captura histórica: Claims y metadatos del JWT-SVID emitido por Vault](../runs/20261016-claude-spiffe/screenshots/06-grafana-jwt-svid-attributes.jpg)
 
 El [ensayo por script](13-repeticion-script.md) reproduce los bloques locales sobre una federación ya registrada y sincroniza las claves públicas antes del intercambio. El perfil administrativo debe estar autenticado antes del ensayo. La retirada conserva los recursos externos de Claude y sus IDs, como hace con OpenAI. Si se cambia el dominio o el sujeto, actualizar también el emisor/regla del portal antes de repetir; el sincronizador se detiene ante una identidad distinta.
 
 La validación real del 16/10/2026 produjo canjes correctos, una inferencia con `claude-haiku-5-5`, un token nuevo por ejecución y el rechazo `jti_reused` al intentar reutilizar la assertion. Los `jwks_unavailable` anteriores de la captura corresponden a los intentos de discovery/URL directa que motivaron el modo en línea.
 
-![Eventos de autenticación: canjes correctos y replay rechazado](../runs/20261016-claude-spiffe/screenshots/03-authentication-events.jpg)
+[Captura histórica: Eventos de autenticación: canjes correctos y replay rechazado](../runs/20261016-claude-spiffe/screenshots/03-authentication-events.jpg)
 
 Referencias oficiales: [SPIFFE](https://platform.claude.com/docs/en/manage-claude/wif-providers/spiffe), [contrato WIF](https://platform.claude.com/docs/en/manage-claude/wif-reference) y [gestión por API](https://platform.claude.com/docs/en/manage-claude/wif-admin-api). Esta última requiere OAuth `org:admin`; una Admin API key no sirve para sus endpoints WIF. Esta guía usa el portal para establecer esa confianza, sin conceder administración a Lumen.

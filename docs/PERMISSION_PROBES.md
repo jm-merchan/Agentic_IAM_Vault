@@ -1,6 +1,6 @@
 # Comprobación de permisos: SQL, Transit y Transform
 
-Desde el **15 de octubre de 2026**, el botón **Comprobar límites en Vault** ejecuta nueve peticiones reales. La respuesta se divide en base de datos/administración, Transit y Transform. Cada fila muestra el resultado de Vault y el permiso esperado del perfil; el resumen indica cuántas comprobaciones coinciden.
+El botón **Comprobar límites en Vault** ejecuta nueve peticiones reales. La respuesta se divide en base de datos/administración, Transit y Transform. Cada fila muestra el resultado de Vault y el permiso esperado del perfil; el resumen indica cuántas comprobaciones coinciden.
 
 | Ruta en el namespace `verify` | Lector | Gestor | Supervisor |
 |---|---|---|---|
@@ -13,6 +13,10 @@ Desde el **15 de octubre de 2026**, el botón **Comprobar límites en Vault** ej
 | `transform/decode/lumen-dni` | Denegado | Denegado | Permitido |
 | `transform/encode/lumen-iban` | Denegado | Permitido | Denegado |
 | `transform/decode/lumen-iban` | Denegado | Denegado | Permitido |
+
+La matriz corresponde al agente **Estándar / Modo actual**, sin bloqueos
+administrativos. Un agente por tarea puede restringirla; la comprobación usa la
+combinación activa y muestra su identidad en Vault.
 
 Transit cifra o descifra el perfil de una solicitud. Transform tokeniza o recupera DNI e IBAN. El gestor puede proteger datos para guardarlos; el supervisor puede recuperar los originales. El lector solo consulta la proyección enmascarada.
 
@@ -30,35 +34,28 @@ Esto permite probar `decrypt` y `decode` en una instalación vacía, sin consult
 
 **Lector: una ruta permitida y ocho denegadas.**
 
-![Lector: SQL, Transit y Transform](runs/20261015T114709Z-openai-clean/screenshots/reader-permissions.jpg)
+![Lector: SQL, Transit y Transform](screenshots/current/reader-permissions.jpg)
 
 **Gestor: cinco rutas permitidas y cuatro denegadas.**
 
-![Gestor: cifrar y tokenizar, sin revelar](runs/20261015T114709Z-openai-clean/screenshots/writer-permissions.jpg)
+![Gestor: cifrar y tokenizar, sin revelar](screenshots/current/writer-permissions.jpg)
 
 **Supervisor: cuatro rutas permitidas y cinco denegadas.**
 
-![Supervisor: descifrar y recuperar, sin escribir](runs/20261015T114709Z-openai-clean/screenshots/supervisor-permissions.jpg)
+![Supervisor: descifrar y recuperar, sin escribir](screenshots/current/supervisor-permissions.jpg)
 
 ## Trazas y auditoría
 
 **Ver última traza → Ver en Grafana** muestra el span `permissions.probe` y las nueve operaciones, incluidas las denegaciones. `probe.check_count` indica el número de rutas y `probe.matches_expected` si coinciden con el perfil. Los spans `vault.read`/`vault.write` conservan HTTP status, ruta, JWT OBO y petición/respuesta conforme al modo raw del laboratorio. En Loki, filtrar por el mismo Trace ID para ver los pares request/response.
 
-Las capturas de esta página pertenecen a la reconstrucción del 15/10 con OpenAI. El resto del recorrido está en el [informe actual](E2E_OPENAI_VERIFICATION.md).
+Las capturas se renovaron el **22/10/2026**. Los resultados y los Trace ID de
+esta revisión están en el [informe integral](runs/20261022T140230Z-workspace-review/README.md).
+Para obtener una traza navegable, ejecuta el botón en tu propia sesión: las trazas
+locales están ligadas a ella y caducan. Los informes JSON son evidencia fechada.
 
-## Resultado de la reconstrucción del 15 de octubre
-
-Pasaron 114 pruebas de aplicación y dos subcasos. Las sesiones OIDC de los tres perfiles completaron nueve comprobaciones cada una: **27 operaciones y 87 spans**. Cada petición y respuesta se correlacionó con Loki/Tempo, incluidos JWT y cuerpos. El resumen completo también incluye el resto de los casos de uso.
-
-| Perfil | Permitidas | Denegadas | Grafana |
-|---|---|---|---|
-| Lector | 1 | 8 | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22428d5a7fa7196915dcaf50f5bcd5a959%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792066869263%22%2C%22to%22%3A%221792066993220%22%7D%7D%7D) |
-| Gestor | 5 | 4 | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%222bf0903563849fdb58f055c378d2fb8a%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792066965374%22%2C%22to%22%3A%221792067094945%22%7D%7D%7D) |
-| Supervisor | 4 | 5 | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22c10b6819d0466a8bee095880851d9f85%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792067286282%22%2C%22to%22%3A%221792067420001%22%7D%7D%7D) |
-
-[Correlación completa](runs/20261015T114709Z-openai-clean/all-ui-observability.json) · [Prueba adicional de nueve rutas tras actualizar Alloy](runs/20261015T114709Z-openai-clean/fresh-after-alloy-fix.json).
-
-La primera prueba de este botón, anterior a la retirada, queda como [evidencia histórica](runs/20261015-permission-probes/summary.json). Encontró copias raw ausentes en Loki. La reconstrucción permitió reproducir el problema y corregirlo actualizando Alloy a 1.21.0-rc.0; se recuperaron los eventos originales y pasó la correlación completa. Los detalles y el uso explícito de esa versión candidata están en el [informe actual](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría). Las antiguas trazas fueron eliminadas por `remove`.
+El [informe histórico del 15/10](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría)
+conserva el diagnóstico de ingestión de Alloy y su corrección; no es una
+limitación pendiente de la interfaz actual.
 
 La salida actual incluye la identidad del agente OBO de la sesión y metadatos
 consultados directamente en Vault, con enlaces al registro, entidad, alias y

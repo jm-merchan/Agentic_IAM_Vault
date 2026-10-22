@@ -1,0 +1,22 @@
+{
+  "recorded_at": "2026-10-22T15:13:48.830340+00:00",
+  "python": {
+    "passed": 532,
+    "subtests_passed": 2,
+    "failed": 0,
+    "duration_seconds": 203.15,
+    "private_log": "pytest-last.log",
+    "command": "/tmp/vault-chatbot-venv/bin/python -m pytest -q"
+  },
+  "javascript": {
+    "passed": 12,
+    "failed": 0,
+    "private_log": "javascript.log"
+  },
+  "scope": "Local tests and NiceGUI UI simulation; live checks are recorded separately in workflows.json and ui-checks.json.",
+  "final_documentation_regression": {
+    "passed": 9,
+    "failed": 0,
+    "scope": "Documentation validation after final image names, notebook regeneration and guide edits."
+  }
+}

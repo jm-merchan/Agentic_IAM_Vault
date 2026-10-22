@@ -175,3 +175,9 @@ del archivo en el navegador no quedó confirmada por la herramienta.
 - [MySQL: locking reads y privilegios](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
 
 La retirada de la demo incluye sus clientes CIBA y el grupo `chatbot-validators`, identificado por la marca `externalId=lumen-demo:contract-validators`. Conserva la cuenta real elegida como Validador. Solo las cuentas ficticias `lumen-*` con correo `@example.invalid` entran en el inventario de borrado. El antiguo cliente del experimento PDF queda deshabilitado al migrar.
+
+## Bandeja actual
+
+![Contrato ficticio persistido y disponible en otra sesión del Writer](../screenshots/current/contract-persisted.jpg)
+
+La [revisión de interfaz del 22/10](../runs/20261022T140230Z-workspace-review/README.md) volvió a comprobar la presencia del contrato aprobado. No volvió a pedir una aprobación CIBA: utiliza la evidencia de la reinstalación de ese mismo día. La herramienta volvió a agotar la espera del evento de descarga; la recepción del archivo en Chrome sigue sin acreditarse.

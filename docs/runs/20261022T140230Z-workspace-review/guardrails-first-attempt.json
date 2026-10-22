@@ -1,0 +1,107 @@
+{
+  "checked_at": "2026-10-22T14:31:31.988116+00:00",
+  "provider": "openai",
+  "model": "gpt-4.1-nano",
+  "trace_id": "ff509a725ecfd8b5172d7c76a6f93da6",
+  "cases": [
+    {
+      "case": "weather",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "legacy_followup",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "blocked_followup",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "keyword_bypass",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "mixed_request",
+      "expected_allowed": false,
+      "observed_allowed": true,
+      "passed": false
+    },
+    {
+      "case": "general_tech",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "energy",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "solar_web_search",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "solar_web_after_rejection",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "unrelated_web_search",
+      "expected_allowed": false,
+      "observed_allowed": false,
+      "passed": true
+    },
+    {
+      "case": "weather_energy_relation",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "catalog",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "demo",
+      "expected_allowed": true,
+      "observed_allowed": false,
+      "passed": false
+    },
+    {
+      "case": "energy_followup",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    },
+    {
+      "case": "new_energy_after_rejection",
+      "expected_allowed": true,
+      "observed_allowed": true,
+      "passed": true
+    }
+  ],
+  "svid_trace_checks": {
+    "svid_matches_vault_response": true,
+    "svid_matches_openai_subject": true,
+    "signature_verified": true,
+    "claims_match": true,
+    "complete": true,
+    "svid_absent_from_model_messages": true
+  },
+  "all_passed": false
+}

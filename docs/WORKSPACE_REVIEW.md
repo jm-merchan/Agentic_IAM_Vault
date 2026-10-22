@@ -1,5 +1,22 @@
 # Revisión del workspace
 
+## Revisión integral de interfaz, documentación y servicios · 22 de octubre de 2026
+
+La [revisión detallada](runs/20261022T140230Z-workspace-review/README.md) sustituye las capturas incrustadas en guías activas y
+cuatro notebooks por imágenes de la interfaz actual. El manifiesto conserva
+página, fecha y hash de cada captura. Los informes antiguos mantienen su fecha y
+sus imágenes como evidencia histórica.
+
+Se corrigieron el enlace a la última traza de Solicitudes, la conservación del paso
+de traza al cambiar ES/EN, los nombres de acciones, falsos rechazos del clasificador y el contador de Grafana que
+fallaba al superar 500 series. Se probaron de nuevo los servicios, las matrices
+de autorización y los recorridos de Chrome. El informe enlazado contiene los
+resultados finales, los intentos fallidos y el alcance exacto de cada prueba.
+Pasaron **532 pruebas Python y 2 subtests**, **12 pruebas JavaScript** y
+**137 comprobaciones reales con 54 trazas**. Se revisaron visualmente **45 capturas**.
+La recepción del PDF por Chrome sigue sin acreditarse; se distingue del éxito
+del endpoint y de la integridad ya comprobada en el backend.
+
 ## Reinstalación y correcciones verificadas · 22 de octubre de 2026
 
 Después de la revisión local descrita abajo se ejecutaron la retirada y la

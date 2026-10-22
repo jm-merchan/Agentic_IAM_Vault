@@ -1,0 +1,8 @@
+{
+  "trace_id": "b35581283ba62fcb2be7eaedffb2dab5",
+  "provider": "openai",
+  "question": "Busca en la web información sobre autoconsumo solar y cita las fuentes.",
+  "expected_category": "energy",
+  "observed_category": "out_of_scope",
+  "correction": "Aclarar en la política de clasificación que las búsquedas públicas de energía están dentro del ámbito; conservar la evaluación del tema y los rechazos de contenido ajeno."
+}

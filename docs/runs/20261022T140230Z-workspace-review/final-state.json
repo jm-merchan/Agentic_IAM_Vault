@@ -1,0 +1,30 @@
+{
+  "checked_at": "2026-10-22T15:13:48.830340+00:00",
+  "services": {
+    "lumen": {
+      "http_status": 200,
+      "healthy": true
+    },
+    "grafana": {
+      "http_status": 200,
+      "healthy": true
+    },
+    "tempo": {
+      "http_status": 200,
+      "healthy": true
+    },
+    "loki": {
+      "http_status": 200,
+      "healthy": true
+    }
+  },
+  "all_blocks_inactive": true,
+  "block_check": "./demo.sh blocks: xai, database-read, database-write, decrypt permitido",
+  "vault_initialized_unsealed": true,
+  "vault_pods_ready": 3,
+  "mysql_pods_ready": 1,
+  "observability_deployments_ready": 4,
+  "runtime_environment_check": "passed: scripts/demo/verify-runtime.sh; private .env and no provisioning secrets inherited by application",
+  "runtime_files_match": true,
+  "dashboard_matches": true
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "panel": "Eventos de petici\u00f3n a Vault",
+    "trace": "",
+    "status": 200,
+    "values": [
+      {
+        "metric": {},
+        "value": [
+          1792679489.41,
+          "554"
+        ]
+      }
+    ]
+  },
+  {
+    "panel": "Eventos de petici\u00f3n a Vault",
+    "trace": "3945c7cf5b619c24032238b10289f6c2",
+    "status": 200,
+    "values": [
+      {
+        "metric": {},
+        "value": [
+          1792679489.422,
+          "4"
+        ]
+      }
+    ]
+  },
+  {
+    "panel": "Eventos de denegaci\u00f3n de Vault",
+    "trace": "",
+    "status": 200,
+    "values": [
+      {
+        "metric": {},
+        "value": [
+          1792679489.432,
+          "258"
+        ]
+      }
+    ]
+  },
+  {
+    "panel": "Eventos de denegaci\u00f3n de Vault",
+    "trace": "3945c7cf5b619c24032238b10289f6c2",
+    "status": 200,
+    "values": [
+      {
+        "metric": {},
+        "value": [
+          1792679489.446,
+          "0"
+        ]
+      }
+    ]
+  }
+]

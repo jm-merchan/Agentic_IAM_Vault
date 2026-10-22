@@ -1,0 +1,47 @@
+[
+  {
+    "notebook": "10_OAuth2c_Verify_Vault.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "1_Deploy_Vault_minikube.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "2_vault-demo-kmip-mysql.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "3_Database_Secret_Engine.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "4_XAI_Secret_Engine.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "6_Lumen_Chatbot_Vault_IAM.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "7_Lumen_Observability.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "8_Lumen_Protected_Applications.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  },
+  {
+    "notebook": "9_OpenAI_Vault_SPIFFE.ipynb",
+    "executable_cells_unchanged": true,
+    "outputs_empty": true
+  }
+]

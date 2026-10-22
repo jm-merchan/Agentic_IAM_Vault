@@ -25,7 +25,7 @@ async def download_contract(contract_id, t):
     return True
 
 
-def contract_controls(services,session,guard,run_action,row,language):
+def contract_controls(services,session,guard,run_action,row,language,*,on_download=None):
     t=Translator(language)
     contracts=services.contracts
     if not contracts.config or not contracts.writer(session) or row.get('subject_id') != session.subject:
@@ -38,7 +38,9 @@ def contract_controls(services,session,guard,run_action,row,language):
                 try:
                     if not await download_contract(row['contract_id'],t):
                         recover.set_visibility(contracts.eligible(session))
-                finally: button.enable()
+                finally:
+                    button.enable()
+                    if on_download: on_download()
             button=ui.button(t('Descargar contrato PDF'),icon='picture_as_pdf',on_click=download).props('no-caps').classes('primary')
             recover=ui.button(t('Recuperar PDF con CIBA'),icon='refresh',on_click=lambda:begin()).props('flat no-caps')
             recover.set_visibility(False)
@@ -110,7 +112,9 @@ def contract_controls(services,session,guard,run_action,row,language):
                 guard()
                 download.disable()
                 try: await download_contract(item.contract_id,t)
-                finally: download.enable()
+                finally:
+                    download.enable()
+                    if on_download: on_download()
             download=ui.button(t('Descargar contrato PDF'),icon='picture_as_pdf',on_click=download_now).props('no-caps').classes('primary')
             download.set_visibility(item.status=='ready')
             ui.button(t('Volver a la bandeja'),on_click=lambda:ui.navigate.to('/solicitudes')).props('flat no-caps')

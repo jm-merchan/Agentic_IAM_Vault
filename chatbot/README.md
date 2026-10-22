@@ -1,28 +1,31 @@
 # Lumen · tu energía, con claridad
 
-**Última reinstalación · 22/10/2026:** 513 pruebas Python, 2 subtests, 12 pruebas JavaScript y 137 comprobaciones contra servicios reales. Incluye OpenAI, xAI, Claude, matrices de autorización y contratación CIBA aprobada. [Evidencias y alcance de la revisión visual](../docs/runs/20261022T122934Z-full-e2e/README.md).
+Lumen es una demo de un asistente de energía con tres proveedores de IA: OpenAI,
+xAI y Claude. La interfaz usa NiceGUI y el agente usa LangChain Deep Agents.
+IBM Verify autentica al usuario; Vault autoriza el acceso a los datos y entrega
+las credenciales temporales. Las tarifas, solicitudes y contratos son ficticios.
 
-**Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](../docs/manual/17-contratacion-ciba.md).
+![Inicio de Lumen con la interfaz actual](../docs/screenshots/current/home.jpg)
 
-**Mi espacio de secretos** ofrece un laboratorio opcional KV v2 por entidad humana. Todos los perfiles tienen un espacio propio; Estándar/Creación pueden guardar y Consulta/Revelado solo leer. La política de Vault deniega el acceso cruzado, incluso para Supervisor. [Preparación, alcance y prueba](../docs/manual/16-espacios-personales.md).
+Para instalar, configurar `.env` y arrancar, sigue el [README principal](../README.md).
+Esta guía describe la aplicación, sus identidades y sus recorridos. Una vez
+instalada, abre **http://localhost:8088** y entra con Verify.
 
-Chatbot de energía en Python con **NiceGUI + LangChain Deep Agents + xAI/OpenAI/Claude**, autenticación **OIDC con IBM Verify**, acceso a MySQL mediante **Vault IAM OBO** y búsqueda **Tavily con un agente autónomo registrado**. xAI obtiene claves dinámicas del Secret Engine; OpenAI y Claude intercambian un SPIFFE JWT-SVID de Vault por un token temporal. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
+| Recorrido | Qué demuestra | Guía |
+|---|---|---|
+| Conversación y catálogo | Selección OpenAI/xAI/Claude; datos MySQL consultados por OBO | [Identidades y flujos](#identidades-y-flujos-del-agente) |
+| Búsqueda pública | Agente autónomo que obtiene Tavily desde Vault | [Demostración](#demostración) |
+| Solicitudes | Formulario de cinco pasos, cifrado Transit y tokenización Transform | [Solicitudes protegidas](#solicitudes-en-cinco-pasos) |
+| Contratación ficticia | Writer guarda un borrador; Validador confirma por CIBA antes de formalizar | [CIBA y PDF](../docs/manual/17-contratacion-ciba.md) |
+| Agentes por tarea | Intersección de permisos humanos, techo del agente y RAR | [Selección y matriz](../docs/manual/14-agentes-por-tarea.md) |
+| Laboratorio RAR | Control y restricciones de parámetros sobre peticiones reales | [Escenarios RAR](../docs/manual/15-parametros-rar.md) |
+| Mi espacio de secretos | KV v2 por identidad humana, con denegación de acceso cruzado | [Espacios personales](../docs/manual/16-espacios-personales.md) |
+| Trazas | Llamadas, autorización y resultados; correlación con Vault y Grafana | [Observabilidad](OBSERVABILITY.md) |
 
-Desde la raíz, ejecutar **`./demo.sh`** y abrir **http://localhost:8088**. [Instalación y `.env`](../README.md). Los notebooks 1–4 y 6–9 son documentación por etapas y llaman a los mismos scripts. [Notebook OpenAI/SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb) y [reconstrucción manual verificada del 16 de octubre](../docs/runs/20261016T064722Z-manual-script/README.md).
-
-El [notebook 10 · oauth2c](../10_OAuth2c_Verify_Vault.ipynb) permite seguir la emisión de tokens de Verify sin usar el chat: humano PKCE, actor Client Credentials y delegado OBO/RAR, con una lectura autorizada y una denegación en Vault. Reutiliza los clientes de Lumen y prepara un callback temporal independiente del puerto 8088.
-
-El nuevo [recorrido de solicitudes protegidas](#solicitudes-en-cinco-pasos) añade Transit, tokenización y tres perfiles. Aprovisionamiento y comprobaciones en el [notebook 8](../8_Lumen_Protected_Applications.ipynb).
-
-La interfaz y las respuestas admiten **español e inglés**, con detección del navegador y botones **EN / ES**. [Selección, alcance y pruebas](#idioma-español-e-inglés).
-
-El chip **Flujo de llamadas / Live call flow**, abajo a la derecha, abre una mini secuencia de la ejecución actual en el chat, solicitudes, laboratorio RAR y espacio personal. Se actualiza cada 500 ms durante una operación: llamada activa, retorno con código HTTP cuando está registrado y duración al cerrar el span. Permanece colapsado al entrar; el panel evita el cuadro de escritura, admite desplazamiento y se cierra con Escape. **Abrir traza** lleva al inspector existente en otra pestaña. El badge **Lab HTTP local** identifica el acceso local sin pedir certificados.
-
-El componente reutiliza `build_flow`, con una proyección que excluye credenciales, cuerpos, rutas e identidades. Solo lee trazas de la sesión vigente y borra su vista al caducar o revocarse. `records_for(..., include_active=True)` añade snapshots locales de spans abiertos; la lectura por defecto, los exports OTLP, Grafana/Tempo y la página `/traces/{tid}` conservan su comportamiento. No utiliza SSE ni las APIs sensitive/replay. No requiere cambios de infraestructura; el código debe publicarse y el proceso reiniciarse según el procedimiento de actualización indicado más abajo.
-
-Al eliminar la página se cancela su temporizador mediante un callback sin argumentos. Esto evita que NiceGUI pase el cliente al parámetro exclusivo por nombre de `Timer.cancel`; la regresión ejecuta el borrado de un cliente real de NiceGUI.
-
-![Lumen: catálogo obtenido por OBO con permisos de lectura](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg)
+Las capturas de esta guía corresponden a la interfaz revisada el **22/10/2026**.
+La [revisión integral](../docs/runs/20261022T140230Z-workspace-review/README.md)
+explica lo comprobado y sus límites. Las reinstalaciones anteriores conservan
+sus resultados en los [informes fechados](../docs/manual/VALIDACION.md).
 
 ## Idioma español e inglés
 
@@ -34,7 +37,7 @@ La preferencia se decide al cargar cada página, antes y después del login:
 | Navegador | Sin una elección guardada, se interpreta `Accept-Language`, incluidas variantes como `en-US`, `en-GB`, `es-ES` o `es-MX` y sus prioridades `q`. Se elige la preferencia admitida con mayor prioridad. |
 | Sin coincidencia | Se usa inglés si el navegador solo pide idiomas no admitidos. Si no envía `Accept-Language`, se usa español. |
 
-El cambio recarga la página actual y actualiza textos, etiquetas accesibles, validaciones, formatos numéricos, tablas y diagrama. Conserva la conversación y el paso y los datos del formulario durante la sesión. Si hay una operación en curso, hay que esperar a que termine. La elección persiste al recargar y al volver a iniciar sesión; para probar otra vez la detección automática, elimina solo la cookie `lumen_language` de `localhost` o usa un perfil de navegador sin esa cookie. Una pestaña ya abierta mantiene su idioma hasta recargarla.
+El cambio recarga la página actual y actualiza textos, etiquetas accesibles, validaciones, formatos numéricos, tablas y diagrama. Conserva la conversación, el paso y los datos del formulario durante la sesión y la llamada de traza enlazada mediante `?span=`. Si hay una operación en curso, hay que esperar a que termine. La elección persiste al recargar y al volver a iniciar sesión; para probar otra vez la detección automática, elimina solo la cookie `lumen_language` de `localhost` o usa un perfil de navegador sin esa cookie. Una pestaña ya abierta mantiene su idioma hasta recargarla.
 
 Las siguientes respuestas del asistente usan el idioma elegido con OpenAI, xAI o Claude. Las respuestas de catálogo y propuestas construidas por el servidor, así como los rechazos de ámbito, también están traducidas. El historial ya escrito, los nombres de planes, datos introducidos, citas de fuentes y valores capturados conservan su contenido original. **EN/ES no cambia los permisos**, el proveedor seleccionado ni la autenticación. El portal externo de IBM Verify y Grafana conservan sus propios ajustes de idioma.
 
@@ -44,7 +47,7 @@ Las siguientes respuestas del asistente usan el idioma elegido con OpenAI, xAI o
 | Solicitudes | Applications |
 | Continuar solicitud | Continue application |
 | Usar datos de prueba | Use test data |
-| Guardar solicitud | Save application |
+| Guardar borrador | Save draft |
 | Ver última traza | View latest trace |
 | Ver valores sensibles | View sensitive values |
 | Autenticación HTTP Basic | HTTP Basic authentication |
@@ -57,7 +60,7 @@ La instalación copia el catálogo junto con `chatbot/app/`; no necesita variabl
 
 La [guía de comprobación bilingüe](../docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües) cubre navegador, cambio manual, formulario, chat y trazas. El [informe del 20/10/2026](docs/language-verification.json) conserva los resultados y el alcance: respuestas en inglés con los tres proveedores y regreso a español con Claude. Las pruebas locales están en [test_i18n.py](tests/test_i18n.py), [test_trace_inspection.py](tests/test_trace_inspection.py) y [trace_flow_ui.test.mjs](tests/trace_flow_ui.test.mjs).
 
-![Lumen en inglés con EN/ES en la cabecera](docs/screenshots/lumen-en.png)
+![Lumen en inglés con EN/ES en la cabecera](../docs/screenshots/current/home-en.jpg)
 
 ## Identidades y flujos del agente
 
@@ -125,7 +128,7 @@ Los tres son usuarios **Cloud Directory**; elegir esa opción al entrar en Verif
 
 **No hay sincronización nativa automática del claim con políticas.** Ejecutar el script 05 después de cambiar miembros, reiniciar Lumen si cambia el mapa de grupos y pedir un nuevo login. Para revocar acceso, sincronizar Vault inmediatamente; los JWT duran hasta 600 s. Si un usuario pertenece al grupo de gestores además de otro grupo, obtiene RW y la unión de sus políticas de Vault.
 
-Los roles son permisos de **base de datos**, no seguridad por fila o columna. «Borradores anteriores» filtra `service_requests` por `subject_id`. La nueva bandeja «Solicitudes» muestra una proyección enmascarada compartida de `energy_applications` para comparar los tres perfiles sobre el mismo registro. Un cliente SQL RO podría leer ciphertext y tokens; necesita permisos independientes de Vault para recuperarlos en claro. No se expone SQL arbitrario. La UI crea solicitudes ficticias confirmadas; no hay contratación real.
+Los roles son permisos de **base de datos**, no seguridad por fila o columna. «Borradores anteriores» filtra `service_requests` por `subject_id`. La nueva bandeja «Solicitudes» muestra una proyección enmascarada compartida de `energy_applications` para comparar los tres perfiles sobre el mismo registro. Un cliente SQL RO podría leer ciphertext y tokens; necesita permisos independientes de Vault para recuperarlos en claro. El agente conversacional no expone SQL arbitrario. La UI crea solicitudes ficticias confirmadas; no hay contratación real.
 
 ## Instalación
 
@@ -151,8 +154,10 @@ El entorno Python es `/tmp/vault-chatbot-venv`, recreable con `uv` y [requiremen
 | `vault-chatbot-sts` | Intercambio sujeto + actor, RAR exacto, claim `actor-token.sub` |
 | `vault-chatbot-research` | Client Credentials del agente autónomo, sin asignación de usuarios |
 | `vault-chatbot-xai` | Solo Client Credentials, JWT 600 s; sin Authorization Code ni refresh tokens |
-| `vault-chatbot-openai` | Solo Client Credentials, JWT 300 s y RAR para emitir la identidad SPIFFE |
-| Agente `chatbot-oidc` | Límite: credenciales RO/RW y seis rutas Transit/Transform exactas; RAR obligatorio |
+| `vault-chatbot-openai`, `vault-chatbot-anthropic` | Client Credentials y RAR para emitir la identidad SPIFFE de cada proveedor |
+| Clientes por tarea | Login PKCE y actor OBO de Consulta, Creación y Revelado |
+| `vault-chatbot-contract` | CIBA exclusivo para la confirmación del Validador |
+| Agente `chatbot-oidc` | Techo OBO de datos, protección, espacio personal y PDFs propios; RAR obligatorio |
 | Agente `chatbot-research` | Solo `secrets/data/tavily`; RAR opcional para Client Credentials |
 | Agente `chatbot-xai` | RAR obligatorio: `read` en `xai/creds/lumen` y en el registro de autorización `secrets/data/chatbot/xai-access`; deny administrativo en su entidad |
 | Agente `chatbot-openai` | RAR obligatorio: `update` en `spiffe/role/lumen-openai/mintjwt`, audiencia OpenAI obligatoria |
@@ -171,9 +176,10 @@ Todos los caminos siguientes son KV v2, namespace `verify`, mount `secrets`:
 | Secreto | Uso |
 |---|---|
 | `verify-admin` | Aprovisionamiento por API; nunca cargado por el chatbot |
-| `chatbot/oidc`, `chatbot/research`, `chatbot/xai`, `chatbot/sts` | Credenciales OAuth privadas del servidor |
+| `chatbot/oidc`, `chatbot/research`, `chatbot/xai`, `chatbot/openai`, `chatbot/anthropic`, `chatbot/sts` | Configuración y credenciales OAuth privadas del servidor |
 | `chatbot/runtime` | Clave de almacenamiento de preferencias y mapa de grupos |
-| `chatbot/model` | Proveedor, modelo y `credential_source=vault_dynamic`; sin clave de inferencia |
+| `chatbot/model` | Catálogo y selección inicial; `vault_dynamic` para xAI, `vault_spiffe` para OpenAI/Claude; sin claves de inferencia |
+| `chatbot/task-agents`, `chatbot/contracts` | Configuración de los agentes por tarea y contratación CIBA |
 | `xai_mgmt` | Management key del plugin; el chatbot no puede leerla |
 | `xai` | Ruta estática histórica: no se crea ni se utiliza al reconstruir Lumen |
 | `tavily` | Clave obtenida por la identidad autónoma registrada |
@@ -211,25 +217,20 @@ Puedes bloquear cada recurso desde `./demo.sh block xai|database-read|database-w
 
 El ciclo histórico del 14/10 comprobó en Chrome tres consultas reales: emisión inicial, reutilización del mismo lease y sustitución por otro antes de caducar. [Ciclo de vida verificado](docs/xai-runtime-verification.json) · [Correlación Tempo/Loki](docs/xai-observability-verification.json). La suite incluye concurrencia, sustitución fallida, expiración, límite de ejecución y ausencia de retorno a la clave estática.
 
-![Histórico 14/10: reutilización de una credencial dinámica vigente](../docs/runs/20261014T162141Z/screenshots/04-xai-reuse.jpg)
-
-![Histórico 14/10: sustitución automática de la clave xAI](../docs/runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg)
-
 ## Demostración
 
-El [informe end-to-end](../docs/E2E_OPENAI_VERIFICATION.md) reúne la retirada real, la instalación, los tres logins OIDC, resultados y capturas de la reconstrucción del 15 de octubre de 2026 con OpenAI. Se probó también xAI antes de devolver el runtime a OpenAI. Los IDs históricos de otras ejecuciones no acreditan el estado actual.
+La [revisión integral del 22/10](../docs/runs/20261022T140230Z-workspace-review/README.md) documenta este recorrido con la interfaz actual, servicios reales y trazas. La [reinstalación previa del mismo día](../docs/runs/20261022T122934Z-full-e2e/README.md) contiene la retirada, el arranque desde cero y la aprobación CIBA.
 
 1. Entrar como **lumen-reader**, usando Cloud Directory. Pedir «Consulta el catálogo y el inventario». Puede leer los tres planes y los tres equipos de ejemplo. «Da el siguiente paso» bloquea la escritura localmente. «Comprobar límites en Vault» prueba nueve rutas: SQL, administración, Transit y Transform, con resultado y permiso esperado. [Matriz y capturas](../docs/PERMISSION_PROBES.md).
 2. Cambiar a **lumen-writer**. Pedir «Prepara una solicitud para Luz Noche, plan 2». El agente ofrece **Continuar solicitud**; todavía no ha guardado datos.
-3. Completar tarifa, vivienda, titular, pago y revisión. Marcar la revisión y pulsar **Guardar solicitud**. Se guarda una única solicitud ficticia protegida.
+3. Completar tarifa, vivienda, titular, pago y revisión. Marcar la revisión y pulsar **Guardar borrador**. Se guarda una única solicitud ficticia protegida.
 4. En **Solicitudes**, lector y gestor ven la bandeja compartida enmascarada. **Revelar datos** produce una denegación real de Vault para ambos.
 5. Cambiar a **lumen-supervisor**: puede revelar el mismo registro mediante Transit y Transform. Sigue sin permiso RW ni creación de solicitudes.
 6. **Una mirada más amplia** ejecuta el agente autónomo Tavily. El rol humano no le concede acceso SQL: usa su propia identidad registrada.
 7. **Ver última traza → Ver en Grafana** permite seguir modelo, herramientas, OBO, Vault y MySQL. Los enlaces usan una ventana temporal absoluta. El visor local depende de la sesión; los enlaces de Grafana duran lo que retenga Tempo.
 
-![Solicitud preparada por el agente](../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-agent-prepares.jpg)
-![Solicitud guardada](../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-save-success.jpg)
-![Agente autónomo Tavily](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-tavily.jpg)
+![Borrador guardado y flujo de llamadas](../docs/screenshots/current/writer-save-success.jpg)
+![Agente autónomo Tavily](../docs/screenshots/current/web-research.jpg)
 
 ## Solicitudes en cinco pasos
 
@@ -237,25 +238,28 @@ Los campos vacíos muestran sugerencias **aleatorias y ficticias**. **Tab** acep
 
 Cada nuevo borrador genera sus valores una vez, sin cambiarlos al volver atrás. El DNI incluye letra de control y el IBAN español tiene controles válidos con código bancario `0000` de laboratorio. La validación del servidor sigue activa. Los nombres y correos usan ejemplos ficticios y `example.invalid`; no hace falta buscar un documento ni una cuenta reales.
 
-![Dirección y sugerencias](../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-2-address.jpg)
-![DNI incorrecto rechazado](../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-invalid-dni.jpg)
-![IBAN de prueba](../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-4-payment.jpg)
-![Revisión antes de guardar](../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-5-review.jpg)
+![Dirección y sugerencias](../docs/screenshots/current/form-address.jpg)
+![DNI incorrecto rechazado](../docs/screenshots/current/form-invalid-dni.jpg)
+![IBAN de prueba](../docs/screenshots/current/form-payment.jpg)
+![Revisión antes de guardar](../docs/screenshots/current/form-review.jpg)
 
 ### Permisos independientes
+
+Esta matriz corresponde al **Modo actual**. Un agente por tarea puede restringir
+aún más cada permiso; consulta la matriz de Agentes por tarea.
 
 | Operación | Lector | Gestor | Supervisor |
 |---|---|---|---|
 | Catálogo, inventario y bandeja enmascarada | Sí | Sí | Sí |
-| Guardar solicitud | No | Sí | No |
+| Guardar borrador | No | Sí | No |
 | Transit encrypt + Transform encode | No | Sí | No |
 | Transit decrypt + Transform decode | No | No | Sí |
 | Credencial SQL RW | No | Sí | No |
 | Secreto administrativo de Verify | No | No | No |
 
-![Gestor: revelación denegada](../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg)
-![Lector: bandeja enmascarada](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-masked-application.jpg)
-![Supervisor: datos recuperados](../docs/runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg)
+![Gestor: revelación denegada](../docs/screenshots/current/writer-reveal-denied.jpg)
+![Bandeja compartida con datos enmascarados](../docs/screenshots/current/applications-masked.jpg)
+![Supervisor: datos recuperados](../docs/screenshots/current/supervisor-reveal-success.jpg)
 
 ### Qué guarda MySQL y qué hace Vault
 
@@ -269,11 +273,11 @@ Los campos del formulario no se incorporan al historial ni a los prompts. `consu
 
 **Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
 
-En la reconstrucción del 15/10 se verificaron los temas claro/oscuro, la aceptación de sugerencias mediante Tab y la aplicación a **390 px**, sin desbordamiento horizontal. El informe conserva también los valores de viewport y el cotejo del favicon.
+La revisión del 22/10 comprueba los temas claro/oscuro, ES/EN y el formulario a **390 px**, sin desbordamiento horizontal. Las capturas y sus dimensiones se registran en el manifiesto de imágenes.
 
-![Lumen a 390 px](../docs/runs/20261015T114709Z-openai-clean/screenshots/openai-mobile.jpg)
-![Lumen en modo oscuro](../docs/runs/20261015T114709Z-openai-clean/screenshots/openai-dark.jpg)
-![OpenAI, SPIFFE y OBO en Tempo](../docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
+![Lumen a 390 px](../docs/screenshots/current/home-mobile.jpg)
+![Lumen en modo oscuro](../docs/screenshots/current/home-dark.jpg)
+![OpenAI, SPIFFE y catálogo OBO en Tempo](../docs/screenshots/current/grafana-openai-trace.jpg)
 
 ## Verificación
 
@@ -301,23 +305,21 @@ real, también desde la raíz:
 ./demo.sh verify
 ```
 
-La ejecución histórica del 15/10 registró 114 pruebas de aplicación y dos subcasos,
-18 de infraestructura, 12 de xAI dinámico, ocho del bloqueo/RAR de xAI y cinco del
-intercambio/inferencia OpenAI. Esos recuentos no describen la suite actual. Los
-20 checks OBO se obtienen entrando realmente en Chrome con los tres perfiles
-cuando se inicia con `CHATBOT_VERIFY_ACCESS=1 ./demo.sh start`.
-
-La [verificación manual por script del 16/10](../docs/runs/20261016T064722Z-manual-script/README.md) pasó 102 comprobaciones con OIDC/PKCE real para los tres perfiles, sin navegador. Incluye modelos, permisos, bloqueos y correlación con audit. Para repetirla: `bash scripts/manual/rehearse.sh rebuild` desde la raíz ([guía](../docs/manual/13-repeticion-script.md)). Las capturas y la revisión visual del 15/10 se conservan como [histórico](../docs/E2E_OPENAI_VERIFICATION.md). Para inspeccionar JWT, mensajes del modelo y cada petición de Vault: [guía de observabilidad](OBSERVABILITY.md).
+Para repetir los flujos con las tres cuentas ficticias y los servicios activos,
+usa `bash scripts/manual/verify.sh`. No retira la instalación; sí crea datos de
+prueba, emite credenciales temporales y aplica/restaura los bloqueos de la demo.
+[Alcance y requisitos](../docs/manual/13-repeticion-script.md). Las matrices de
+agentes, RAR y espacios personales tienen sus verificadores en las guías enlazadas.
 
 ## Límites y adaptación
 
-Es una demo con datos ficticios, no un sistema de contratación. Los permisos SQL son de tabla, no seguridad por fila. El claim firmado y la sincronización de grupos de Vault son controles distintos. El perfil OAuth aplica `clock_skew_leeway=15` segundos, igual que el cliente; una VM con minutos de desfase debe sincronizarse antes de continuar.
+Es una demo con datos ficticios. La contratación CIBA simula una formalización; no contrata suministros ni realiza cobros. Los permisos SQL son de tabla, no seguridad por fila. El claim firmado y la sincronización de grupos de Vault son controles distintos. El perfil OAuth aplica `clock_skew_leeway=15` segundos, igual que el cliente; una VM con minutos de desfase debe sincronizarse antes de continuar.
 
 El notebook base de Verify es un ejercicio histórico separado; `start` crea las identidades de Lumen sin depender de él. Tras `remove`, las antiguas trazas y secretos del cluster dejan de existir aunque sus capturas permanezcan como archivos históricos.
 
 ## Ámbito del asistente y JWT-SVID
 
-Las consultas fuera de energía o del uso de esta demo se rechazan antes de ejecutar herramientas. Un seguimiento como «venga» conserva el rechazo; una pregunta nueva de energía puede continuar. [Control, evidencias y campos JWT-SVID de las trazas](../docs/ENERGY_SCOPE_AND_SVID.md). La validación del 15/10 registró **123 tests y dos subcasos**. La reinstalación por script del 16/10 pasó **102 comprobaciones funcionales** y se verificaron además las nueve pruebas unitarias de la retirada; son suites y alcances distintos.
+Las consultas fuera de energía o del uso de esta demo se rechazan antes de ejecutar herramientas. Un seguimiento como «venga» conserva el rechazo; una pregunta nueva de energía puede continuar. [Control, evidencias y campos JWT-SVID de las trazas](../docs/ENERGY_SCOPE_AND_SVID.md). Los resultados y el alcance de las pruebas actuales están en la revisión integral enlazada al inicio.
 ## Agentes opcionales por tarea
 
 La interfaz incluye **Agentes por tarea**, con **Modo actual** como valor inicial.

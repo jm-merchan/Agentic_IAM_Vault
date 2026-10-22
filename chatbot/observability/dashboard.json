@@ -58,22 +58,22 @@
         "x": 0,
         "y": 0,
         "w": 24,
-        "h": 4
+        "h": 6
       },
       "options": {
         "mode": "markdown",
-        "content": "Copia el **Trace ID** de [Lumen](http://localhost:8088) y pégalo arriba. **raw** muestra las rutas de la demo en verify sin HMAC; **hmac** muestra la copia protegida. Cada petición tiene request + response con el mismo request.id.\n\nEn Tempo abre **vault.read** o **vault.write**: **vault.http.request**, **vault.auth.jwt**, **vault.auth.jwt.decoded**, **vault.http.response**. Incluyen JWT y credenciales en claro en este laboratorio. En **xai.chat** u **openai.chat**: gen_ai.input.messages y gen_ai.output.messages. OpenAI añade **spiffe.mint_jwt_svid** y **openai.token_exchange**."
+        "content": "Copia el **Trace ID** de [Lumen](http://localhost:8088) y pégalo arriba. **raw** muestra las rutas seleccionadas sin HMAC; **hmac** muestra la copia protegida. Para KV personal y contratos, elige <b>hmac</b>. Cada petición tiene request + response con el mismo request.id.\n\nEn Tempo abre **vault.read** o **vault.write**: **vault.http.request**, **vault.auth.jwt**, **vault.auth.jwt.decoded**, **vault.http.response**. Incluyen JWT y credenciales en claro en este laboratorio. En **xai.chat**, **openai.chat** o **anthropic.chat**: gen_ai.input.messages y gen_ai.output.messages. OpenAI y Claude añaden **spiffe.mint_jwt_svid** y su intercambio **openai.token_exchange** o **anthropic.token_exchange**. Los contadores muestran eventos del modo de auditoría seleccionado; varias copias del mismo request.id no equivalen a varias operaciones de negocio."
       }
     },
     {
       "id": 2,
       "type": "stat",
-      "title": "Peticiones únicas a Vault",
+      "title": "Eventos de petición a Vault",
       "gridPos": {
         "x": 0,
-        "y": 4,
+        "y": 6,
         "w": 8,
-        "h": 4
+        "h": 10
       },
       "datasource": {
         "type": "loki",
@@ -82,7 +82,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(sum by (request_id) (count_over_time({service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\",audit_type=\"request\"} |= \"${trace:raw}\" | json request_id=\"request.id\" | __error__=\"\" [$__range]))) or vector(0)",
+          "expr": "sum(count_over_time({service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\",audit_type=\"request\"} |= \"${trace:raw}\" [$__range])) or vector(0)",
           "queryType": "instant"
         }
       ],
@@ -93,17 +93,18 @@
           ]
         },
         "colorMode": "value"
-      }
+      },
+      "description": "Cuenta eventos de auditoría, sin crear una serie por request.id. Las copias de un mismo request.id cuentan por separado; el detalle permite correlacionarlas."
     },
     {
       "id": 3,
       "type": "stat",
-      "title": "Respuestas denegadas por Vault",
+      "title": "Eventos de denegación de Vault",
       "gridPos": {
         "x": 8,
-        "y": 4,
+        "y": 6,
         "w": 8,
-        "h": 4
+        "h": 10
       },
       "datasource": {
         "type": "loki",
@@ -112,7 +113,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(sum by (request_id) (count_over_time({service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\",audit_type=\"response\"} |= \"${trace:raw}\" |= \"permission denied\" | json request_id=\"request.id\" | __error__=\"\" [$__range]))) or vector(0)",
+          "expr": "sum(count_over_time({service=\"vault-audit\",audit_mode=~\"${audit_mode:raw}\",audit_type=\"response\"} |= \"${trace:raw}\" |= \"permission denied\" [$__range])) or vector(0)",
           "queryType": "instant"
         }
       ],
@@ -123,7 +124,8 @@
           ]
         },
         "colorMode": "value"
-      }
+      },
+      "description": "Cuenta eventos de auditoría, sin crear una serie por request.id. Las copias de un mismo request.id cuentan por separado; el detalle permite correlacionarlas."
     },
     {
       "id": 4,
@@ -131,13 +133,13 @@
       "title": "Flujos",
       "gridPos": {
         "x": 16,
-        "y": 4,
+        "y": 6,
         "w": 8,
-        "h": 4
+        "h": 10
       },
       "options": {
         "mode": "markdown",
-        "content": "**Datos:** OBO → Vault → MySQL\n\n**Protección:** OBO → Transit / Transform\n\n**Web:** Agent Registry → Vault → Tavily"
+        "content": "**Datos:** OBO → Vault → MySQL\n\n**Protección:** OBO → Transit / Transform\n\n**Web:** Agent Registry → Vault → Tavily\n\n**Identidad del modelo:** SPIFFE → OpenAI / Claude; claves dinámicas → xAI\n\n**Contrato:** CIBA de Validador → JWT Vault → procedimiento MySQL\n\n**Espacio propio:** OBO → KV v2 por entidad humana"
       }
     },
     {
@@ -146,7 +148,7 @@
       "title": "Peticiones de Vault · detalle y enlace a la traza",
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 16,
         "w": 24,
         "h": 9
       },
@@ -176,7 +178,7 @@
       "title": "Últimas ejecuciones (todas) · abre Trace ID",
       "gridPos": {
         "x": 0,
-        "y": 17,
+        "y": 25,
         "w": 24,
         "h": 10
       },
@@ -203,7 +205,7 @@
       "title": "Audit JSON original · ${audit_mode}",
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 35,
         "w": 24,
         "h": 10
       },

@@ -1,0 +1,81 @@
+{
+  "checked_at": "2026-10-22T14:56:47.523901+00:00",
+  "scope": "Tempo/Vault HMAC metadata correlation only. No comparison of plaintext JWT or response data against HMAC values.",
+  "traces": [
+    {
+      "trace_id": "ce634d169b691d219d86bed329397983",
+      "checks": [
+        {
+          "path": "database/creds/chatbot-readonly",
+          "span_id": "829d328ed4c0e253",
+          "http_status": 200,
+          "audit_modes": [
+            "raw"
+          ],
+          "request_ids": [
+            "fb33ddc5-08e5-b697-683b-1286720f6574"
+          ],
+          "pair": true,
+          "authorization_matches": true,
+          "plaintext_values_compared": false
+        },
+        {
+          "path": "secrets/data/lumen-contracts/595373d9-ae80-7b79-8d6c-c0c36c8dc154/722db59b-a886-4122-b789-75f644b6fdbc",
+          "span_id": "5e677cf1f2eefc1c",
+          "http_status": 200,
+          "audit_modes": [
+            "hmac"
+          ],
+          "request_ids": [
+            "297c3b84-f49c-2e54-b55b-a917fbfdcd72"
+          ],
+          "pair": true,
+          "authorization_matches": true,
+          "plaintext_values_compared": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "trace_id": "1d544c8d85cc91fdab0ca0ea03846676",
+      "checks": [
+        {
+          "path": "secrets/data/lumen-personal/df340727-9942-930b-2d0c-414ede85f115/demo",
+          "span_id": "31005dfa717b33f9",
+          "http_status": 200,
+          "audit_modes": [
+            "hmac"
+          ],
+          "request_ids": [
+            "d1d8a8d2-1c93-d173-affb-828f98088253"
+          ],
+          "pair": true,
+          "authorization_matches": true,
+          "plaintext_values_compared": false
+        }
+      ],
+      "passed": true
+    },
+    {
+      "trace_id": "443249dcc7212b3821a33e12ce98b11c",
+      "checks": [
+        {
+          "path": "secrets/data/lumen-personal/595373d9-ae80-7b79-8d6c-c0c36c8dc154/demo",
+          "span_id": "ed1a36f22469d3a6",
+          "http_status": 403,
+          "audit_modes": [
+            "hmac"
+          ],
+          "request_ids": [
+            "df9e7431-d5e0-8856-212a-5844acfb0a58"
+          ],
+          "pair": true,
+          "authorization_matches": true,
+          "plaintext_values_compared": false
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

@@ -1,0 +1,317 @@
+{
+  "checked_at": "2026-10-22T15:14:56.719020+00:00",
+  "scope": "Embedded local images in active guides and notebook Markdown. Dated reports and archived Verify/Okta guides retain historical images.",
+  "embedded_images": 44,
+  "current_screenshot_references": 44,
+  "outdated_screenshot_references": 0,
+  "entries": [
+    {
+      "document": "6_Lumen_Chatbot_Vault_IAM.ipynb",
+      "caption": "Catálogo con solo lectura",
+      "image": "docs/screenshots/current/reader-openai-catalogue.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "7_Lumen_Observability.ipynb",
+      "caption": "Lector: bloqueo local",
+      "image": "docs/screenshots/current/reader-write-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "7_Lumen_Observability.ipynb",
+      "caption": "Gestor: solicitud guardada",
+      "image": "docs/screenshots/current/writer-save-success.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "7_Lumen_Observability.ipynb",
+      "caption": "Auditoría actual del Supervisor",
+      "image": "docs/screenshots/current/grafana-audit.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "7_Lumen_Observability.ipynb",
+      "caption": "OpenAI, SPIFFE y catálogo OBO en Tempo",
+      "image": "docs/screenshots/current/grafana-openai-trace.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "8_Lumen_Protected_Applications.ipynb",
+      "caption": "Revisión",
+      "image": "docs/screenshots/current/form-review.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "8_Lumen_Protected_Applications.ipynb",
+      "caption": "Gestor denegado",
+      "image": "docs/screenshots/current/writer-reveal-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "8_Lumen_Protected_Applications.ipynb",
+      "caption": "Supervisor autorizado",
+      "image": "docs/screenshots/current/supervisor-reveal-success.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "README.md",
+      "caption": "Interfaz actual de Lumen",
+      "image": "docs/screenshots/current/home.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/OBSERVABILITY.md",
+      "caption": "Lector: bloqueo local",
+      "image": "../docs/screenshots/current/reader-write-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/OBSERVABILITY.md",
+      "caption": "Gestor: guardar no permite revelar",
+      "image": "../docs/screenshots/current/writer-reveal-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/OBSERVABILITY.md",
+      "caption": "Supervisor: recuperación autorizada",
+      "image": "../docs/screenshots/current/supervisor-reveal-success.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/OBSERVABILITY.md",
+      "caption": "Auditoría del revelado: cuatro peticiones y cero denegaciones",
+      "image": "../docs/screenshots/current/grafana-audit.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/OBSERVABILITY.md",
+      "caption": "Flujo interactivo: Verify, Vault y MySQL",
+      "image": "../docs/screenshots/current/trace-flow.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/OBSERVABILITY.md",
+      "caption": "OpenAI, SPIFFE y catálogo OBO en Tempo",
+      "image": "../docs/screenshots/current/grafana-openai-trace.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Inicio de Lumen con la interfaz actual",
+      "image": "../docs/screenshots/current/home.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Lumen en inglés con EN/ES en la cabecera",
+      "image": "../docs/screenshots/current/home-en.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Borrador guardado y flujo de llamadas",
+      "image": "../docs/screenshots/current/writer-save-success.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Agente autónomo Tavily",
+      "image": "../docs/screenshots/current/web-research.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Dirección y sugerencias",
+      "image": "../docs/screenshots/current/form-address.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "DNI incorrecto rechazado",
+      "image": "../docs/screenshots/current/form-invalid-dni.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "IBAN de prueba",
+      "image": "../docs/screenshots/current/form-payment.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Revisión antes de guardar",
+      "image": "../docs/screenshots/current/form-review.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Gestor: revelación denegada",
+      "image": "../docs/screenshots/current/writer-reveal-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Bandeja compartida con datos enmascarados",
+      "image": "../docs/screenshots/current/applications-masked.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Supervisor: datos recuperados",
+      "image": "../docs/screenshots/current/supervisor-reveal-success.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Lumen a 390 px",
+      "image": "../docs/screenshots/current/home-mobile.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "Lumen en modo oscuro",
+      "image": "../docs/screenshots/current/home-dark.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "chatbot/README.md",
+      "caption": "OpenAI, SPIFFE y catálogo OBO en Tempo",
+      "image": "../docs/screenshots/current/grafana-openai-trace.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/ACCESS_BLOCKS.md",
+      "caption": "Supervisor denegado durante el bloqueo de descifrado",
+      "image": "screenshots/current/decrypt-blocked.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/ACCESS_BLOCKS.md",
+      "caption": "Misma solicitud recuperada después de retirar el bloqueo",
+      "image": "screenshots/current/supervisor-reveal-success.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/ENERGY_SCOPE_AND_SVID.md",
+      "caption": "Meteorología y continuación rechazadas",
+      "image": "screenshots/current/scope-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/ENERGY_SCOPE_AND_SVID.md",
+      "caption": "Consulta explícita del catálogo con Claude",
+      "image": "screenshots/current/claude-catalogue.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/OPENAI_SPIFFE.md",
+      "caption": "Catálogo con OpenAI y lectura OBO",
+      "image": "screenshots/current/reader-openai-catalogue.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/OPENAI_SPIFFE.md",
+      "caption": "OpenAI, SPIFFE y catálogo OBO en Tempo",
+      "image": "screenshots/current/grafana-openai-trace.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/PERMISSION_PROBES.md",
+      "caption": "Lector: SQL, Transit y Transform",
+      "image": "screenshots/current/reader-permissions.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/PERMISSION_PROBES.md",
+      "caption": "Gestor: cifrar y tokenizar, sin revelar",
+      "image": "screenshots/current/writer-permissions.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/PERMISSION_PROBES.md",
+      "caption": "Supervisor: descifrar y recuperar, sin escribir",
+      "image": "screenshots/current/supervisor-permissions.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/manual/08-claude-spiffe.md",
+      "caption": "Lumen ejecutándose con Claude y SPIFFE JWT-SVID",
+      "image": "../screenshots/current/claude-catalogue.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/manual/14-agentes-por-tarea.md",
+      "caption": "Supervisor limitado por Consulta",
+      "image": "../screenshots/current/supervisor-query-permissions.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/manual/16-espacios-personales.md",
+      "caption": "Lectura del secreto ficticio propio",
+      "image": "../screenshots/current/personal-space-read.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/manual/16-espacios-personales.md",
+      "caption": "Vault deniega el espacio de otro usuario",
+      "image": "../screenshots/current/personal-space-denied.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/manual/16-espacios-personales.md",
+      "caption": "Identidad, política y ruta del acceso denegado",
+      "image": "../screenshots/current/personal-isolation-trace.jpg",
+      "current_screenshot": true,
+      "exists": true
+    },
+    {
+      "document": "docs/manual/17-contratacion-ciba.md",
+      "caption": "Contrato ficticio persistido y disponible en otra sesión del Writer",
+      "image": "../screenshots/current/contract-persisted.jpg",
+      "current_screenshot": true,
+      "exists": true
+    }
+  ]
+}

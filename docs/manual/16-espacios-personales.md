@@ -172,3 +172,23 @@ contiene resultados, rutas y trazas, sin valores secretos.
 Referencias: [plantillas de políticas](https://developer.hashicorp.com/vault/docs/concepts/policies#templated-policies),
 [OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo) y
 [KV v2 y CAS](https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2).
+
+## Capturas actuales
+
+La [revisión del 22/10](../runs/20261022T140230Z-workspace-review/README.md) comprobó lectura propia y denegación de acceso cruzado con la interfaz actual.
+
+![Lectura del secreto ficticio propio](../screenshots/current/personal-space-read.jpg)
+
+![Vault deniega el espacio de otro usuario](../screenshots/current/personal-space-denied.jpg)
+
+### Explicación visual del aislamiento
+
+La revisión del 22/10 comprobó el panel actual en español, inglés y a 390 px.
+Supervisor con Consulta leyó su espacio (200) y Vault rechazó el de Reader (403).
+El panel distingue el UUID humano del propietario solicitado y muestra cómo se
+expande la política; la respuesta de Verify no se confunde con permiso de Vault.
+
+![Identidad, política y ruta del acceso denegado](../screenshots/current/personal-isolation-trace.jpg)
+
+[Versión en inglés](../screenshots/current/personal-isolation-en.jpg) ·
+[Vista móvil](../screenshots/current/personal-isolation-mobile.jpg).

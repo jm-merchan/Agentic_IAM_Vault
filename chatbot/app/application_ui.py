@@ -260,11 +260,24 @@ async def render_applications(services, session, guard, run_action, language=Non
             ui.label(t('Entra como gestor para completar la primera. Los borradores antiguos siguen disponibles desde el chat.')).classes('muted mt-3')
         return
 
+    latest_trace = None
+
+    def refresh_trace():
+        if latest_trace is not None and session.traces:
+            latest_trace.props(f'href=/traces/{session.traces[-1]}')
+
+    async def traced_action(name, action):
+        """Keep the inbox link on the operation just completed, including failures."""
+        try:
+            return await run_action(name, action)
+        finally:
+            refresh_trace()
+
     async def reveal(reference):
         from .services import VaultPermissionDenied
         try:
             guard()
-            profile = await run_action('lumen.application.reveal', lambda: services.reveal_application(session, reference))
+            profile = await traced_action('lumen.application.reveal', lambda: services.reveal_application(session, reference))
         except VaultPermissionDenied:
             with ui.dialog() as denied, ui.card().classes('application-dialog'):
                 ui.icon('lock', size='38px')
@@ -311,5 +324,6 @@ async def render_applications(services, session, guard, run_action, language=Non
                 ui.label(t('Titular, contacto y dirección protegidos')).classes('tiny muted mt-3')
                 ui.button(t('Revelar datos'), icon='visibility', on_click=lambda reference=row['application_id']: reveal(reference)).props('no-caps flat').classes('secondary mt-4')
                 from .contracts_ui import contract_controls
-                contract_controls(services, session, guard, run_action, row, t.language)
-    ui.link(t('Ver última traza'), '/traces/' + session.traces[-1], new_tab=True).classes('tiny mt-5')
+                contract_controls(services, session, guard, traced_action, row, t.language,
+                                  on_download=refresh_trace)
+    latest_trace = ui.link(t('Ver última traza'), '/traces/' + session.traces[-1], new_tab=True).classes('tiny mt-5')

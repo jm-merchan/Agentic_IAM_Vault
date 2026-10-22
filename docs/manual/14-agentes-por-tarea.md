@@ -62,18 +62,18 @@ otros cambios en Vault pueden restringir más. **Comprobar límites en Vault** s
 siendo la comprobación de las llamadas reales. Consultar incluye catálogo,
 inventario y solicitudes enmascaradas; revelar recupera los datos protegidos.
 
-[Panel en escritorio](../../chatbot/docs/screenshots/permission-drawer-desktop.png)
-· [Tablet](../../chatbot/docs/screenshots/permission-drawer-tablet.png)
-· [Móvil](../../chatbot/docs/screenshots/permission-drawer-mobile.png)
-· [Comprobación del panel responsive](../../chatbot/docs/permission-drawer-verification.json).
+[Panel en escritorio](../screenshots/current/permissions-desktop.jpg)
+· [Tablet](../screenshots/current/permissions-tablet.jpg)
+· [Móvil](../screenshots/current/permissions-mobile.jpg)
+· [Revisión del 22/10](../runs/20261022T140230Z-workspace-review/README.md).
 Las capturas del panel se tomaron sin sesión; comprueban la disposición y la
 selección, no los permisos efectivos de Vault.
 
-Evidencia anterior al cambio de disposición:
-[Reader + Revelado](../../chatbot/docs/screenshots/permission-matrix.png)
-· [Comprobaciones de la interfaz](../../chatbot/docs/permission-matrix-verification.json).
-[Tabla y desplegable sincronizados](../../chatbot/docs/screenshots/permission-matrix-selector.png)
-· [Verificación de la selección](../../chatbot/docs/permission-matrix-selector-verification.json).
+Comparación capturada en la interfaz actual:
+[Reader + Revelado](../screenshots/current/permission-matrix.jpg)
+· [Pruebas anteriores de la matriz](../../chatbot/docs/permission-matrix-verification.json).
+[Tabla y desplegable sincronizados](../screenshots/current/permission-matrix.jpg)
+· [Prueba anterior de selección](../../chatbot/docs/permission-matrix-selector-verification.json).
 
 **Cambio visible al activar la ampliación:** cambiar de agente comienza una
 sesión nueva. Se pierde la conversación y el borrador sin guardar de esa sesión;
@@ -227,3 +227,11 @@ arranque habitual de Lumen; no exige recrear usuarios, agentes ni el cluster.
 `LUMEN_VAULT_UI_URL` permite indicar la dirección de Vault accesible desde el
 navegador (por defecto `https://127.0.0.1:8443`, sin `/ui`). No cambia la dirección
 usada por las llamadas API. La sesión de Lumen se pierde al reiniciar la aplicación.
+
+### Techo comprobado desde la interfaz
+
+En la revisión del 22/10, Supervisor entró con **Consulta** desde el selector y
+repitió las nueve llamadas. SQL RO siguió permitido; Transit decrypt y Transform
+decode quedaron denegados, aunque el usuario puede revelar con Estándar.
+
+![Supervisor limitado por Consulta](../screenshots/current/supervisor-query-permissions.jpg)

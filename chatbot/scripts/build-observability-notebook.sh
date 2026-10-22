@@ -13,7 +13,7 @@ cell() {
 cell markdown <<'MD'
 # Lumen — permisos, audit log de Vault y trazas del agente
 
-Referencia de observabilidad; `./demo.sh` incluye estas etapas. Aprovisionamiento **Bash**, contexto Kubernetes `workshop`, namespace `lumen-observability`. Grafana 13.2.4 + Loki 3.7.8 + Tempo 2.10.8 (modo monolítico) + Alloy 1.21.0-rc.0. Se fija esta versión candidata para el laboratorio porque incorpora la corrección de pérdida de líneas stdout/stderr [grafana/alloy#7080](https://github.com/grafana/alloy/pull/7080). Aplicación instrumentada con OpenTelemetry 1.45.1. Servicios ClusterIP; accesos del navegador y OTLP mediante port-forward en `127.0.0.1`. No se publica un Ingress ni NodePort. [Verificación del 15/10](docs/E2E_OPENAI_VERIFICATION.md).
+Referencia de observabilidad; `./demo.sh` incluye estas etapas. Aprovisionamiento **Bash**, contexto Kubernetes `workshop`, namespace `lumen-observability`. Grafana 13.2.4 + Loki 3.7.8 + Tempo 2.10.8 (modo monolítico) + Alloy 1.21.0-rc.0. Se fija esta versión candidata para el laboratorio porque incorpora la corrección de pérdida de líneas stdout/stderr [grafana/alloy#7080](https://github.com/grafana/alloy/pull/7080). Aplicación instrumentada con OpenTelemetry 1.45.1. Servicios ClusterIP; accesos del navegador y OTLP mediante port-forward en `127.0.0.1`. No se publica un Ingress ni NodePort. [Revisión vigente de interfaz y servicios](docs/runs/20261022T140230Z-workspace-review/README.md).
 
 [Guía del recorrido con capturas](chatbot/OBSERVABILITY.md) · [Verificación ejecutada](chatbot/docs/observability-verification.json)
 
@@ -97,8 +97,8 @@ En IBM Verify seleccionar **Cloud Directory**. Contraseñas en `verify/secrets/c
 
 [Resultados y capturas de la reconstrucción real](docs/E2E_OPENAI_VERIFICATION.md).
 
-![Lector: bloqueo local](docs/runs/20261015T114709Z-openai-clean/screenshots/reader-write-denied.jpg)
-![Gestor: solicitud guardada](docs/runs/20261015T114709Z-openai-clean/screenshots/writer-save-success.jpg)
+![Lector: bloqueo local](docs/screenshots/current/reader-write-denied.jpg)
+![Gestor: solicitud guardada](docs/screenshots/current/writer-save-success.jpg)
 
 MD
 cell markdown <<'MD'
@@ -108,8 +108,8 @@ Copiar **Trace ID** del panel Actividad y pegarlo en el dashboard. Cada petició
 
 En un log: menú → **Show log details** → campo **TraceID** → **Abrir traza**. En Tempo: abrir el span `vault.read` → **Related logs**. El árbol muestra `deepagents.run`, llamadas `xai.chat`, `openai.chat` o `anthropic.chat`, herramientas, STS, Vault y consultas SQL o Tavily. OpenAI y Claude añaden `spiffe.mint_jwt_svid` y su intercambio `openai.token_exchange` o `anthropic.token_exchange`. El login OIDC genera una traza aparte, con usuario y rol, una vez validada su firma.
 
-![Auditoría del supervisor: cuatro operaciones permitidas](docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg)
-![SPIFFE, OpenAI y OBO](docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
+![Auditoría actual del Supervisor](docs/screenshots/current/grafana-audit.jpg)
+![OpenAI, SPIFFE y catálogo OBO en Tempo](docs/screenshots/current/grafana-openai-trace.jpg)
 
 Esto mide llamadas desde el chatbot: no instrumenta servidores internos de xAI/OpenAI, Verify, Vault o Tavily ni registra el razonamiento privado del modelo. El audit log de Vault acredita emisión/denegación de credenciales; las sentencias SQL se observan mediante spans cliente. Para auditoría independiente de SQL se necesita la auditoría propia de MySQL.
 MD
@@ -143,7 +143,7 @@ cell markdown <<'MD'
 
 Usar el ID de una consulta nueva. El informe end-to-end compara los campos capturados con Tempo y comprueba que los datos completos del formulario no se envían al modelo. El notebook se distribuye sin salidas; la celda siguiente muestra el contenido cuando se ejecuta.
 
-![Texto de entrada en el visor Lumen](docs/runs/20261014T162141Z/screenshots/25-model-input.jpg)
+[Captura histórica: Texto de entrada en el visor Lumen](docs/runs/20261014T162141Z/screenshots/25-model-input.jpg)
 MD
 cell code <<'CODE'
 %%bash

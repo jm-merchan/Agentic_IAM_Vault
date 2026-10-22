@@ -14,7 +14,7 @@ de README, scripts y notebooks. Después se completó la
 [retirada y reinstalación real del 22/10](../runs/20261022T122934Z-full-e2e/README.md),
 con tres proveedores, matrices de permisos, CIBA aprobado y comprobaciones de navegador.
 
-Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Actualizadas con el selector de proveedores, el visor interactivo y sensible de trazas y el soporte **EN/ES**, comprobado el **20 de octubre de 2026**. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
+Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Revisadas el **22 de octubre de 2026**, incluidas las capturas de la interfaz, los botones de borradores y la separación entre resultados actuales e históricos. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
 
 ## Prerrequisitos y orden
 

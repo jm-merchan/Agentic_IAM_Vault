@@ -21,11 +21,17 @@ for tid in "$@"; do
   # A standby can audit its forwarding attempt with a second request ID. The
   # active node pair is the operation that returns credentials to the client.
   jq -e 'length>0' "$OBS_TMP/spans" >/dev/null
-  # Prefer the raw copy when present; historical/protected traces remain supported.
+  # Prefer the raw copy. Exact value comparisons require that Vault route to
+  # be included in enable-audit.sh's raw filters; HMAC alone cannot prove equality.
   jq -e 'all(.[]; ._lumen_audit_mode as $mode | all((.response.data.password?, .response.data.username?, .response.data.data.TAVILY_API_KEY?)|select(.!=null); startswith("hmac-sha256:") == ($mode != "raw")))' "$OBS_TMP/audit" >/dev/null
   jq -n --slurpfile spans "$OBS_TMP/spans" --slurpfile audit "$OBS_TMP/audit" \
     -f "$HERE/scripts/verify-vault-raw.jq" > "$OBS_TMP/raw_checks"
-  jq -e 'all(.[]; .passed)' "$OBS_TMP/raw_checks" >/dev/null
+  if ! jq -e 'all(.[]; .passed)' "$OBS_TMP/raw_checks" >/dev/null; then
+    printf '%s: no se pudo acreditar la comparación completa de valores raw.\n' "$tid" >&2
+    printf 'Comprueba los filtros de enable-audit.sh; KV personal y contratos tienen auditoría HMAC.\n' >&2
+    jq '[.[] | select(.passed|not)]' "$OBS_TMP/raw_checks" >&2
+    exit 1
+  fi
   # Each client span has its matching request + response, including HTTP 403.
   jq -r '.[]|select(.name=="vault.read" or .name=="vault.write")|.spanId' "$OBS_TMP/spans" | while IFS= read -r encoded; do
     sid=$(printf '%s' "$encoded" | openssl base64 -d -A | od -An -tx1 | tr -d ' \n')

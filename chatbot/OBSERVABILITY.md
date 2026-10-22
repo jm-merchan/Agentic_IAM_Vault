@@ -1,25 +1,14 @@
 # Lumen: recorrido por usuario y trazabilidad
 
-Las operaciones de **Mi espacio de secretos** registran el sujeto OBO, el agente, la entidad propietaria solicitada y la política `lumen-personal-user`. El diagrama distingue lectura, escritura y listado, enlaza el resultado de Vault y conserva la consola de repetición. El contenido personal no se envía al modelo. La auditoría general mantiene HMAC; no se amplían los filtros raw existentes. [Recorrido](../docs/manual/16-espacios-personales.md).
+Cada acción de Lumen genera una traza con las llamadas a Verify, Vault, el
+proveedor de IA y MySQL o Tavily que correspondan. El resultado de autorización
+se demuestra con la respuesta de Vault y su auditoría. La respuesta del modelo
+por sí sola no acredita un permiso.
 
-El panel **Aislamiento del espacio personal** explica la creación de la entidad,
-el vínculo `issuer + external_id → canonical_id`, la ruta KV por UUID y la
-resolución de las identidades humana y agente desde el JWT OBO. Compara la
-plantilla humana expandida con la ruta solicitada y distingue la emisión del
-token en Verify del resultado de la llamada a Vault. Incluye el motivo del
-wildcard del Registry y la intersección con política humana y RAR, en ES/EN.
-
-Las nuevas trazas añaden `personal.subject`, `personal.issuer`, nombres del
-usuario y destinatario, `personal.actor_client_id`, nombre del techo personal y
-snapshots HCL del catálogo. Son metadatos explicativos; no capturan nuevos tokens,
-contraseñas ni valores de secretos. La proyección del RAR en este panel conserva
-solo tipo, ruta y capacidades de la ruta seleccionada. Los intercambios completos
-mantienen sus controles sensibles existentes. La expansión de la plantilla no
-consulta ni evalúa la ACL efectiva: el catálogo puede diferir de políticas
-modificadas después. Las trazas históricas no se rellenan con datos actuales y
-el resultado HTTP real se muestra por separado de la comparación de UUID.
-
-Esta guía describe el visor interactivo, las capturas sensibles y **EN/ES** de la revisión del **21 de octubre de 2026**. El [historial de validación](../docs/manual/VALIDACION.md) distingue las pruebas de interfaz de las reinstalaciones. Los informes end-to-end del [15 de octubre](../docs/E2E_OPENAI_VERIFICATION.md) y del [14 de octubre](../docs/E2E_VERIFICATION.md) conservan evidencia histórica; sus IDs no acreditan el estado actual ni garantizan que la traza siga disponible.
+Esta guía y sus capturas se revisaron el **22/10/2026** contra la interfaz en
+funcionamiento. [Evidencias y límites de la revisión](../docs/runs/20261022T140230Z-workspace-review/README.md).
+Los [informes del 14 y 15 de octubre](../docs/manual/VALIDACION.md) son históricos:
+sus IDs y capturas no describen la instalación actual.
 
 ## 1. Qué puede hacer cada usuario
 
@@ -33,22 +22,33 @@ En Verify, usar **Cloud Directory**. Las credenciales están en `verify/secrets/
 
 El bloqueo de «Da el siguiente paso» para lector/supervisor ocurre en la aplicación y no genera una petición a Vault. **Comprobar límites en Vault** hace nueve llamadas reales: SQL RO/RW, secreto administrativo, Transit encrypt/decrypt y Transform encode/decode para DNI e IBAN. Usa OBO y datos ficticios preparados durante el despliegue, por lo que también funciona sin solicitudes guardadas. La UI muestra resultado, permiso esperado y un resumen de coincidencias. Solo HTTP 403 se interpreta como denegación; un fallo del servicio se muestra como error. [Matriz y capturas actualizadas](../docs/PERMISSION_PROBES.md). **Revelar datos** también llega a Vault y produce HTTP 403 para lector/gestor.
 
-![Lector: bloqueo local](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-write-denied.jpg)
-![Gestor: guardar no permite revelar](../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg)
-![Supervisor: recuperación autorizada](../docs/runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg)
+![Lector: bloqueo local](../docs/screenshots/current/reader-write-denied.jpg)
+![Gestor: guardar no permite revelar](../docs/screenshots/current/writer-reveal-denied.jpg)
+![Supervisor: recuperación autorizada](../docs/screenshots/current/supervisor-reveal-success.jpg)
 
 ## 2. Cómo ver cada petición en el audit log
 
+El dashboard cuenta **eventos de petición** y **eventos de denegación** del modo
+seleccionado. No crea una serie por `request.id`: ese cálculo fallaba al superar
+el límite de 500 series de Loki. Varias copias del mismo ID cuentan como varios
+eventos; para contar operaciones distintas, correlaciona y deduplica `request.id`
+en el detalle o usa los informes de verificación.
+
+![Auditoría del revelado: cuatro peticiones y cero denegaciones](../docs/screenshots/current/grafana-audit.jpg)
+
+
 Abrir [Grafana](http://localhost:3000/d/lumen-iam), acceder como `lumen-admin` con la contraseña de `verify/secrets/chatbot/observability`, y pegar el **Trace ID** de Lumen en el filtro. Elegir `raw` para los intercambios del laboratorio o `hmac` para la copia protegida.
+
+Los filtros raw cubren SQL, Tavily, la prueba administrativa, Transit/Transform
+de solicitudes, SPIFFE y xAI. **KV personal y almacenamiento de contratos tienen
+auditoría HMAC**: selecciona `hmac` para ver sus decisiones. Que el cliente capture
+una petición raw en Tempo no implica que Vault la audite sin HMAC.
 
 ```logql
 {service="vault-audit", audit_mode="raw"} |= "TRACE_ID"
 ```
 
-Cada llamada tiene eventos `request` y `response` unidos por `request.id`. La cabecera `traceparent` contiene el Trace ID y Span ID del cliente. `auth.policy_results.allowed` muestra la decisión, `auth.policies` las políticas y `auth.metadata` el actor y RAR. El dashboard cuenta peticiones y denegaciones por `request.id` único para evitar duplicados tras una relectura. Las copias internas de forwarding pueden duplicar eventos: el verificador prefiere el par raw autenticado con el mismo request ID.
-
-![Cuatro operaciones permitidas del supervisor](../docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg)
-![Prueba histórica del 14/10: tres operaciones y dos denegaciones](../docs/runs/20261014T162141Z/screenshots/31-grafana-reader-denials.jpg)
+Cada llamada tiene eventos `request` y `response` unidos por `request.id`. La cabecera `traceparent` contiene el Trace ID y Span ID del cliente. `auth.policy_results.allowed` muestra la decisión, `auth.policies` las políticas y `auth.metadata` el actor y RAR. El dashboard cuenta eventos; para distinguir llamadas únicas hay que deduplicar por `request.id`. Las copias internas de forwarding pueden duplicar eventos: el verificador prefiere el par raw autenticado con el mismo request ID.
 
 ## 3. Cómo trazar lo que hace el agente
 
@@ -113,9 +113,9 @@ Las capturas HTTP reales están **sólo en memoria**, durante diez minutos desde
 
 La consola y sus mensajes están disponibles en ES/EN; nunca se traducen tokens, cabeceras, cuerpos, SQL ni respuestas del servicio. Al cambiar de paso/pestaña, cerrar o caducar la captura se vacían los editores y respuestas. Es una herramienta del visor para la persona que opera la demo; no amplía las herramientas ni los permisos del LLM.
 
-[Autenticación HTTP visible: verificación](docs/http-authentication-verification.json) · [Captura con token de ejemplo](docs/screenshots/http-authentication-visible.png).
+[Autenticación HTTP visible: verificación](docs/http-authentication-verification.json) · [Captura histórica con token de ejemplo](docs/screenshots/http-authentication-visible.png).
 
-[Informe de verificación de la consola](docs/request-workbench-verification.json) · [Captura de la interfaz](docs/screenshots/request-workbench.png).
+[Informe de verificación de la consola](docs/request-workbench-verification.json) · [Captura de la interfaz](../docs/screenshots/current/request-workbench.jpg).
 
 ### Valores de cada llamada
 
@@ -137,19 +137,17 @@ Genera una ejecución nueva después de actualizar o reiniciar Lumen. Las trazas
 
 [Ampliación de HTTP Basic](docs/trace-basic-auth-verification.json): `client_secret` visible y cabecera completa comprobada contra las credenciales mostradas y las peticiones enviadas por HTTPX.
 
-![Visor del texto ficticio descifrado por Transit](docs/screenshots/trace-sensitive-values.png)
-
 Las operaciones locales y los spans contenedores se muestran aparte. `verify.token_exchange` mide la petición STS después de obtener el token del agente; `verify.obo_exchange` contiene ambos pasos y la validación local. En trazas anteriores, el diagrama sitúa OBO después de Client Credentials y señala que su duración es inclusiva. `vault.jwks` registra la lectura de claves públicas para validar el JWT-SVID. Las duraciones anidadas no se suman; `UNSET` no equivale a una autorización verificada. El retorno indica que el cliente registró una respuesta; su descripción explica el tipo de datos previsto, sin copiar credenciales al diagrama. Una flecha del modelo representa una invocación lógica del SDK; su consola permite inspeccionar y repetir cada intento HTTP capturado.
 
 La llamada al modelo dentro de `guardrail.energy_scope` se identifica como **Clasificar la pregunta**, separada de las llamadas del agente. [Verificación del diagrama del 20/10/2026](docs/trace-flow-verification.json): consulta real a solicitudes, conversación con Claude, controles interactivos y acceso sin sesión bloqueado.
 
-![Flujo interactivo: Verify, Vault y MySQL](docs/screenshots/trace-flow.png)
+![Flujo interactivo: Verify, Vault y MySQL](../docs/screenshots/current/trace-flow.jpg)
 
-Con OpenAI, la rama de credenciales añade `spiffe.mint_jwt_svid` y `openai.token_exchange`; con Claude añade `spiffe.mint_jwt_svid` y `anthropic.token_exchange`. Las llamadas al modelo aparecen como `openai.chat` o `anthropic.chat`. La consulta del lector del 15/10, anterior al control de ámbito, tiene Trace ID `095ebb9e2bc0f1564f5e53cd328d31ed`, con 21 spans y auditoría correlacionada para SPIFFE y credenciales MySQL RO. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
+Con OpenAI, la rama de credenciales añade `spiffe.mint_jwt_svid` y `openai.token_exchange`; con Claude añade `spiffe.mint_jwt_svid` y `anthropic.token_exchange`. Las llamadas al modelo aparecen como `openai.chat` o `anthropic.chat`. La captura siguiente muestra una consulta nueva del catálogo con identidad SPIFFE y credenciales MySQL RO. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
 
 El login OIDC se registra aparte. Las operaciones directas del formulario o los botones de catálogo/Tavily no necesitan pasar por el LLM. Las trazas muestran llamadas del cliente; no instrumentan los procesos internos de Verify, Vault, MySQL, xAI, OpenAI o Tavily. El audit log de Vault aporta evidencia independiente de la autorización. No se captura razonamiento privado del modelo.
 
-![OpenAI: identidad SPIFFE, herramientas y OBO SQL RO](../docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
+![OpenAI, SPIFFE y catálogo OBO en Tempo](../docs/screenshots/current/grafana-openai-trace.jpg)
 
 ## 4. Reproducir el despliegue
 
@@ -164,7 +162,7 @@ Alloy se fija en **1.21.0-rc.0** para incorporar [grafana/alloy#7080](https://gi
 
 ## 5. Evidencia y comprobaciones
 
-El [directorio de ejecución](../docs/runs/20261015T114709Z-openai-clean/all-ui-observability.json) conserva los resultados sin credenciales. El verificador compara Tempo con Loki, los JWT del cliente con `auth.client_token`, los cuerpos de petición/respuesta y el par de audit events de cada span, incluidas las denegaciones.
+La [revisión integral del 22/10](../docs/runs/20261022T140230Z-workspace-review/README.md) conserva los resultados y sus límites. El [informe histórico del 15/10](../docs/runs/20261015T114709Z-openai-clean/all-ui-observability.json) mantiene la evidencia de aquella instalación. El verificador compara Tempo con Loki, los JWT del cliente con `auth.client_token`, los cuerpos de petición/respuesta y el par de audit events de cada span, incluidas las denegaciones.
 
 ```bash
 # Sustituir por el identificador de una ejecución propia:
@@ -173,6 +171,12 @@ bash chatbot/scripts/verify-observability.sh "$TRACE_ID"
 ```
 
 El visor de Lumen pertenece a la sesión en memoria. Tras reiniciar/cambiar sesión, usar los enlaces de Grafana del informe. Tempo y Loki retienen siete días; después de otro `remove`, solo permanecen los archivos de evidencia del workspace.
+
+`verify-observability.sh` exige comparar también los valores completos de las
+rutas capturadas raw por el cliente. Si una traza incluye KV personal o contratos,
+esa comparación falla porque la copia de Vault está protegida con HMAC. Para esas
+rutas se pueden correlacionar Trace ID, Span ID, ruta, `request.id`, decisión y
+pareja request/response; esa correlación no acredita igualdad de valores en claro.
 
 ## 6. Recorrido interactivo actual
 
@@ -198,11 +202,9 @@ El control `guardrail.energy_scope` precede al agente conversacional. Su llamada
 | `gen_ai.tool.call.arguments`, `gen_ai.tool.call.result` | Entrada/salida de cada herramienta |
 | `lumen.model.parameters`, `gen_ai.usage.*` | Parámetros y consumo devueltos por el proveedor |
 
-Desplegar `xai.chat` u `openai.chat` en Tempo, según el proveedor, o la llamada numerada en el visor de Lumen. Estos atributos de telemetría se toman en el callback de LangChain antes de invocar el SDK y se filtran. La consola del visor añade, por separado y sólo en memoria, el cuerpo HTTP final sin ese filtrado, con cada intento del SDK. Cada campo indica `.truncated`, `.original_bytes` y `.captured_bytes`.
+Desplegar `xai.chat`, `openai.chat` o `anthropic.chat` en Tempo, según el proveedor, o la llamada numerada en el visor de Lumen. Estos atributos de telemetría se toman en el callback de LangChain antes de invocar el SDK y se filtran. La consola del visor añade, por separado y sólo en memoria, el cuerpo HTTP final sin ese filtrado, con cada intento del SDK. Cada campo indica `.truncated`, `.original_bytes` y `.captured_bytes`.
 
 Los mensajes y resultados se conservan para explicar el flujo. Los filtros del LLM ocultan credenciales conocidas; no garantizan detectar cualquier dato escrito libremente. Los campos del formulario se recogen fuera del chat y `consultar_solicitudes` devuelve solo la proyección enmascarada. Se comparó esta entrada con los datos ficticios guardados y con Tempo.
-
-![Ejemplo histórico 14/10: entrada del modelo](../docs/runs/20261014T162141Z/screenshots/25-model-input.jpg)
 
 ## 8. Intercambios completos con Vault y JWT sin HMAC
 
@@ -248,6 +250,25 @@ La comprobación de almacenamiento confirma ciphertext y tokens en MySQL, cuatro
 
 `chatbot-xai` usa Client Credentials con RAR obligatorio → autorización en `secrets/data/chatbot/xai-access` → `xai/creds/lumen?ttl=300` cuando necesita una clave. Se reutiliza la clave en memoria si Vault permite la lectura de autorización, coincide la generación y quedan más de 210 s. El plugin no renueva leases: la sustitución cambia la clave y el lease. Vault elimina la anterior al caducar; no hay fallback estático. [Bloqueos por CLI y comprobación con JWT ya emitidos](../docs/ACCESS_BLOCKS.md).
 
-`model.credentials` registra `cache_hit`, `refresh_reason`, lease anterior/nuevo y vigencia restante. La prueba de 60 s confirma inferencia real y rechazo de la clave caducada por xAI. La prueba histórica de interfaz del 14/10 confirma reutilización y sustitución **antes** de expirar, con ambos eventos correlacionados con Vault. La reconstrucción del 15/10 repitió los 12 checks de ciclo de vida y ocho de RAR/bloqueo; sus informes están en la verificación actual.
+`model.credentials` registra `cache_hit`, `refresh_reason`, lease anterior/nuevo y vigencia restante. La prueba de 60 s confirma inferencia real y rechazo de la clave caducada por xAI. La prueba histórica de interfaz del 14/10 confirma reutilización y sustitución **antes** de expirar, con ambos eventos correlacionados con Vault. La reconstrucción del 15/10 repitió los 12 checks de ciclo de vida y ocho de RAR/bloqueo; sus informes conservan la fecha de aquella ejecución. Los resultados de la instalación actual se enlazan en la revisión del 22/10.
 
-![Ejemplo histórico 14/10: sustitución automática del secreto dinámico](../docs/runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg)
+## 11. Aislamiento de espacios personales
+
+Las operaciones de **Mi espacio de secretos** registran el sujeto OBO, el agente, la entidad propietaria solicitada y la política `lumen-personal-user`. El diagrama distingue lectura, escritura y listado, enlaza el resultado de Vault y conserva la consola de repetición. El contenido personal no se envía al modelo. La auditoría general mantiene HMAC; no se amplían los filtros raw existentes. [Recorrido](../docs/manual/16-espacios-personales.md).
+
+El panel **Aislamiento del espacio personal** explica la creación de la entidad,
+el vínculo `issuer + external_id → canonical_id`, la ruta KV por UUID y la
+resolución de las identidades humana y agente desde el JWT OBO. Compara la
+plantilla humana expandida con la ruta solicitada y distingue la emisión del
+token en Verify del resultado de la llamada a Vault. Incluye el motivo del
+wildcard del Registry y la intersección con política humana y RAR, en ES/EN.
+
+Las nuevas trazas añaden `personal.subject`, `personal.issuer`, nombres del
+usuario y destinatario, `personal.actor_client_id`, nombre del techo personal y
+snapshots HCL del catálogo. Son metadatos explicativos; no capturan nuevos tokens,
+contraseñas ni valores de secretos. La proyección del RAR en este panel conserva
+solo tipo, ruta y capacidades de la ruta seleccionada. Los intercambios completos
+mantienen sus controles sensibles existentes. La expansión de la plantilla no
+consulta ni evalúa la ACL efectiva: el catálogo puede diferir de políticas
+modificadas después. Las trazas históricas no se rellenan con datos actuales y
+el resultado HTTP real se muestra por separado de la comparación de UUID.

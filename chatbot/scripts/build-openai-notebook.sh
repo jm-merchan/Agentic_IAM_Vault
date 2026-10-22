@@ -120,7 +120,7 @@ En [Organization → Security → Workload Identity Provider](https://platform.o
 
 Si la confianza ya existe, comprobarla y reutilizarla. `remove` conserva estos recursos externos y sus IDs. Al recrear Vault, cambia el `kid`; el mismo issuer publica el nuevo JWKS.
 
-![Proveedor y mapping configurados](docs/runs/20261015-openai-spiffe/screenshots/openai-mapping-created.jpg)
+[Captura histórica: Proveedor y mapping configurados](docs/runs/20261015-openai-spiffe/screenshots/openai-mapping-created.jpg)
 MD
 cell code <<'CODE'
 %%bash
@@ -179,7 +179,7 @@ CODE
 cell markdown <<'MD'
 ## 9. Recorrido de casos de uso
 
-Lumen toma el idioma inicial del navegador y ofrece **EN / ES** arriba a la derecha. La elección guardada tiene prioridad y se aplica a la interfaz y siguientes respuestas de OpenAI, xAI o Claude. **Continue application**, **Save application** y **View latest trace** corresponden a **Continuar solicitud**, **Guardar solicitud** y **Ver última traza**. El cambio conserva conversación y formulario, y no modifica la federación ni los permisos. [Comprobaciones bilingües](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+Lumen toma el idioma inicial del navegador y ofrece **EN / ES** arriba a la derecha. La elección guardada tiene prioridad y se aplica a la interfaz y siguientes respuestas de OpenAI, xAI o Claude. **Continue application**, **Save draft** y **View latest trace** corresponden a **Continuar solicitud**, **Guardar borrador** y **Ver última traza**. El cambio conserva conversación y formulario, y no modifica la federación ni los permisos. [Comprobaciones bilingües](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
 Abrir **http://localhost:8088**, login Verify **Cloud Directory**. Consultar las credenciales en Vault `verify/secrets/chatbot/users/{reader,writer,supervisor}` fuera del notebook.
 

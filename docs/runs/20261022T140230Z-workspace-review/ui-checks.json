@@ -1,0 +1,242 @@
+{
+  "checks": [
+    {
+      "name": "reader_permissions",
+      "checked_at": "2026-10-22T14:05:48.867Z",
+      "passed": true,
+      "matched": 9,
+      "trace": "ad1c89aa75b3e3a53eafa2d05b327272"
+    },
+    {
+      "name": "openai_catalogue",
+      "checked_at": "2026-10-22T14:06:35.218Z",
+      "passed": true,
+      "trace": "4bbb2f508ef00a639aaf259d4a00fec5"
+    },
+    {
+      "name": "http_public_jwks_replay",
+      "checked_at": "2026-10-22T14:10:52.796Z",
+      "passed": true,
+      "status": 200
+    },
+    {
+      "name": "personal_space",
+      "checked_at": "2026-10-22T14:11:53.228Z",
+      "own_http": 200,
+      "cross_http": 403,
+      "passed": true
+    },
+    {
+      "name": "scope_denial",
+      "checked_at": "2026-10-22T14:12:17.010Z",
+      "passed": true,
+      "first_trace": "5325f882f4ff15465566ccaaf13afce1",
+      "followup_trace": "072ebd58dd24862d7dd3f7d337ade0e9"
+    },
+    {
+      "name": "claude_catalogue",
+      "checked_at": "2026-10-22T14:12:34.856Z",
+      "passed": true,
+      "trace": "/traces/87752c6d6180d2866c6816b3299f9845"
+    },
+    {
+      "name": "writer_permissions",
+      "checked_at": "2026-10-22T14:13:25.667Z",
+      "passed": true,
+      "matched": 9,
+      "trace": "/traces/a783d022e153f381a0fe05559c7e4d7b"
+    },
+    {
+      "name": "form_language_preserves_step_value",
+      "checked_at": "2026-10-22T14:13:51.310Z",
+      "passed": true,
+      "step": 2,
+      "value": "Calle Revisión Lumen"
+    },
+    {
+      "name": "form_invalid_dni",
+      "checked_at": "2026-10-22T14:14:21.169Z",
+      "passed": true
+    },
+    {
+      "name": "form_mobile",
+      "checked_at": "2026-10-22T14:15:53.336Z",
+      "dimensions": {
+        "content": 1270,
+        "viewport": 1270
+      },
+      "valid_mobile_evidence": false,
+      "superseded_by": "form_mobile_after_update",
+      "note": "La primera medición seguía en escritorio; se repitió a 390 px."
+    },
+    {
+      "name": "form_mobile_verified",
+      "checked_at": "2026-10-22T14:16:23.260Z",
+      "passed": true,
+      "viewport": 390,
+      "content": 390
+    },
+    {
+      "name": "writer_save",
+      "checked_at": "2026-10-22T14:16:40.031Z",
+      "passed": true,
+      "application_id": "f0bd7519-28cc-411f-b583-7ce73cb2b0dd",
+      "trace": "225d0b33c39d5c75c617ab0273c0d703"
+    },
+    {
+      "name": "writer_reveal_denied",
+      "checked_at": "2026-10-22T14:17:52.189Z",
+      "passed": true,
+      "initial_list_trace": "/traces/9565de7fea1764f98e7cda15377483cc",
+      "note": "El diálogo denegó el acceso, pero el pie aún apuntaba a la carga. La traza correcta está en writer_reveal_denied_vault; el defecto se corrigió.",
+      "superseded_by": "inbox_trace_after_denial"
+    },
+    {
+      "name": "writer_reveal_denied_vault",
+      "checked_at": "2026-10-22T14:18:02.316Z",
+      "passed": true,
+      "trace": "3e4ac513bd45feb89e07a93892f57301",
+      "expected_http": 403
+    },
+    {
+      "name": "contract_browser_download",
+      "checked_at": "2026-10-22T14:18:32.772Z",
+      "application_id": "ad9c123c-8536-4283-a56b-4bb5c167cb6e",
+      "download_event_confirmed": false,
+      "note": "La herramienta no recibió un evento de descarga en 15 s; no se acredita recepción del archivo."
+    },
+    {
+      "name": "rar_allowed_parameters",
+      "checked_at": "2026-10-22T14:21:04.808Z",
+      "passed": true,
+      "control_http": 200
+    },
+    {
+      "name": "rar_trace_link",
+      "checked_at": "2026-10-22T14:21:28.455Z",
+      "passed": true,
+      "trace": "/traces/a000867538c2554a3b59e9359c93ec20?span=23d46834986b00a8"
+    },
+    {
+      "name": "trace_mobile",
+      "checked_at": "2026-10-22T14:21:33.221Z",
+      "passed": true,
+      "viewport": 390,
+      "content": 390
+    },
+    {
+      "name": "xai_inference",
+      "checked_at": "2026-10-22T14:22:19.567Z",
+      "passed": true,
+      "trace": "/traces/592992fa6e422ee48c057c20efeba024"
+    },
+    {
+      "name": "tavily_research",
+      "checked_at": "2026-10-22T14:23:18.472Z",
+      "passed": true,
+      "trace": "de86feea78e2d815552777e6fb53c5dc"
+    },
+    {
+      "name": "supervisor_permissions",
+      "checked_at": "2026-10-22T14:24:02.517Z",
+      "passed": true,
+      "matched": 9,
+      "trace": "/traces/56a7dc2077028b8df7baa248f4870983"
+    },
+    {
+      "name": "decrypt_blocked",
+      "checked_at": "2026-10-22T14:24:40.714Z",
+      "passed": true,
+      "trace": "/traces/d2f4b22d47d1744755e2613a0107bbe0"
+    },
+    {
+      "name": "supervisor_reveal",
+      "checked_at": "2026-10-22T14:25:59.754Z",
+      "passed": true,
+      "application_id": "f0bd7519-28cc-411f-b583-7ce73cb2b0dd",
+      "trace": "/traces/3945c7cf5b619c24032238b10289f6c2"
+    },
+    {
+      "name": "reveal_dialog_removed",
+      "checked_at": "2026-10-22T14:26:08.372Z",
+      "passed": true
+    },
+    {
+      "name": "grafana_trace",
+      "checked_at": "2026-10-22T14:27:35.999Z",
+      "passed": true,
+      "trace": "3945c7cf5b619c24032238b10289f6c2"
+    },
+    {
+      "name": "openai_catalogue_after_update",
+      "checked_at": "2026-10-22T14:40:35.844Z",
+      "passed": true,
+      "trace": "85b32fb90b4a2f342b82987071afc49a"
+    },
+    {
+      "name": "inbox_trace_after_denial",
+      "checked_at": "2026-10-22T14:42:08.866Z",
+      "passed": true,
+      "before": "/traces/fd893d402e41e45a7ea8f9655cf1097a",
+      "after": "/traces/d8443e77c549043224a11df88c49a51c"
+    },
+    {
+      "name": "inbox_trace_after_pdf",
+      "checked_at": "2026-10-22T14:47:12.227Z",
+      "passed": true,
+      "before": "/traces/d8443e77c549043224a11df88c49a51c",
+      "after": "/traces/ce634d169b691d219d86bed329397983",
+      "download_receipt_confirmed": false
+    },
+    {
+      "name": "form_mobile_after_update",
+      "checked_at": "2026-10-22T14:48:42.119Z",
+      "passed": true,
+      "content": 390,
+      "viewport": 390
+    },
+    {
+      "name": "claude_after_update",
+      "checked_at": "2026-10-22T14:55:17.909Z",
+      "passed": true,
+      "trace": "48c189cf712ada6b3c063a2ee9ff9394"
+    },
+    {
+      "name": "task_agent_login_switch",
+      "checked_at": "2026-10-22T14:55:42.849Z",
+      "passed": true,
+      "role": "supervisor",
+      "agent": "read",
+      "expected": "Consultar"
+    },
+    {
+      "name": "task_agent_live_permissions",
+      "checked_at": "2026-10-22T14:56:16.951Z",
+      "passed": true,
+      "trace": "/traces/8a94085605c10c909f3eb31858cd53ca"
+    },
+    {
+      "name": "personal_isolation_mobile_en",
+      "checked_at": "2026-10-22T14:59:59.103Z",
+      "passed": true,
+      "content": 390,
+      "viewport": 390,
+      "trace": "8fd8360ae7bdff090bf90b22d4661094"
+    },
+    {
+      "name": "permissions_mobile_stable",
+      "checked_at": "2026-10-22T15:02:53.416Z",
+      "passed": true,
+      "viewport": 390,
+      "drawer_width": 390,
+      "close_button_visible": true
+    },
+    {
+      "name": "trace_language_preserves_linked_span",
+      "checked_at": "2026-10-22T15:04:10.904Z",
+      "passed": true,
+      "trace": "/traces/0b2d6fba2bf1bdf60a4be2f4024e85b7?span=57359cad2ba74ed8",
+      "selectedEnglish": "true"
+    }
+  ]
+}

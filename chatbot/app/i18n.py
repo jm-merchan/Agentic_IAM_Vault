@@ -33,7 +33,7 @@ def request_language(request) -> str:
 
 
 def safe_return_path(path: str) -> str:
-    return path if path in {'/', '/solicitud', '/solicitudes', '/laboratorio-rar', '/mi-espacio'} or re.fullmatch(r'/traces/[0-9a-f]{32}', path) else '/'
+    return path if path in {'/', '/solicitud', '/solicitudes', '/laboratorio-rar', '/mi-espacio'} or re.fullmatch(r'/traces/[0-9a-f]{32}(?:\?span=[0-9a-f]{16})?', path) else '/'
 
 
 # Templates are only matched against authored display text, never capture values.
@@ -92,13 +92,17 @@ def page_language(request, session=None):
 def language_switch(request, t, is_busy=lambda: False):
     from nicegui import ui
     from urllib.parse import urlencode
+    return_path = request.url.path
+    selected_span = request.query_params.get('span', '')
+    if re.fullmatch(r'/traces/[0-9a-f]{32}', return_path) and re.fullmatch(r'[0-9a-f]{16}', selected_span):
+        return_path += '?' + urlencode({'span': selected_span})
     with ui.element('div').classes('language-switch').props(t.props('role=group aria-label="Idioma"')):
         for code in ('en', 'es'):
             def choose(code=code):
                 if is_busy():
                     ui.notify(t('Espera a que termine la operación para cambiar de idioma.'))
                     return
-                ui.navigate.to('/language/' + code + '?' + urlencode({'next': request.url.path}))
+                ui.navigate.to('/language/' + code + '?' + urlencode({'next': return_path}))
             ui.button(code.upper(), color=None, on_click=choose).props(
                 f'flat no-caps aria-label="{"English" if code == "en" else "Español"}" aria-pressed="{str(code == t.language).lower()}"'
             ).classes('language-option' + (' language-active' if code == t.language else ''))

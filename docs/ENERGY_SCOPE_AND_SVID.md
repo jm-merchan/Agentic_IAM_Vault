@@ -1,6 +1,8 @@
 # Ámbito de Lumen y JWT-SVID en las trazas
 
-Guía actualizada el **20 de octubre de 2026** para el selector OpenAI/xAI/Claude, el visor de capturas y **EN/ES**. La configuración cargada determina el modelo de cada proveedor; la interfaz permite seleccionarlo entre los perfiles disponibles. Los resultados y capturas del 15/10 se conservan como evidencia histórica. La búsqueda Tavily mantiene sus cuatro temas públicos de energía.
+La clasificación de ámbito usa el proveedor seleccionado en Lumen. Las capturas
+de esta guía se renovaron el **22/10/2026**. La búsqueda pública sobre energía
+está dentro del ámbito; los permisos de datos siguen dependiendo de Vault.
 
 ## Control antes del agente
 
@@ -14,7 +16,7 @@ El clasificador añade una llamada al modelo por consulta normal y comparte el p
 
 En las trazas: `guardrail.energy_scope`, con `guardrail.allowed`, `guardrail.category`, `guardrail.stage` y, para la continuación local, `guardrail.rule=blocked_followup`. La llamada de clasificación `openai.chat`, `xai.chat` o `anthropic.chat` es hija de ese span y conserva entrada/salida según el modo de captura del modelo. El idioma elegido se indica al agente para sus nuevas respuestas; no reescribe el historial ni los datos de herramientas. Las respuestas de catálogo/propuesta las construye el servidor en ese idioma después de una consulta autorizada actual. [Comprobaciones bilingües](manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
-![Meteorología y continuación rechazadas](runs/20261015-energy-scope-svid/screenshots/weather-and-followup-blocked.jpg)
+![Meteorología y continuación rechazadas](screenshots/current/scope-denied.jpg)
 
 ## Ver el JWT-SVID
 
@@ -35,16 +37,20 @@ El JWT de Verify presentado **a Vault** sigue en `vault.auth.jwt`; es distinto d
 
 **Ver en Grafana** abre la misma traza de Tempo. Los campos raw dependen de `LUMEN_TRACE_VAULT_RAW=1`, ya habilitado en este laboratorio; con `0` desaparecen token y claims completos de nuevas trazas. Los datos grandes conservan indicadores de truncado. Las trazas anteriores no se reescriben: en ellas el JWT-SVID estaba dentro de `vault.http.response`, no en estos campos explícitos.
 
-![JWT-SVID y claims en el visor local](runs/20261015-energy-scope-svid/screenshots/jwt-svid-expanded.jpg)
+[Captura histórica: JWT-SVID y claims en el visor local](runs/20261015-energy-scope-svid/screenshots/jwt-svid-expanded.jpg)
 
 ## Verificación
 
-Los resultados y capturas siguientes corresponden al 15/10. La [reinstalación manual del 16/10](manual/VALIDACION.md) volvió a comprobar el rechazo de meteorología y su continuación, así como firma/sujeto del SVID y su ausencia en los prompts. Sus [trazas](runs/20261016T064722Z-manual-script/TRAZAS.md) pertenecen a aquel despliegue y pueden haber caducado o haberse eliminado. La [verificación de idiomas del 20/10](../chatbot/docs/language-verification.json) añade pruebas locales de rechazo en ambos idiomas y comprobaciones reales de las respuestas; no repite toda la evaluación adversarial del 15/10.
+La [revisión integral del 22/10](runs/20261022T140230Z-workspace-review/README.md)
+registra rechazo de meteorología, continuación bloqueada y recuperación con una
+petición explícita de catálogo. También conserva un falso rechazo de OpenAI a
+una búsqueda de autoconsumo solar y a preguntas de arquitectura OBO de Lumen.
+La política aclara ambos casos y el clasificador OpenAI usa temperatura 0;
+la conversación conserva su configuración. Se repitieron 16 casos del proveedor
+inicial y 48 casos con formulaciones adicionales entre los tres proveedores.
+El rechazo del clasificador no acredita una denegación de Vault.
 
-- 123 tests y dos subcasos correctos.
-- 12/12 decisiones con OpenAI real: meteorología, continuación antigua, continuación rechazada, intento de cambiar las instrucciones, mezcla de temas, programación general y seis casos permitidos.
-- Seis comprobaciones del JWT-SVID: coincide con la respuesta de Vault y con `subject_token`, firma y sujeto válidos, captura completa y ausencia en los mensajes del modelo.
-- [Evaluación reproducible](runs/20261015-energy-scope-svid/live-evaluation.json) y [correlación real con la auditoría de Vault](runs/20261015-energy-scope-svid/live-audit-correlation.json).
+Para repetir la evaluación del proveedor inicial configurado:
 
 ```bash
 # Con la demo arrancada; hace llamadas reales al proveedor activo.
@@ -55,8 +61,9 @@ El script usa una sesión técnica solo para emitir la identidad del modelo y ev
 
 Referencia: [OpenAI function calling y selección de herramientas](https://developers.openai.com/api/docs/guides/function-calling#tool-choice). La salida estructurada del clasificador tiene una única función de decisión; el código de aplicación aplica esa decisión antes de ejecutar Deep Agents.
 
-En Chrome se repitieron exactamente «cuál es el tiempo en palencia hoy?» y «venga»: ambas se rechazaron. La primera traza tiene nueve spans y solo la emisión SPIFFE como operación de Vault; la segunda tiene tres spans, sin modelo ni Vault. Después, una consulta nueva del catálogo produjo 17 spans, con `tool.consultar_planes`, OBO y SELECT real. [Resumen de interfaz](runs/20261015-energy-scope-svid/summary.json) · [Correlación con Vault](runs/20261015-energy-scope-svid/ui-audit-correlation.json).
+![Consulta explícita del catálogo con Claude](screenshots/current/claude-catalogue.jpg)
 
-![Una pregunta nueva sobre energía vuelve a consultar el catálogo](runs/20261015-energy-scope-svid/screenshots/energy-after-rejection.jpg)
-
-[Ver esta ejecución en Grafana, con su JWT-SVID](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22a5a1c2a61667d24b87c40646847ef89b%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221792069640942%22%2C%22to%22%3A%221792069772181%22%7D%7D%7D). El enlace local al visor depende de la sesión; Grafana conserva la traza mientras dure la retención.
+El [ensayo adversarial del 15/10](runs/20261015-energy-scope-svid/live-evaluation.json)
+y su [correlación de auditoría](runs/20261015-energy-scope-svid/live-audit-correlation.json)
+son evidencia histórica. Abre **Ver última traza** en tu propia sesión para
+inspeccionar una ejecución vigente.

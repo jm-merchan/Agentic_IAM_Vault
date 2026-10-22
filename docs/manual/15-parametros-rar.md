@@ -119,8 +119,8 @@ se conservan en el directorio privado de estado, separadas de las sesiones UI.
 
 La [verificación de interfaz](../../chatbot/docs/rar-parameters-ui-verification.json)
 recoge pruebas en Chrome, cambio ES/EN, enlace al paso de Vault y adaptación a
-390 px. [Vista de reglas y resultados](../../chatbot/docs/screenshots/rar-parameters-desktop.png)
-· [Vista de la traza](../../chatbot/docs/screenshots/rar-parameters-trace.png).
+390 px. [Vista de reglas y resultados](../screenshots/current/rar-parameters.jpg)
+· [Vista de la traza](../screenshots/current/rar-trace.jpg).
 
 Referencias: [especificación RAR](https://developer.hashicorp.com/vault/ai/iam/reference/rar-type-specification),
 [evaluación de restricciones](https://developer.hashicorp.com/vault/ai/iam/concepts/rar/enforcement).

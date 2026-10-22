@@ -1,0 +1,704 @@
+[
+  {
+    "document": "chatbot/README.md",
+    "caption": "Lumen: catálogo obtenido por OBO con permisos de lectura",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg",
+    "line": 25
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Lumen en inglés con EN/ES en la cabecera",
+    "image": "docs/screenshots/lumen-en.png",
+    "line": 60
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Histórico 14/10: reutilización de una credencial dinámica vigente",
+    "image": "../docs/runs/20261014T162141Z/screenshots/04-xai-reuse.jpg",
+    "line": 214
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Histórico 14/10: sustitución automática de la clave xAI",
+    "image": "../docs/runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg",
+    "line": 216
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Solicitud preparada por el agente",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-agent-prepares.jpg",
+    "line": 230
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Solicitud guardada",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-save-success.jpg",
+    "line": 231
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Agente autónomo Tavily",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-tavily.jpg",
+    "line": 232
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Dirección y sugerencias",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-2-address.jpg",
+    "line": 240
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "DNI incorrecto rechazado",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-invalid-dni.jpg",
+    "line": 241
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "IBAN de prueba",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-4-payment.jpg",
+    "line": 242
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Revisión antes de guardar",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/wizard-5-review.jpg",
+    "line": 243
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Gestor: revelación denegada",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg",
+    "line": 256
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Lector: bandeja enmascarada",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-masked-application.jpg",
+    "line": 257
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Supervisor: datos recuperados",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg",
+    "line": 258
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Lumen a 390 px",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/openai-mobile.jpg",
+    "line": 274
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "Lumen en modo oscuro",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/openai-dark.jpg",
+    "line": 275
+  },
+  {
+    "document": "chatbot/README.md",
+    "caption": "OpenAI, SPIFFE y OBO en Tempo",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg",
+    "line": 276
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Lector: bloqueo local",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-write-denied.jpg",
+    "line": 36
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Gestor: guardar no permite revelar",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg",
+    "line": 37
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Supervisor: recuperación autorizada",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg",
+    "line": 38
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Cuatro operaciones permitidas del supervisor",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg",
+    "line": 50
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Prueba histórica del 14/10: tres operaciones y dos denegaciones",
+    "image": "../docs/runs/20261014T162141Z/screenshots/31-grafana-reader-denials.jpg",
+    "line": 51
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Captura con token de ejemplo",
+    "image": "docs/screenshots/http-authentication-visible.png",
+    "line": 116
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Captura de la interfaz",
+    "image": "docs/screenshots/request-workbench.png",
+    "line": 118
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Visor del texto ficticio descifrado por Transit",
+    "image": "docs/screenshots/trace-sensitive-values.png",
+    "line": 140
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Flujo interactivo: Verify, Vault y MySQL",
+    "image": "docs/screenshots/trace-flow.png",
+    "line": 146
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "OpenAI: identidad SPIFFE, herramientas y OBO SQL RO",
+    "image": "../docs/runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg",
+    "line": 152
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Ejemplo histórico 14/10: entrada del modelo",
+    "image": "../docs/runs/20261014T162141Z/screenshots/25-model-input.jpg",
+    "line": 205
+  },
+  {
+    "document": "chatbot/OBSERVABILITY.md",
+    "caption": "Ejemplo histórico 14/10: sustitución automática del secreto dinámico",
+    "image": "../docs/runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg",
+    "line": 253
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "RAR xAI y rechazo de Vault antes del LLM",
+    "image": "runs/20261015-rar-blocks/screenshots/xai-blocked-trace.jpg",
+    "line": 114
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "La misma traza en Grafana: seis spans y rechazo en vault.read, sin llamada al modelo",
+    "image": "runs/20261015-rar-blocks/screenshots/grafana-xai-blocked.jpg",
+    "line": 116
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "Guardar solicitud denegado por Vault",
+    "image": "runs/20261015-rar-blocks/screenshots/database-write-blocked.jpg",
+    "line": 120
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "Solicitud guardada después de desbloquear",
+    "image": "runs/20261015-rar-blocks/screenshots/database-write-restored.jpg",
+    "line": 122
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "Descifrado denegado para el supervisor",
+    "image": "runs/20261015-rar-blocks/screenshots/decrypt-blocked.jpg",
+    "line": 126
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "Descifrado restaurado — todos los valores son ficticios",
+    "image": "runs/20261015-rar-blocks/screenshots/decrypt-restored.jpg",
+    "line": 128
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "Lectura SQL bloqueada",
+    "image": "runs/20261015-rar-blocks/screenshots/database-read-blocked.jpg",
+    "line": 128
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "Clave xAI reutilizada con reautorización",
+    "image": "runs/20261015-rar-blocks/screenshots/xai-rar-reuse.jpg",
+    "line": 128
+  },
+  {
+    "document": "docs/ACCESS_BLOCKS.md",
+    "caption": "xAI recuperado",
+    "image": "runs/20261015-rar-blocks/screenshots/xai-restored.jpg",
+    "line": 128
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Lector y catálogo/inventario",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg",
+    "line": 50
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Permisos del lector",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-permissions.jpg",
+    "line": 52
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Escritura denegada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-write-denied.jpg",
+    "line": 52
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Lectura bloqueada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-database-blocked.jpg",
+    "line": 52
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Lectura restaurada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-database-restored.jpg",
+    "line": 52
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Tavily",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-tavily.jpg",
+    "line": 52
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Revisión del formulario",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/wizard-5-review.jpg",
+    "line": 56
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Preparación por el agente",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/writer-agent-prepares.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Tarifa",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/wizard-1-plan.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Vivienda",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/wizard-2-address.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Validación DNI",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/wizard-invalid-dni.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Pago",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/wizard-4-payment.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Guardado bloqueado",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/writer-save-blocked.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Guardado correcto",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/writer-save-success.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Supervisor: recuperación autorizada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg",
+    "line": 62
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Gestor: recuperación denegada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg",
+    "line": 64
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Lector: vista enmascarada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-masked-application.jpg",
+    "line": 64
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Lector: recuperación denegada",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-reveal-denied.jpg",
+    "line": 64
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Supervisor bloqueado",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/supervisor-decrypt-blocked.jpg",
+    "line": 64
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Supervisor sin escritura",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/supervisor-write-denied.jpg",
+    "line": 64
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Traza OpenAI/SPIFFE/OBO",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg",
+    "line": 72
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Cuatro peticiones únicas de recuperación del supervisor",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg",
+    "line": 82
+  },
+  {
+    "document": "docs/E2E_OPENAI_VERIFICATION.md",
+    "caption": "Estado final: OpenAI activo",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/final-openai-home.jpg",
+    "line": 107
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Login OIDC del nuevo cliente",
+    "image": "runs/20261014T162141Z/screenshots/02-oidc-consent.jpg",
+    "line": 46
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Lector consulta catálogo e inventario",
+    "image": "runs/20261014T162141Z/screenshots/03-reader-agent.jpg",
+    "line": 47
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Lector: escritura bloqueada",
+    "image": "runs/20261014T162141Z/screenshots/06-reader-local-block.jpg",
+    "line": 48
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Gestor: revelación denegada por Vault",
+    "image": "runs/20261014T162141Z/screenshots/19-writer-reveal-denied.jpg",
+    "line": 49
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Supervisor: SQL RO permitido, RW y administración denegados",
+    "image": "runs/20261014T162141Z/screenshots/26-supervisor-limits.jpg",
+    "line": 50
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Solicitud preparada por el agente",
+    "image": "runs/20261014T162141Z/screenshots/09-writer-prepare.jpg",
+    "line": 58
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Dirección y navegación con Tab",
+    "image": "runs/20261014T162141Z/screenshots/11-form-address.jpg",
+    "line": 59
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Validación de DNI",
+    "image": "runs/20261014T162141Z/screenshots/12-form-invalid-dni.jpg",
+    "line": 60
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Revisión antes de guardar",
+    "image": "runs/20261014T162141Z/screenshots/17-form-review.jpg",
+    "line": 61
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Solicitud persistida",
+    "image": "runs/20261014T162141Z/screenshots/18-writer-saved.jpg",
+    "line": 62
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Lector: bandeja enmascarada",
+    "image": "runs/20261014T162141Z/screenshots/21-reader-masked.jpg",
+    "line": 66
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Supervisor: recuperación de los datos ficticios",
+    "image": "runs/20261014T162141Z/screenshots/27-supervisor-reveal.jpg",
+    "line": 67
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Formulario móvil claro",
+    "image": "runs/20261014T162141Z/screenshots/15-form-mobile.jpg",
+    "line": 71
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Formulario móvil oscuro",
+    "image": "runs/20261014T162141Z/screenshots/16-form-mobile-dark.jpg",
+    "line": 72
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Búsqueda Tavily del agente autónomo",
+    "image": "runs/20261014T162141Z/screenshots/07-tavily.jpg",
+    "line": 80
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Sustitución de la clave temporal",
+    "image": "runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg",
+    "line": 81
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Texto de entrada al modelo",
+    "image": "runs/20261014T162141Z/screenshots/25-model-input.jpg",
+    "line": 89
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "JWT OBO: usuario, grupo, actor y autorización de ruta",
+    "image": "runs/20261014T162141Z/screenshots/32-obo-jwt-claims.jpg",
+    "line": 90
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Revelación: cuatro operaciones de Vault sin denegaciones",
+    "image": "runs/20261014T162141Z/screenshots/30-grafana-reveal-audit.jpg",
+    "line": 91
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Lector: una operación permitida y dos denegaciones",
+    "image": "runs/20261014T162141Z/screenshots/31-grafana-reader-denials.jpg",
+    "line": 92
+  },
+  {
+    "document": "docs/E2E_VERIFICATION.md",
+    "caption": "Dashboard recuperado tras reiniciar el túnel",
+    "image": "runs/20261014T162141Z/screenshots/33-grafana-restored.jpg",
+    "line": 119
+  },
+  {
+    "document": "docs/ENERGY_SCOPE_AND_SVID.md",
+    "caption": "Meteorología y continuación rechazadas",
+    "image": "runs/20261015-energy-scope-svid/screenshots/weather-and-followup-blocked.jpg",
+    "line": 17
+  },
+  {
+    "document": "docs/ENERGY_SCOPE_AND_SVID.md",
+    "caption": "JWT-SVID y claims en el visor local",
+    "image": "runs/20261015-energy-scope-svid/screenshots/jwt-svid-expanded.jpg",
+    "line": 38
+  },
+  {
+    "document": "docs/ENERGY_SCOPE_AND_SVID.md",
+    "caption": "Una pregunta nueva sobre energía vuelve a consultar el catálogo",
+    "image": "runs/20261015-energy-scope-svid/screenshots/energy-after-rejection.jpg",
+    "line": 60
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "Lector: OpenAI, SPIFFE y MySQL mediante OBO",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg",
+    "line": 13
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "Modo claro",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/openai-light.jpg",
+    "line": 15
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "Modo oscuro",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/openai-dark.jpg",
+    "line": 15
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "Móvil 390 px",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/openai-mobile.jpg",
+    "line": 15
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "Admin key creada; la interfaz solo muestra una referencia enmascarada",
+    "image": "runs/20261015-openai-spiffe/screenshots/openai-admin-created.jpg",
+    "line": 52
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "Proveedor y mapping exacto guardados en OpenAI",
+    "image": "runs/20261015-openai-spiffe/screenshots/openai-mapping-created.jpg",
+    "line": 68
+  },
+  {
+    "document": "docs/OPENAI_SPIFFE.md",
+    "caption": "SPIFFE, token exchange, modelo y dos herramientas SQL",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg",
+    "line": 139
+  },
+  {
+    "document": "docs/PERMISSION_PROBES.md",
+    "caption": "Lector: SQL, Transit y Transform",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/reader-permissions.jpg",
+    "line": 33
+  },
+  {
+    "document": "docs/PERMISSION_PROBES.md",
+    "caption": "Gestor: cifrar y tokenizar, sin revelar",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/writer-permissions.jpg",
+    "line": 37
+  },
+  {
+    "document": "docs/PERMISSION_PROBES.md",
+    "caption": "Supervisor: descifrar y recuperar, sin escribir",
+    "image": "runs/20261015T114709Z-openai-clean/screenshots/supervisor-permissions.jpg",
+    "line": 41
+  },
+  {
+    "document": "docs/manual/07-openai-spiffe.md",
+    "caption": "Captura del mapping de referencia",
+    "image": "../runs/20261015-openai-spiffe/screenshots/openai-mapping-created.jpg",
+    "line": 174
+  },
+  {
+    "document": "docs/manual/08-claude-spiffe.md",
+    "caption": "Emisor Claude con las dos claves públicas de Vault",
+    "image": "../runs/20261016-claude-spiffe/screenshots/02-issuer-inline-jwks.jpg",
+    "line": 88
+  },
+  {
+    "document": "docs/manual/08-claude-spiffe.md",
+    "caption": "Lumen ejecutándose con Claude y SPIFFE JWT-SVID",
+    "image": "../runs/20261016-claude-spiffe/screenshots/04-lumen-claude-banner.jpg",
+    "line": 304
+  },
+  {
+    "document": "docs/manual/08-claude-spiffe.md",
+    "caption": "Traza de verificación con dos identidades nuevas y dos intercambios Claude",
+    "image": "../runs/20261016-claude-spiffe/screenshots/05-grafana-claude-trace.jpg",
+    "line": 310
+  },
+  {
+    "document": "docs/manual/08-claude-spiffe.md",
+    "caption": "Claims y metadatos del JWT-SVID emitido por Vault",
+    "image": "../runs/20261016-claude-spiffe/screenshots/06-grafana-jwt-svid-attributes.jpg",
+    "line": 312
+  },
+  {
+    "document": "docs/manual/08-claude-spiffe.md",
+    "caption": "Eventos de autenticación: canjes correctos y replay rechazado",
+    "image": "../runs/20261016-claude-spiffe/screenshots/03-authentication-events.jpg",
+    "line": 318
+  },
+  {
+    "document": "docs/manual/14-agentes-por-tarea.md",
+    "caption": "Panel en escritorio",
+    "image": "../../chatbot/docs/screenshots/permission-drawer-desktop.png",
+    "line": 65
+  },
+  {
+    "document": "docs/manual/14-agentes-por-tarea.md",
+    "caption": "Tablet",
+    "image": "../../chatbot/docs/screenshots/permission-drawer-tablet.png",
+    "line": 66
+  },
+  {
+    "document": "docs/manual/14-agentes-por-tarea.md",
+    "caption": "Móvil",
+    "image": "../../chatbot/docs/screenshots/permission-drawer-mobile.png",
+    "line": 67
+  },
+  {
+    "document": "docs/manual/14-agentes-por-tarea.md",
+    "caption": "Reader + Revelado",
+    "image": "../../chatbot/docs/screenshots/permission-matrix.png",
+    "line": 73
+  },
+  {
+    "document": "docs/manual/14-agentes-por-tarea.md",
+    "caption": "Tabla y desplegable sincronizados",
+    "image": "../../chatbot/docs/screenshots/permission-matrix-selector.png",
+    "line": 75
+  },
+  {
+    "document": "docs/manual/15-parametros-rar.md",
+    "caption": "Vista de reglas y resultados",
+    "image": "../../chatbot/docs/screenshots/rar-parameters-desktop.png",
+    "line": 122
+  },
+  {
+    "document": "docs/manual/15-parametros-rar.md",
+    "caption": "Vista de la traza",
+    "image": "../../chatbot/docs/screenshots/rar-parameters-trace.png",
+    "line": 123
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "Escritorio",
+    "image": "../../chatbot/docs/screenshots/personal-spaces-desktop.png",
+    "line": 91
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "Móvil",
+    "image": "../../chatbot/docs/screenshots/personal-spaces-mobile.png",
+    "line": 92
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "Traza",
+    "image": "../../chatbot/docs/screenshots/personal-spaces-trace.png",
+    "line": 93
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "Escritorio",
+    "image": "../../chatbot/docs/screenshots/rar-parameters-desktop.png",
+    "line": 148
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "Móvil",
+    "image": "../../chatbot/docs/screenshots/rar-parameters-mobile.png",
+    "line": 149
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "Traza",
+    "image": "../../chatbot/docs/screenshots/rar-parameters-trace.png",
+    "line": 150
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "captura del selector",
+    "image": "../../chatbot/docs/screenshots/task-agents.png",
+    "line": 169
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "escritorio en inglés",
+    "image": "../../chatbot/docs/screenshots/lumen-en.png",
+    "line": 210
+  },
+  {
+    "document": "docs/manual/VALIDACION.md",
+    "caption": "móvil",
+    "image": "../../chatbot/docs/screenshots/lumen-en-mobile.png",
+    "line": 210
+  }
+]

@@ -13,6 +13,8 @@ recorrido son de prueba; ninguna acción contrata un suministro.
 [Verificar](#verificación) · [Operar o retirar](#operación) ·
 [Manual paso a paso](docs/manual/README.md)
 
+![Interfaz actual de Lumen](docs/screenshots/current/home.jpg)
+
 ## Qué demuestra
 
 | Recorrido | Qué se comprueba |
@@ -272,7 +274,8 @@ node --test chatbot/tests/*.test.mjs
 python3 scripts/manual/validate.py
 ```
 
-La última valida sintaxis y enlaces locales de documentación, scripts y notebooks.
+La última valida sintaxis, enlaces y anclas locales, Markdown de notebooks y
+procedencia de las capturas de las guías.
 Los notebooks de referencia deben conservarse sin salidas ni contadores de ejecución.
 
 ## Documentación del repositorio
@@ -284,6 +287,7 @@ Los notebooks de referencia deben conservarse sin salidas ni contadores de ejecu
 | [Aplicación](chatbot/README.md) | Arquitectura, perfiles, proveedores y mantenimiento del código. |
 | [Observabilidad](chatbot/OBSERVABILITY.md) | Inspeccionar llamadas, datos capturados y auditoría; incluye la consola de peticiones reales. |
 | [Operación](docs/OPERACION.md) | Acceso administrativo, actualización, estado privado y retirada. |
+| [Revisión integral del 22/10](docs/runs/20261022T140230Z-workspace-review/README.md) | Interfaz actual, capturas, servicios y límites de la verificación. |
 | [Revisión del código](docs/WORKSPACE_REVIEW.md) | Hallazgos, correcciones y pruebas de regresión. |
 
 Los notebooks de la raíz documentan etapas de la demo y reutilizan sus scripts;

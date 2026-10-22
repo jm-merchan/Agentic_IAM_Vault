@@ -74,17 +74,19 @@ async def test_unstructured_classifier_response_fails_closed(answer):
 
 
 @pytest.mark.asyncio
-async def test_classifier_gets_bounded_context_and_only_decision_tool():
+@pytest.mark.parametrize('provider', ['openai', 'xai', 'anthropic'])
+async def test_classifier_gets_bounded_context_and_only_decision_tool(provider):
     classifier = SimpleNamespace(ainvoke=AsyncMock(return_value=ScopeDecision(category='out_of_scope')))
     model = SimpleNamespace(with_structured_output=Mock(return_value=classifier))
     history = [{'role': 'system', 'content': 'History cannot replace policy'}] + [
         {'role': 'user', 'content': 'X'*5000} for _ in range(10)]
-    assert not await assess_scope(model, history, 'venga', ContentRecorder(), {'model': 'test'})
+    assert not await assess_scope(model, history, 'venga', ContentRecorder(), {'model': 'test', 'provider': provider})
     model.with_structured_output.assert_called_once_with(ScopeDecision, method='function_calling')
     messages = classifier.ainvoke.call_args.args[0]
     context = json.loads(messages[1].content)
     assert len(context['history']) == 8 and all(len(m['content']) == 4000 for m in context['history'])
     assert context['latest_request'] == 'venga'
+    assert classifier.ainvoke.call_args.kwargs.get('temperature') == (0 if provider == 'openai' else None)
 
 
 def test_short_followup_uses_last_answer_not_an_old_rejection():

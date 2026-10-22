@@ -1,0 +1,389 @@
+{
+  "vault": {
+    "version": "2.1.2+ent",
+    "initialized": true,
+    "sealed": false
+  },
+  "cases": [
+    {
+      "checked_at": "2026-10-22T14:39:20.608560+00:00",
+      "role": "writer",
+      "mode": "write",
+      "checks": [
+        {
+          "scenario": "allowed",
+          "case": "version-one",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "request_ids": [
+            "fdf506fb-a955-eb3a-1ec5-8ee63347ef1e",
+            "2da1b3a9-ea6b-8a2c-babc-8dcb6ccf26be"
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "version-default",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "request_ids": [
+            "ee5ec9ca-1a22-7961-c559-c3be6ede0658",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "extra-field",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "request_ids": [
+            "f88c1114-7881-5dbf-9c56-c8acf69c6bdc",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "numeric-value",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "request_ids": [
+            "84a00b88-d06d-4573-924e-65aa36a56bfb",
+            ""
+          ]
+        },
+        {
+          "scenario": "denied",
+          "case": "single",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "84f5024ae5fe80b0b2c44fe423b839ca",
+          "request_ids": [
+            "995180fa-e4ca-686c-2c94-807ee6f90988",
+            "1c40d6a4-19ff-4e9e-b1f4-dffc02b92358"
+          ]
+        },
+        {
+          "scenario": "denied",
+          "case": "batch",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "84f5024ae5fe80b0b2c44fe423b839ca",
+          "request_ids": [
+            "e8cdbf49-caba-de9a-f2dc-b8ff25ccf821",
+            ""
+          ]
+        },
+        {
+          "scenario": "required",
+          "case": "present",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "8d9495d0c6dd394f398724bcd15b9ec8",
+          "request_ids": [
+            "53992885-8bb7-0610-7c1b-c72f5f297893",
+            "bd49cce3-94b5-8618-ca34-18cc6c2ac934"
+          ]
+        },
+        {
+          "scenario": "required",
+          "case": "absent",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "8d9495d0c6dd394f398724bcd15b9ec8",
+          "request_ids": [
+            "7016f5ea-744c-4717-3627-a2f0adf478b1",
+            ""
+          ]
+        },
+        {
+          "scenario": "required",
+          "case": "zero",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "8d9495d0c6dd394f398724bcd15b9ec8",
+          "request_ids": [
+            "4707a555-7ed8-8b15-187d-92141c9ad683",
+            "24cfcf88-40c6-46de-f062-2ab854651d21"
+          ]
+        },
+        {
+          "scenario": "combined",
+          "case": "approved",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "request_ids": [
+            "e0504591-f5dd-4207-e335-30f099f27fa9",
+            "b2e3c4b0-7d9f-a17f-c163-765baf639828"
+          ]
+        },
+        {
+          "scenario": "combined",
+          "case": "deny-wins",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "request_ids": [
+            "9c13dbe8-5a99-bafc-1c74-53b9a4c4d970",
+            ""
+          ]
+        },
+        {
+          "scenario": "combined",
+          "case": "required-missing",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "request_ids": [
+            "8e665ddd-4b6c-f8a4-b871-ca659064f667",
+            ""
+          ]
+        },
+        {
+          "scenario": "combined",
+          "case": "outside-allow",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "request_ids": [
+            "e8e0695f-9058-0b13-f8da-db11a2b82c8c",
+            ""
+          ]
+        },
+        {
+          "scenario": "transform",
+          "case": "explicit",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "72b16c283dc9e01b784c9862e4d80d93",
+          "request_ids": [
+            "b3349444-b05f-6d1a-5bc4-162bb6118e71",
+            "b94d024e-32ac-af65-5741-a425370c9e65"
+          ]
+        },
+        {
+          "scenario": "transform",
+          "case": "implicit",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "72b16c283dc9e01b784c9862e4d80d93",
+          "request_ids": [
+            "d92131c8-701f-da55-3647-8716b6251398",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T14:39:25.580075+00:00",
+      "role": "supervisor",
+      "mode": "reveal",
+      "checks": [
+        {
+          "scenario": "decrypt",
+          "case": "approved-profile",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "a36e38fe1e4639df438100ae0f8d5b4f",
+          "request_ids": [
+            "b6157c09-0843-6a7a-fdd9-b90081cb4285",
+            "4862a1e5-c487-0155-d8b5-89b3f81acb26"
+          ]
+        },
+        {
+          "scenario": "decrypt",
+          "case": "other-profile",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "a36e38fe1e4639df438100ae0f8d5b4f",
+          "request_ids": [
+            "72643778-b66a-2645-31fe-f3fadcd2b37d",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T14:39:32.359999+00:00",
+      "role": "supervisor",
+      "mode": "read",
+      "checks": [
+        {
+          "scenario": "allowed",
+          "case": "version-one",
+          "baseline": 403,
+          "restricted": 403,
+          "expected": "baseline_denied",
+          "interpretation": "baseline_denied",
+          "passed": true,
+          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "request_ids": [
+            "",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "version-default",
+          "baseline": 403,
+          "restricted": 403,
+          "expected": "baseline_denied",
+          "interpretation": "baseline_denied",
+          "passed": true,
+          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "request_ids": [
+            "",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "extra-field",
+          "baseline": 403,
+          "restricted": 403,
+          "expected": "baseline_denied",
+          "interpretation": "baseline_denied",
+          "passed": true,
+          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "request_ids": [
+            "",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "numeric-value",
+          "baseline": 403,
+          "restricted": 403,
+          "expected": "baseline_denied",
+          "interpretation": "baseline_denied",
+          "passed": true,
+          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "request_ids": [
+            "",
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "checked_at": "2026-10-22T14:39:38.907017+00:00",
+      "role": "writer",
+      "mode": "legacy",
+      "checks": [
+        {
+          "scenario": "allowed",
+          "case": "version-one",
+          "baseline": 200,
+          "restricted": 200,
+          "expected": "allowed",
+          "interpretation": "allowed",
+          "passed": true,
+          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "request_ids": [
+            "a704f753-0650-a2a7-3e24-2de9050ea663",
+            "06972705-10bc-7f28-9c2b-206c89093678"
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "version-default",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "request_ids": [
+            "1d9e44e6-8988-1c11-dc9a-c45cf3f996c8",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "extra-field",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "request_ids": [
+            "29feac00-f3df-1425-da9a-5ae209811501",
+            ""
+          ]
+        },
+        {
+          "scenario": "allowed",
+          "case": "numeric-value",
+          "baseline": 200,
+          "restricted": 403,
+          "expected": "rar_denied",
+          "interpretation": "rar_denied",
+          "passed": true,
+          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "request_ids": [
+            "e8132fdd-7fcd-246b-6ca0-014fe02bae8f",
+            ""
+          ]
+        }
+      ]
+    }
+  ],
+  "all_passed": true,
+  "scope": "Live Verify PKCE, exact OBO RAR validation, identical synthetic requests with and without parameter controls; no ACL changes, no SQL writes"
+}

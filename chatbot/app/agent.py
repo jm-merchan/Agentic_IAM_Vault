@@ -114,9 +114,9 @@ def make_agent(services: Services, session: Session, config=None, model=None, la
         pass
     t = Translator(language or session.language)
     language_instruction = ('Reply in English, clearly, warmly and concisely. The interface is in English. '
-                            'Use the exact button labels Continue application and Save application. '
+                            'Use the exact button labels Continue application and Save draft. '
                             'Keep proper names, tool names and quoted source data unchanged.' if t.language == 'en' else
-                            'Responde en español, con claridad, calidez y brevedad. Los botones son Continuar solicitud y Guardar solicitud.')
+                            'Responde en español, con claridad, calidez y brevedad. Los botones son Continuar solicitud y Guardar borrador.')
     return create_deep_agent(model=model, tools=tools, system_prompt=language_instruction + '''
 Eres Lumen, un asistente de energía para una demostración de IBM Verify y HashiCorp Vault.
 Ayuda a comparar planes y entender energía. Mantén el idioma indicado al comienzo, aunque el historial esté en otro idioma.
@@ -139,7 +139,7 @@ Usa enlaces Markdown [nombre de la fuente](URL). Compara planes en una tabla bre
 Separa los párrafos y las listas con una línea en blanco para que se lean bien en móvil.
 Si el usuario quiere guardar una solicitud, prepara la propuesta de tarifa y pide que pulse Continuar solicitud.
 El asistente de cinco pasos recoge vivienda, titular, DNI e IBAN fuera del chat. No pidas esos datos en la conversación.
-El usuario revisa y pulsa Guardar solicitud en el formulario. No puedes revelar datos personales protegidos.
+El usuario revisa y pulsa Guardar borrador en el formulario. No puedes revelar datos personales protegidos.
 Nunca afirmes que está guardado hasta que la interfaz confirme la operación. No hay contratación real.
 No puedes ejecutar SQL arbitrario, shell, leer archivos locales ni cambiar identidades o políticas.
 ''', name='lumen', permissions=[FilesystemPermission(operations=['read', 'write'], paths=['/**'], mode='deny')])
