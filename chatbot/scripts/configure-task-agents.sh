@@ -112,3 +112,6 @@ if vault kv metadata get -mount=secrets chatbot/personal-spaces >/dev/null 2>&1;
   bash "$CHATBOT_DIR/scripts/configure-personal-spaces.sh"
 fi
 echo 'Task agents ready. Select one in the interface after restarting Lumen. Default: current mode.'
+if vault kv metadata get -mount=secrets chatbot/contracts >/dev/null 2>&1; then
+  bash "$CHATBOT_DIR/scripts/configure-contracts.sh"
+fi

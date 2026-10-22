@@ -21,8 +21,10 @@ from .telemetry import records_for, span, trace_id
 from .trace_content import CONTENT_KEYS, VAULT_CONTENT_KEYS, SPIFFE_CONTENT_KEYS
 from .trace_inspection import inspection_router
 from .request_workbench import workbench_router
+from .contracts_http import contract_download_router
 from .trace_links import grafana_trace_url
 from .trace_flow_ui import TraceFlow
+from .live_call_flow_ui import lab_http_badge, mount_live_call_flow
 from .application_ui import render_wizard, render_applications
 from .task_agents import actor_credential, task_agents_ready, task_allows
 from .task_agent_ui import task_agent_selector
@@ -34,10 +36,13 @@ IDENTITY = Identity(CONFIG)
 SERVICES = Services(CONFIG, IDENTITY)
 app.on_startup(SERVICES.agent_inspector.start)
 app.on_shutdown(SERVICES.agent_inspector.close)
+app.timer(60, SERVICES.contracts.purge)
 COOKIE = 'lumen_session'
 app.include_router(inspection_router(IDENTITY, records_for, COOKIE))
 app.include_router(workbench_router(IDENTITY, records_for, COOKIE, vault_origin=CONFIG['vault_addr'], vault_tls=SERVICES.vault_tls))
 LOCKS: dict[str, asyncio.Lock] = {}
+
+app.include_router(contract_download_router(IDENTITY, SERVICES.contracts, COOKIE, LOCKS))
 STYLE = (Path(__file__).parents[1] / 'static/style.css').read_text()
 # Inline SVG gives the browser a new icon URL when the brand asset changes.
 FAVICON = (Path(__file__).parents[1] / 'static/favicon.svg').read_text()
@@ -361,6 +366,9 @@ def home(request: Request):
             return
         ui.navigate.to('/solicitud')
 
+    mount_live_call_flow(session, language=t.language,
+                        is_busy=lambda: busy or bool(session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()),
+                        is_current=lambda: bool(session and IDENTITY.sessions.get(session.sid) is session))
     agent_controls = task_agent_selector(CONFIG, session, t, lambda: busy or bool(
         session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()))
     with ui.element('div').classes('shell'):
@@ -389,6 +397,7 @@ def home(request: Request):
                         ui.button(icon='logout', on_click=logout).props(t.props('flat round aria-label="Cambiar usuario"')).classes('icon-button').tooltip(t('Cambiar usuario'))
                     else:
                         ui.button(t('Entrar con Verify'), icon='arrow_outward', on_click=lambda: ui.navigate.to('/auth/login')).classes('primary')
+                    lab_http_badge(request, t.language)
                     language_switch(request, t, lambda: busy or bool(session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()))
             provider_banner()
             agent_controls()
@@ -443,6 +452,9 @@ async def application_page(request, renderer):
     dark.bind_value(app.storage.browser, 'dark')
     session = IDENTITY.sessions.get(request.cookies.get(COOKIE, ''))
     t = page_language(request, session)
+    mount_live_call_flow(session, language=t.language,
+                        is_busy=lambda: bool(session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()),
+                        is_current=lambda: bool(session and IDENTITY.sessions.get(session.sid) is session))
     def guard():
         if not session or IDENTITY.sessions.get(session.sid) is not session:
             raise AccessDenied('Entra con Verify para continuar.')
@@ -478,14 +490,19 @@ async def application_page(request, renderer):
                 with ui.link(target='/').classes('brand application-brand').props(t.props('aria-label="Lumen, inicio"')):
                     ui.element('span').classes('brand-mark').props('aria-hidden=true')
                     ui.label(t('lumen'))
+                lab_http_badge(request, t.language)
                 language_switch(request, t)
                 ui.button(icon='contrast', on_click=dark.toggle).props(t.props('flat round aria-label="Cambiar tema"')).classes('icon-button')
             sign_in_panel(str(exc))
             return
         with ui.row().classes('application-tools'):
+            lab_http_badge(request, t.language)
             language_switch(request, t, lambda: LOCKS.setdefault(session.sid, asyncio.Lock()).locked())
             ui.button(icon='contrast', on_click=dark.toggle).props(t.props('flat round aria-label="Cambiar tema"')).classes('icon-button')
         agent_controls()
+        # Deliver the shell before initial catalogue/list calls so their spans
+        # can be observed while the asynchronous renderer is still working.
+        await ui.context.client.connected()
         try:
             await renderer(SERVICES, session, guard, run_action, language=t.language)
         except AccessDenied as exc:

@@ -181,6 +181,12 @@ def load_config() -> dict:
                 config['personal-spaces'] = res.json()['data']['data']
             elif res.status_code not in (403, 404):
                 raise RuntimeError('No se ha podido consultar la configuración de espacios personales.')
+            res = client.get(addr + '/v1/secrets/data/chatbot/contracts',
+                             headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})
+            if res.status_code == 200:
+                config['contracts'] = res.json()['data']['data']
+            elif res.status_code not in (403, 404):
+                raise RuntimeError('No se ha podido consultar la configuración de contratación CIBA.')
             # Explicitly optional: the UI and authorization tests work before the LLM is connected.
             res = client.get(addr + '/v1/secrets/data/chatbot/model',
                              headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify'})

@@ -105,6 +105,7 @@ if [ "$action" = start ]; then
   step 'Agentes opcionales por tarea' bash "$DEMO_ROOT/chatbot/scripts/configure-task-agents.sh"
   step 'Asignaciones OIDC y grupos de Vault' bash "$DEMO_ROOT/chatbot/scripts/05-sync-groups.sh"
   step 'Espacios personales opcionales' bash "$DEMO_ROOT/chatbot/scripts/configure-personal-spaces.sh"
+  step 'Contratación con CIBA, Vault y MySQL' bash "$DEMO_ROOT/chatbot/scripts/configure-contracts.sh"
   step 'Motor dinámico xAI' bash "$DEMO_ROOT/scripts/demo/xai.sh"
   step 'Identidad xAI' bash "$DEMO_ROOT/chatbot/scripts/configure-xai.sh"
   step 'Vault SPIFFE JWT-SVID para OpenAI' env LUMEN_SELECTED_PROVIDER=openai bash "$DEMO_ROOT/scripts/demo/spiffe.sh"

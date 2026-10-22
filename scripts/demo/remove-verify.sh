@@ -41,11 +41,11 @@ remove_verify_inventory() {
   remove_add_target sts vault-chatbot-sts "$id" /v1.0/sts/oauth/clients
   remove_api GET /v1.0/applications "$REMOVE_WORK/apps.json"
   jq -e '(._embedded.applications|type=="array") and (.totalCount == (._embedded.applications|length))' "$REMOVE_WORK/apps.json" >/dev/null || fail 'Inventario de aplicaciones incompleto; no se elimina una lista paginada parcialmente'
-  for name in vault-chatbot-oidc vault-chatbot-research vault-chatbot-xai vault-chatbot-openai vault-chatbot-anthropic vault-chatbot-task-read vault-chatbot-task-write vault-chatbot-task-reveal; do
+  for name in vault-chatbot-oidc vault-chatbot-research vault-chatbot-xai vault-chatbot-openai vault-chatbot-anthropic vault-chatbot-task-read vault-chatbot-task-write vault-chatbot-task-reveal vault-chatbot-contract vault-chatbot-pdf-approval; do
     id=$(jq -r --arg name "$name" '[._embedded.applications[]|select(.name==$name)|._links.self.href|split("/")[-1]]|if length>1 then error("Duplicate app") else .[0]//empty end' "$REMOVE_WORK/apps.json")
     remove_add_target app "$name" "$id" /v1.0/applications
   done
-  for role in reader writer supervisor; do
+  for role in reader writer supervisor validator; do
     name="lumen-$role"
     remove_api GET /v2.0/Users "$REMOVE_WORK/user-list.json" --get --data-urlencode "filter=userName eq \"$name\""
     jq -e --arg name "$name" '.totalResults==(.Resources|length) and (.totalResults<=1) and all(.Resources[];.userName==$name)' "$REMOVE_WORK/user-list.json" >/dev/null || fail 'Usuario ambiguo o inventario incompleto'
@@ -78,6 +78,12 @@ remove_validate_target() {
     user)
       jq -e --arg name "$name" --arg id "$id" '.id==$id and .userName==$name and .["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"].realm=="cloudIdentityRealm" and any(.emails[]?;.value==($name+"@example.invalid"))' "$REMOVE_WORK/detail.json" >/dev/null || fail "El usuario $name no es la cuenta ficticia esperada";;
     group)
+      if [ "$name" = chatbot-validators ]; then
+        # Remove only our marked group. Its real-account members are not deletion
+        # targets: users are independently restricted to fictitious Lumen accounts.
+        jq -e --arg name "$name" --arg id "$id" '.id==$id and .displayName==$name and .externalId=="lumen-demo:contract-validators"' "$REMOVE_WORK/detail.json" >/dev/null || fail 'El grupo Validador no tiene la marca de propiedad Lumen'
+        return 0
+      fi
       jq -e --arg name "$name" --arg id "$id" --slurpfile targets "$REMOVE_WORK/targets.json" \
         '.id==$id and .displayName==$name and all(.members[]?; .value as $uid | any($targets[0][];.kind=="user" and .id==$uid))' "$REMOVE_WORK/detail.json" >/dev/null || fail "El grupo $name contiene miembros ajenos a la demo";;
     *) fail 'Tipo Verify no permitido';;

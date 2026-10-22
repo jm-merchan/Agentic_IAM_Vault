@@ -142,7 +142,7 @@ async def render_wizard(services, session, guard, run_action, language=None):
         if saved:
             with ui.element('section').classes('application-success'):
                 ui.icon('check_circle', size='58px').classes('success-icon')
-                ui.label(t('Solicitud recibida.')).classes('text-3xl mt-4')
+                ui.label(t('Borrador guardado.')).classes('text-3xl mt-4')
                 ui.label(t('Todo listo para continuar la demostración. No se ha contratado ningún suministro.')).classes('muted mt-3')
                 ui.label(t('Referencia · ' + saved)).classes('application-reference')
                 ui.label(t('Tus datos se han guardado protegidos.')).classes('mt-4')
@@ -223,7 +223,7 @@ async def render_wizard(services, session, guard, run_action, language=None):
                     if step < 4:
                         ui.button(t('Continuar'), icon='arrow_forward', on_click=next_step).props('no-caps').classes('primary')
                     else:
-                        ui.button(t('Guardando…' if busy else 'Guardar solicitud'), icon='lock', on_click=save).props('no-caps').classes('primary').set_enabled(not busy)
+                        ui.button(t('Guardando…' if busy else 'Guardar borrador'), icon='lock', on_click=save).props('no-caps').classes('primary').set_enabled(not busy)
             with ui.element('aside').classes('application-summary'):
                 ui.label(t('TU ELECCIÓN')).classes('eyebrow')
                 plan = plan_map.get(form['plan_id'], plans[0])
@@ -310,4 +310,6 @@ async def render_applications(services, session, guard, run_action, language=Non
                         ui.label(value).classes('text-sm')
                 ui.label(t('Titular, contacto y dirección protegidos')).classes('tiny muted mt-3')
                 ui.button(t('Revelar datos'), icon='visibility', on_click=lambda reference=row['application_id']: reveal(reference)).props('no-caps flat').classes('secondary mt-4')
+                from .contracts_ui import contract_controls
+                contract_controls(services, session, guard, run_action, row, t.language)
     ui.link(t('Ver última traza'), '/traces/' + session.traces[-1], new_tab=True).classes('tiny mt-5')

@@ -14,6 +14,10 @@ ACTORS = {
     'tavily': ('Tavily', 'Búsqueda pública'),
 }
 TITLES = {
+    'lumen.contract.request': 'Solicitar contratación con CIBA',
+    'lumen.contract.confirm': 'Confirmar y formalizar el contrato',
+    'lumen.contract.validate_validator': 'Validar la identidad de Validador',
+    'lumen.contract.download': 'Descargar contrato registrado',
     'lumen.personal.read': 'Leer un espacio personal',
     'lumen.personal.write': 'Guardar en un espacio personal',
     'lumen.personal.list': 'Listar un espacio personal',
@@ -37,6 +41,8 @@ TITLES = {
 def _outcome(record):
     attrs = record.get('attributes', {})
     code = attrs.get('http.response.status_code')
+    if attrs.get('auth.ciba.result') in ('authorization_pending', 'slow_down'):
+        return 'normal', 'Pendiente de aprobación CIBA'
     failed = record.get('status') == 'ERROR' or (isinstance(code, (int, float)) and code >= 400)
     label = ('Error · ' if failed else '') + (f'HTTP {code}' if code else 'sin código HTTP')
     if not code:
@@ -49,6 +55,12 @@ def _describe(record):
     path = a.get('vault.path', '')
     # Only declared fields are projected. Raw tokens, headers, messages and SQL
     # parameters never enter the diagram's browser payload.
+    if name in {'verify.ciba_start', 'verify.ciba_poll'}:
+        return dict(target='verify', title='Solicitar aprobación CIBA' if name.endswith('start') else 'Consultar aprobación CIBA',
+                    method='POST', endpoint='/oauth2/ciba' if name.endswith('start') else '/oauth2/token',
+                    credential='Cliente confidencial de contratación CIBA',
+                    request='Identidad de Validador y referencia del borrador' if name.endswith('start') else 'auth_req_id de esta petición',
+                    response='Petición pendiente; todavía no formaliza el contrato' if name.endswith('start') else 'Estado o tokens de Validador tras su confirmación')
     if name == 'verify.client_credentials':
         return dict(target='verify', title='Autenticar al agente', method='POST', endpoint='/oauth2/token',
                     credential='Client ID y secreto del agente',
@@ -93,10 +105,30 @@ def _describe(record):
             title = 'Listar un espacio personal' if '/metadata/' in path else 'Guardar en un espacio personal' if name == 'vault.write' else 'Leer un espacio personal'
             response = 'Respuesta KV del espacio solicitado'
             credential = 'JWT OBO de Verify · X-Vault-Token'
+        elif path.startswith('secrets/data/lumen-contracts/'):
+            title = 'Publicar el contrato PDF' if name == 'vault.write' else 'Leer el contrato PDF'
+            credential = 'JWT OBO de Verify · X-Vault-Token'
+            response = 'Contrato PDF vinculado a su propietario'
+        if a.get('auth.flow') == 'ciba_jwt':
+            credential = 'Token nativo de Vault obtenido con CIBA · X-Vault-Token'
+        if path == 'auth/ciba-contract/login':
+            title, credential, response = ('Validar CIBA en Vault', 'ID token de Validador emitido por el cliente CIBA',
+                'Token nativo de Vault · política lumen-contract-confirm')
+        elif path == 'database/creds/chatbot-contract':
+            title, response = 'Obtener credencial de contratación', 'Usuario temporal con EXECUTE sobre lumen_contracts.formalize'
+        elif path in ('transit/encrypt/lumen-contracts', 'transit/decrypt/lumen-contracts'):
+            title = 'Cifrar el contrato PDF' if '/encrypt/' in path else 'Recuperar el contrato PDF registrado'
+        elif path == 'auth/token/revoke-self':
+            title, response = 'Revocar la credencial CIBA de Vault', 'Token y credenciales SQL dependientes revocados'
         return dict(target='vault', title=title, method=a.get('http.request.method', 'GET' if name != 'vault.write' else 'POST'),
                     endpoint='/v1/' + path, credential=credential,
                     request=f'Namespace {a.get("vault.namespace", "verify")} · {path}', response=response)
     if name == 'mysql.query':
+        if a.get('db.role') == 'contract':
+            return dict(target='mysql', title='Formalizar contrato', method='CALL', endpoint='lumen_contracts.formalize',
+                        credential='Credencial temporal de Vault · rol chatbot-contract · EXECUTE',
+                        request='Borrador, propietario, Validador y hashes del contenido y del PDF',
+                        response='Commit de status = contratada y referencia del contrato')
         return dict(target='mysql', title='Consultar datos' if a.get('db.operation.name') == 'SELECT' else 'Modificar datos',
                     method=a.get('db.operation.name', 'SQL'), endpoint=a.get('db.namespace', 'MySQL'),
                     credential=f'Credencial temporal de Vault · rol {a.get("db.role", "no registrado")}',
@@ -224,8 +256,10 @@ def build_flow(records: list[dict], agent_details=None) -> dict:
             # Prefer the identity recorded on this actual call. Provider and search
             # spans must never inherit the human's OBO actor from the root span.
             agent_name = attrs.get('agent.identity', '')
-            if name == 'vault.jwks':
+            if name == 'vault.jwks' or name.startswith('verify.ciba_') or attrs.get('auth.flow') == 'ciba_jwt':
                 agent_name = ''
+                if attrs.get('auth.flow') == 'ciba_jwt':
+                    notes.append('Confirmación CIBA con autenticación JWT nativa de Vault. Esta llamada no utiliza OBO ni el techo del agente de la sesión.')
             elif not agent_name and name.split('.')[0] in {'openai', 'anthropic', 'xai'}:
                 agent_name = 'chatbot-' + name.split('.')[0]
             elif not agent_name and name == 'tavily.search':
@@ -240,6 +274,8 @@ def build_flow(records: list[dict], agent_details=None) -> dict:
             calls.append(dict(**common, **description, agent_name=agent_name,
                               rar=rar_context,
                               personal=_personal_context(attrs),
+                              approval={k: attrs['approval.' + k] for k in ('id', 'application', 'sha256', 'requestor', 'validator', 'operation')
+                                        if 'approval.' + k in attrs} or None,
                               agent=(agent_details or {}).get(agent_name), source='lumen', notes=notes, sort_start=sort_start,
                               http_status=code, response_recorded=bool(code) or (
                                   state != 'error' and (name == 'mysql.query' or name.endswith('.chat'))),

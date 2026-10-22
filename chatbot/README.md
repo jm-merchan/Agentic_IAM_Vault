@@ -1,5 +1,7 @@
 # Lumen · tu energía, con claridad
 
+**Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](../docs/manual/17-contratacion-ciba.md).
+
 **Mi espacio de secretos** ofrece un laboratorio opcional KV v2 por entidad humana. Todos los perfiles tienen un espacio propio; Estándar/Creación pueden guardar y Consulta/Revelado solo leer. La política de Vault deniega el acceso cruzado, incluso para Supervisor. [Preparación, alcance y prueba](../docs/manual/16-espacios-personales.md).
 
 Chatbot de energía en Python con **NiceGUI + LangChain Deep Agents + xAI/OpenAI/Claude**, autenticación **OIDC con IBM Verify**, acceso a MySQL mediante **Vault IAM OBO** y búsqueda **Tavily con un agente autónomo registrado**. xAI obtiene claves dinámicas del Secret Engine; OpenAI y Claude intercambian un SPIFFE JWT-SVID de Vault por un token temporal. [Configuración Claude](../docs/manual/08-claude-spiffe.md).
@@ -11,6 +13,10 @@ El [notebook 10 · oauth2c](../10_OAuth2c_Verify_Vault.ipynb) permite seguir la 
 El nuevo [recorrido de solicitudes protegidas](#solicitudes-en-cinco-pasos) añade Transit, tokenización y tres perfiles. Aprovisionamiento y comprobaciones en el [notebook 8](../8_Lumen_Protected_Applications.ipynb).
 
 La interfaz y las respuestas admiten **español e inglés**, con detección del navegador y botones **EN / ES**. [Selección, alcance y pruebas](#idioma-español-e-inglés).
+
+El chip **Flujo de llamadas / Live call flow**, abajo a la derecha, abre una mini secuencia de la ejecución actual en el chat, solicitudes, laboratorio RAR y espacio personal. Se actualiza cada 500 ms durante una operación: llamada activa, retorno con código HTTP cuando está registrado y duración al cerrar el span. Permanece colapsado al entrar; el panel evita el cuadro de escritura, admite desplazamiento y se cierra con Escape. **Abrir traza** lleva al inspector existente en otra pestaña. El badge **Lab HTTP local** identifica el acceso local sin pedir certificados.
+
+El componente reutiliza `build_flow`, con una proyección que excluye credenciales, cuerpos, rutas e identidades. Solo lee trazas de la sesión vigente y borra su vista al caducar o revocarse. `records_for(..., include_active=True)` añade snapshots locales de spans abiertos; la lectura por defecto, los exports OTLP, Grafana/Tempo y la página `/traces/{tid}` conservan su comportamiento. No utiliza SSE ni las APIs sensitive/replay. No requiere cambios de infraestructura; el código debe publicarse y el proceso reiniciarse según el procedimiento de actualización indicado más abajo.
 
 ![Lumen: catálogo obtenido por OBO con permisos de lectura](../docs/runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg)
 

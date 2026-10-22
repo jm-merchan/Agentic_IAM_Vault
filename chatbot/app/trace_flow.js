@@ -231,6 +231,14 @@ export default {
           </div>
           <h3>{{ selected.title }}</h3>
           <div class="tf-status" :class="{'tf-error-status': selected.state === 'error'}">{{ selected.status }}</div>
+          <section v-if="selected.approval" class="tf-rar-summary">
+            <strong>{{ t(selected.approval.operation === 'contract' ? 'Autorización de la contratación' : 'Autorización del PDF') }}</strong>
+            <p>{{ t('Referencia') }}: {{ selected.approval.application }}</p>
+            <p>{{ t('Petición de aprobación') }}: {{ selected.approval.id }}</p>
+            <p>{{ t('Solicitante') }}: {{ selected.approval.requestor }}</p>
+            <p>{{ t('Validador') }}: {{ selected.approval.validator }}</p>
+            <p v-if="selected.approval.sha256" class="tf-mono">SHA-256: {{ selected.approval.sha256 }}</p>
+          </section>
           <section v-if="selected.rar" class="tf-rar-summary">
             <strong>{{ t(selected.rar.phase === 'baseline' ? 'Control sin parámetros' : 'Con parámetros RAR') }}</strong>
             <p>{{ t(selected.rar.scenario) }} · {{ t(selected.rar.case) }}</p>

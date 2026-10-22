@@ -39,6 +39,7 @@ Prepara antes las entradas de [00 · Entorno y credenciales](00-entorno.md). No 
 | 14 | [Agentes por tarea](14-agentes-por-tarea.md) | Ampliación opcional desde la interfaz, identidades y techos OBO separados |
 | 15 | [Parámetros RAR](15-parametros-rar.md) | Seis escenarios con reglas, cuerpos, resultados HTTP y trazas correlacionadas |
 | 16 | [Espacios personales](16-espacios-personales.md) | KV por usuario, políticas centrales, acceso cruzado y trazas |
+| 17 | [Contratación CIBA](17-contratacion-ciba.md) | Writer, confirmación de Validador, credencial SQL limitada y PDF tras commit |
 
 Completa 00–05, prepara **los tres proveedores en 06–08** y continúa con 09–10. Cada capítulo genera un perfil JSON privado; el capítulo 10 los publica juntos en `secrets/chatbot/model`, sin que el último proveedor borre los anteriores. La aplicación carga las tres identidades al arrancar y el usuario cambia de proveedor en el banner. `LUMEN_MODEL_PROVIDER=auto` solo fija OpenAI como selección inicial. Los capítulos 11–12 explican OBO y los bloqueos independientemente del LLM.
 

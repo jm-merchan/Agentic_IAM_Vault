@@ -31,6 +31,7 @@ path "sys/policies/acl/default" { capabilities = ["read"] }
 path "sys/policies/acl/lumen-personal-user" { capabilities = ["read"] }
 path "sys/policies/acl/lumen-personal-read" { capabilities = ["read"] }
 path "sys/policies/acl/lumen-personal-write" { capabilities = ["read"] }
+path "sys/policies/acl/lumen-contract-ceiling" { capabilities = ["read"] }
 path "sys/config/oauth-resource-server/verify" { capabilities = ["read", "sudo"] }
 path "auth/token/renew-self" { capabilities = ["update"] }
 path "auth/token/revoke-self" { capabilities = ["update"] }

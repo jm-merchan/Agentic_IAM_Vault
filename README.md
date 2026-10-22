@@ -1,5 +1,7 @@
 # Lumen · Vault Agentic IAM
 
+**Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](docs/manual/17-contratacion-ciba.md).
+
 La ampliación [Espacios personales](docs/manual/16-espacios-personales.md) añade **Mi espacio de secretos** a la interfaz: KV por identidad humana, lectura/escritura según el techo del agente y pruebas reales de acceso cruzado con trazas.
 
 Demo con **NiceGUI, LangChain Deep Agents y selección xAI/OpenAI/Claude**, login OIDC en IBM Verify, **OBO**, MySQL Enterprise con **KMIP**, protección **Transit/Transform** y trazas en **Grafana, Loki y Tempo**. xAI utiliza un Secret Engine dinámico; OpenAI y Claude utilizan **SPIFFE JWT-SVID emitidos por Vault** y tokens de corta duración. [Configuración manual de Claude](docs/manual/08-claude-spiffe.md).
@@ -307,3 +309,5 @@ Las capturas e informes anteriores describen ejecuciones con fecha; no certifica
 El chat mantiene su [ámbito de energía mediante un control previo al agente](docs/ENERGY_SCOPE_AND_SVID.md). La misma guía muestra dónde inspeccionar el JWT-SVID completo y sus claims en las trazas de Lumen/Grafana.
 
 **Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
+
+La [contratación CIBA](docs/manual/17-contratacion-ciba.md) usa `database/creds/chatbot-contract`. Los bloqueos `database-read` y `database-write` incluyen este rol y revocan sus leases. El rol JWT CIBA también adjunta el bloqueo de descifrado.

@@ -62,6 +62,8 @@ class Services(ApplicationServices, SpiffeModelServices):
         self._xai_credential: ModelCredential | None = None
         self._xai_lock = asyncio.Lock()
         self.agent_inspector = AgentInspector(config, self.vault_tls)
+        from .contracts import Contracts
+        self.contracts = Contracts(self)
 
     def role(self, session: Session) -> str:
         session.require_login()
@@ -206,6 +208,8 @@ class Services(ApplicationServices, SpiffeModelServices):
             pass
         if response.status_code == 403:
             raise VaultPermissionDenied(f'Vault ha denegado esta operación (HTTP 403): {path}. Revisa los permisos o los bloqueos activos.')
+        if response.status_code == 204:
+            return {}
         if response.status_code != 200:
             raise VaultResponseError(response.status_code)
         return response.json()

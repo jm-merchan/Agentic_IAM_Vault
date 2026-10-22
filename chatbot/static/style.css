@@ -118,3 +118,12 @@ body.body--dark{--q-primary:#c8e69e}.message .q-markdown h2{font-size:17px;line-
 .personal-json textarea {font-family:monospace;font-size:13px}
 .personal-status {overflow-wrap:anywhere}
 @media(max-width:680px){.personal-identities{grid-template-columns:1fr}.personal-card,.personal-result{padding:16px}}
+
+/* Lumen display accents and room for the live-flow chip; trace pages are untouched. */
+.shell .welcome h1,.application-shell .sign-in-title{font-family:Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-1.7px}
+.shell .welcome{padding-top:clamp(28px,5vh,70px)}
+.shell .model-banner{border-left:3px solid #8b9d71}
+.shell .workspace{padding-bottom:82px}
+.application-shell{padding-bottom:90px}
+.lumen-lab-badge{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:10px;letter-spacing:.2px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:5px 9px}
+.lumen-lab-badge:before{content:'';width:5px;height:5px;border-radius:50%;background:#8b9d71}

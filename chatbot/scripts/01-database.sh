@@ -61,3 +61,6 @@ SQL
   jq -n --rawfile sql "$TMP_WORK/create.sql" '{db_name:"chatbot-mysql",creation_statements:[$sql],revocation_statements:["DROP USER IF EXISTS '\''{{name}}'\''@'\''%'\'';"],default_ttl:"120s",max_ttl:"300s"}' | vault write "database/roles/chatbot-$role" - >/dev/null
 done
 printf 'Database roles ready in namespace verify: chatbot-readonly and chatbot-readwrite. TTL 120s.\n'
+if vault kv get -mount=secrets chatbot/contracts >/dev/null 2>&1; then
+  bash "$(dirname "$0")/configure-contracts.sh"
+fi

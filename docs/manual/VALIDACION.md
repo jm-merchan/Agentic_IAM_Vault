@@ -290,3 +290,7 @@ Al terminar aquel ciclo, Lumen quedó con **OpenAI `gpt-4.1-mini` y SPIFFE**, y 
 [Resultado conjunto](../runs/20261016T064722Z-manual-script/result.json) · [Trazas para la demostración](../runs/20261016T064722Z-manual-script/TRAZAS.md) · [Sintaxis de las guías](validacion.json) · [Comprobaciones generales](../workspace-static-checks.json).
 
 Tokens, cookies, contraseñas y logs completos permanecen en el estado privado local. Las ejecuciones anteriores se archivan en `~/.local/state/lumen-vault-demo/manual-archives/`. Un fallo de red o una suspensión futura detiene el ensayo y requiere diagnóstico; este resultado acredita el ciclo fechado, no garantiza la disponibilidad futura de servicios externos.
+
+## Contratación CIBA
+
+El capítulo [17](17-contratacion-ciba.md) documenta una prueba real con Writer y Validador separado. El [informe](../../chatbot/docs/contracts-verification.json) registra las denegaciones sin CIBA, el commit, la idempotencia, la inmutabilidad y la descarga del PDF mediante OBO. Repetir la prueba crea otro borrador ficticio y requiere confirmar una nueva petición en Verify. No confundir esta prueba de servicios con una prueba visual del navegador.

@@ -9,8 +9,8 @@
 | Bloqueo | Rutas denegadas | Credenciales ya emitidas |
 |---|---|---|
 | `xai` | `xai/creds/lumen`, `secrets/data/chatbot/xai-access` | Revocar leases xAI y reautorizar caché |
-| `database-read` | `database/creds/chatbot-readonly` **y** `chatbot-readwrite` | Revocar ambos tipos: RW también permite SELECT |
-| `database-write` | `database/creds/chatbot-readwrite` | Revocar leases RW |
+| `database-read` | `database/creds/chatbot-readonly`, `chatbot-readwrite` y `chatbot-contract` | Revocar los tres tipos: RO, RW y contratación |
+| `database-write` | `database/creds/chatbot-readwrite` y `chatbot-contract` | Revocar leases RW y contratación |
 | `decrypt` | Transit decrypt y Transform decode DNI/IBAN | Impedir nuevas operaciones; no borra valores ya revelados |
 
 Los bloqueos son globales para estos agentes del laboratorio, no por usuario. No detienen necesariamente una consulta SQL o petición externa que ya esté en curso. Los efectos sobre credenciales emitidas requieren la revocación, además del deny.
@@ -60,9 +60,11 @@ Seleccionar **xAI** en el banner antes de probar este bloqueo. OpenAI y Claude s
 vault policy write lumen-block-database-read - <<'HCL'
 path "database/creds/chatbot-readonly" { capabilities = ["deny"] }
 path "database/creds/chatbot-readwrite" { capabilities = ["deny"] }
+path "database/creds/chatbot-contract" { capabilities = ["deny"] }
 HCL
 vault lease revoke -sync -prefix database/creds/chatbot-readonly/
 vault lease revoke -sync -prefix database/creds/chatbot-readwrite/
+vault lease revoke -sync -prefix database/creds/chatbot-contract/
 ```
 
 La consulta de catálogo/solicitudes falla al pedir credenciales. Se incluyen ambos roles porque bloquear solo RO dejaría SELECT disponible a quien obtiene RW.
@@ -78,8 +80,10 @@ printf '# Lumen: bloqueo inactivo. No concede permisos.\n' | vault policy write 
 ```bash
 vault policy write lumen-block-database-write - <<'HCL'
 path "database/creds/chatbot-readwrite" { capabilities = ["deny"] }
+path "database/creds/chatbot-contract" { capabilities = ["deny"] }
 HCL
 vault lease revoke -sync -prefix database/creds/chatbot-readwrite/
+vault lease revoke -sync -prefix database/creds/chatbot-contract/
 ```
 
 El gestor puede consultar por RO, pero falla al guardar. Su capacidad de cifrar/tokenizar permanece; la combinación necesaria para guardar ya no está completa.
@@ -129,3 +133,5 @@ La ausencia de bloqueo adicional no concede permisos: el lector continúa sin RW
 Fuentes locales: [block.sh](../../scripts/demo/block.sh), [access-controls.sh](../../chatbot/scripts/access-controls.sh), [explicación de los controles](../ACCESS_BLOCKS.md).
 
 Los bloqueos de Database y de descifrado afectan a las herramientas OBO con cualquiera de los tres modelos. Cambiar el proveedor no cambia los permisos del usuario, las políticas de Vault ni los límites del agente.
+
+La extensión [Contratación CIBA](17-contratacion-ciba.md) adjunta estos tres bloqueos al rol JWT `auth/ciba-contract/role/validator`. La formalización utiliza un token nativo con esas políticas; no el techo OBO. Bloquear lectura o escritura revoca también `database/creds/chatbot-contract/`.

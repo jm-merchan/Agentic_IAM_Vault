@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-22",
+  "scope": "Code and isolated NiceGUI validation with synthetic identity, services and OTEL spans, followed by deployment and browser verification at localhost:8088.",
+  "python_tests": {
+    "passed": 123,
+    "command": "PYTHONPATH=chatbot /tmp/vault-chatbot-venv/bin/python -m pytest chatbot/tests/test_live_call_flow.py chatbot/tests/test_telemetry.py chatbot/tests/test_trace_flow.py chatbot/tests/test_trace_inspection.py chatbot/tests/test_http_workbench.py chatbot/tests/test_i18n.py chatbot/tests/test_model_selection.py -q"
+  },
+  "javascript_tests": {
+    "passed": 12,
+    "command": "node --test chatbot/tests/live_call_flow_ui.test.mjs chatbot/tests/trace_flow_ui.test.mjs"
+  },
+  "browser_checks": {
+    "overlay_present_collapsed": [
+      "/",
+      "/solicitud",
+      "/solicitudes",
+      "/laboratorio-rar",
+      "/mi-espacio"
+    ],
+    "overlay_absent": "/traces/{tid}",
+    "existing_interactive_trace_ui_visible": true,
+    "active_call_observed_before_return": true,
+    "initial_applications_load_visible_while_running": true,
+    "anonymous_sign_in_cta": true,
+    "revocation_clears_all_arrows": true,
+    "synthetic_canary_absent_from_overlay_dom": true,
+    "languages": [
+      "es",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "viewport_checks": [
+      [
+        1440,
+        900
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "mobile_composer_no_overlap": true,
+    "escape_collapses": true,
+    "console_warnings_errors": [],
+    "private_page_headers": {
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer"
+    },
+    "screenshot": "screenshots/live-call-flow-qa.jpg"
+  },
+  "preserved_from_task_start": [
+    "chatbot/app/trace_flow.py",
+    "chatbot/app/trace_flow_ui.py",
+    "chatbot/app/trace_flow.js",
+    "chatbot/app/main.py:trace_page"
+  ],
+  "not_executed": [
+    "New real Verify/Vault/provider application calls beyond the normal application startup"
+  ],
+  "deployment": {
+    "verified_at": "2026-10-22T10:46:04.047452+00:00",
+    "url": "http://localhost:8088",
+    "health": "ok",
+    "runtime_matches_source": {
+      "app/main.py": true,
+      "app/telemetry.py": true,
+      "app/live_call_flow_ui.py": true,
+      "app/live_call_flow.js": true,
+      "static/style.css": true,
+      "static/live_call_flow.css": true
+    },
+    "browser_verified": "Live call flow chip and Local HTTP lab badge visible in the actual running app after restart. Session requires sign-in again.",
+    "scope": "Updated six application/static files and restarted only Lumen using the existing managed startup procedure.",
+    "screenshot": "screenshots/live-call-flow-deployed.jpg"
+  }
+}

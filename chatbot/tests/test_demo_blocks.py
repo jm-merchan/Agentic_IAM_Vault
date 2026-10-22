@@ -55,8 +55,8 @@ def run(lab, *args):
 
 @pytest.mark.parametrize('target,paths', [
     ('xai',['xai/creds/lumen','secrets/data/chatbot/xai-access']),
-    ('database-read',['database/creds/chatbot-readonly','database/creds/chatbot-readwrite']),
-    ('database-write',['database/creds/chatbot-readwrite']),
+    ('database-read',['database/creds/chatbot-readonly','database/creds/chatbot-readwrite','database/creds/chatbot-contract']),
+    ('database-write',['database/creds/chatbot-readwrite','database/creds/chatbot-contract']),
     ('decrypt',['transit/decrypt/lumen-applications','transform/decode/lumen-dni','transform/decode/lumen-iban']),
 ])
 def test_scoped_block_and_reversible_unblock(lab, target, paths):

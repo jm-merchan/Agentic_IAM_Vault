@@ -149,6 +149,14 @@ class ApplicationServices:
     @operation('application.list_masked')
     async def applications(self, session):
         # Shared lab queue: this projection never retrieves clear personal information.
+        if self.config.get('contracts'):
+            return await self.database(session, '''SELECT a.application_id,a.subject_id,a.plan_id,
+                COALESCE(c.status,'borrador') AS status,a.created_at,a.dni_hint,a.iban_hint,
+                COALESCE(c.plan_name,p.name) AS plan_name,COALESCE(c.price_kwh,p.price_kwh) AS price_kwh,
+                c.contract_id,c.confirmed_at
+                FROM energy_applications a JOIN energy_plans p ON p.id=a.plan_id
+                LEFT JOIN lumen_contracts.contracts c ON c.application_id=a.application_id
+                ORDER BY a.created_at DESC LIMIT 30''')
         return await self.database(session, '''SELECT a.application_id,a.plan_id,a.status,a.created_at,
             a.dni_hint,a.iban_hint,p.name AS plan_name,p.price_kwh
             FROM energy_applications a JOIN energy_plans p ON p.id=a.plan_id

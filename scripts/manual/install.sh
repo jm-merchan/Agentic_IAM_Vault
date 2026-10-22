@@ -80,6 +80,7 @@ else
 fi
 # Personal spaces require the Python environment and the synchronized users.
 step 16-espacios-personales 1
+step 17-contratacion-ciba 1
 background 10-aplicacion 4 lumen
 wait_port 8088
 for retry in $(seq 1 30); do

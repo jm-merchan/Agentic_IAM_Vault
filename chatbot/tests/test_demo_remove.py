@@ -160,6 +160,26 @@ def test_preview_preserves_resources_and_recovery(lab):
     assert json.loads((lab['state']/'last-run.json').read_text())['dry_run'] is True
 
 
+def test_contract_cleanup_preserves_real_validator_account(lab):
+    remote=json.loads(lab['data'].read_text())
+    remote['resources'].update({
+        '/v2.0/Users/real-admin': {'id':'real-admin','userName':'operator@example.com',
+            'fixture_lumen':False},
+        '/v2.0/Groups/contract-validators': {'id':'contract-validators',
+            'displayName':'chatbot-validators','externalId':'lumen-demo:contract-validators',
+            'members':[{'value':'real-admin'}], 'fixture_lumen':True},
+        '/v1.0/applications/contract-client': {'name':'vault-chatbot-contract',
+            'providers':{'oidc':{'properties':{'clientId':'contract-client'}}},'fixture_lumen':True},
+    })
+    lab['data'].write_text(json.dumps(remote))
+    result=run(lab)
+    assert result.returncode==0,result.stderr+result.stdout
+    resources=json.loads(lab['data'].read_text())['resources']
+    assert '/v2.0/Users/real-admin' in resources
+    assert '/v2.0/Groups/contract-validators' not in resources
+    assert '/v1.0/applications/contract-client' not in resources
+
+
 def test_remove_is_scoped_ordered_and_repeatable(lab):
     inputs=lab['env_file'].read_bytes(); result=run(lab)
     assert result.returncode==0,result.stderr+result.stdout

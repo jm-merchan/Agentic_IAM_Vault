@@ -6,6 +6,7 @@ import inspect
 import json
 import os
 import threading
+import time
 from collections import deque
 from contextlib import contextmanager
 from pathlib import Path
@@ -13,7 +14,7 @@ from pathlib import Path
 from langchain_core.callbacks import AsyncCallbackHandler
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace import SpanProcessor, TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SimpleSpanProcessor, SpanExporter, SpanExportResult
 from opentelemetry.trace import Status, StatusCode
 from .trace_content import CURRENT, ContentRecorder, message_document
@@ -21,6 +22,7 @@ from .lab_capture import capture
 from .rar import LAB_CONTEXT
 
 RECORDS = deque(maxlen=3000)
+ACTIVE_SPANS = {}
 LOCK = threading.Lock()
 TRACE_DIR = Path(os.environ.get('LUMEN_TRACE_DIR', '/tmp/lumen-telemetry'))
 TRACE_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -44,9 +46,21 @@ class LocalTraceExporter(SpanExporter):
         return SpanExportResult.SUCCESS
 
 
+class LiveSpanProcessor(SpanProcessor):
+    """Keep in-flight spans local; completed exports and trace pages are unchanged."""
+    def on_start(self, span, parent_context=None):
+        with LOCK:
+            ACTIVE_SPANS[span.context.span_id] = span
+
+    def on_end(self, span):
+        with LOCK:
+            ACTIVE_SPANS.pop(span.context.span_id, None)
+
+
 PROVIDER = TracerProvider(resource=Resource.create({'service.name': 'lumen-chatbot',
                                                     'deployment.environment.name': 'minikube-lab'}))
 PROVIDER.add_span_processor(SimpleSpanProcessor(LocalTraceExporter()))
+PROVIDER.add_span_processor(LiveSpanProcessor())
 if endpoint := os.environ.get('OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'):
     from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
     PROVIDER.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint, timeout=5),
@@ -109,9 +123,25 @@ def operation(name):
     return decorate
 
 
-def records_for(ids):
+def records_for(ids, *, include_active=False):
     with LOCK:
-        return [r for r in RECORDS if r['trace_id'] in ids]
+        records = [r for r in RECORDS if r['trace_id'] in ids]
+        if include_active:
+            completed = {r['span_id'] for r in records}
+            now = time.time_ns()
+            for current in ACTIVE_SPANS.values():
+                tid = f'{current.context.trace_id:032x}'
+                sid = f'{current.context.span_id:016x}'
+                if tid not in ids or sid in completed:
+                    continue
+                # Snapshot only. No provisional record enters RECORDS, the log,
+                # OTLP or the existing trace/sensitive/replay APIs.
+                records.append(dict(trace_id=tid, span_id=sid,
+                    parent_id=f'{current.parent.span_id:016x}' if current.parent else None,
+                    name=current.name, start_ns=current.start_time, end_ns=now,
+                    duration_ms=round((now-current.start_time)/1e6, 2),
+                    status=current.status.status_code.name, attributes=dict(current.attributes), active=True))
+        return records
 
 
 class ModelSpans(AsyncCallbackHandler):

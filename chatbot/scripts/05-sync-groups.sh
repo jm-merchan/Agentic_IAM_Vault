@@ -74,3 +74,6 @@ if vault kv metadata get -mount=secrets chatbot/personal-spaces >/dev/null 2>&1;
   bash "$(dirname "$0")/configure-personal-spaces.sh"
 fi
 echo 'Restart Lumen to load the group ID mapping; users must obtain fresh OIDC sessions after changes.'
+if vault kv metadata get -mount=secrets chatbot/contracts >/dev/null 2>&1; then
+  bash "$(dirname "$0")/configure-contracts.sh"
+fi

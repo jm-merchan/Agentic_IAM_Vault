@@ -11,6 +11,17 @@ from app.trace_content import ContentRecorder, VAULT_CONTENT_KEYS
 
 
 @pytest.mark.asyncio
+async def test_native_token_revocation_accepts_empty_204(monkeypatch):
+    original = httpx.AsyncClient
+    monkeypatch.setattr(httpx, 'AsyncClient', lambda **kwargs: original(
+        transport=httpx.MockTransport(lambda request: httpx.Response(204))))
+    service = object.__new__(Services)
+    service.config = {'vault_addr': 'https://vault.test'}
+    service.vault_tls = ssl.create_default_context()
+    assert await service.vault_post('auth/token/revoke-self', 'synthetic-native-token', {}) == {}
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('raw,status', [(True, 200), (True, 403), (False, 200)])
 async def test_vault_capture_matches_http_request_and_response(monkeypatch, raw, status):
     monkeypatch.setenv('LUMEN_TRACE_VAULT_RAW', '1' if raw else '0')

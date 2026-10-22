@@ -4,8 +4,8 @@ block_targets() { printf '%s\n' xai database-read database-write decrypt; }
 block_paths() {
   case "$1" in
     xai) printf '%s\n' xai/creds/lumen secrets/data/chatbot/xai-access ;;
-    database-read) printf '%s\n' database/creds/chatbot-readonly database/creds/chatbot-readwrite ;;
-    database-write) printf '%s\n' database/creds/chatbot-readwrite ;;
+    database-read) printf '%s\n' database/creds/chatbot-readonly database/creds/chatbot-readwrite database/creds/chatbot-contract ;;
+    database-write) printf '%s\n' database/creds/chatbot-readwrite database/creds/chatbot-contract ;;
     decrypt) printf '%s\n' transit/decrypt/lumen-applications transform/decode/lumen-dni transform/decode/lumen-iban ;;
     *) fail 'Recurso inválido: usa xai, database-read, database-write o decrypt.' ;;
   esac

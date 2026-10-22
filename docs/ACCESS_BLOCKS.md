@@ -19,11 +19,11 @@ Los comandos usan la conexión administrativa generada al inicializar Vault. No 
 | Control | Rutas denegadas en Vault | Efecto visible |
 |---|---|---|
 | `xai` | `xai/creds/lumen`, `secrets/data/chatbot/xai-access` | Un nuevo mensaje libre recibe un HTTP 403 de Vault antes de invocar el LLM. Los botones que consultan datos directamente siguen funcionando. |
-| `database-read` | `database/creds/chatbot-readonly` y `database/creds/chatbot-readwrite` | Fallan catálogo, inventario y solicitudes; tampoco se emiten credenciales RW que permitirían eludir el bloqueo de lectura. |
-| `database-write` | `database/creds/chatbot-readwrite` | El gestor puede consultar con RO, pero Guardar solicitud recibe 403. |
+| `database-read` | `database/creds/chatbot-readonly`, `database/creds/chatbot-readwrite` y `database/creds/chatbot-contract` | Fallan catálogo, inventario, solicitudes y formalización de contratos; se revocan los tres tipos de leases. |
+| `database-write` | `database/creds/chatbot-readwrite` y `database/creds/chatbot-contract` | El gestor puede consultar con RO; guardar borradores o formalizar contratos recibe 403 al pedir la credencial. |
 | `decrypt` | `transit/decrypt/lumen-applications`, `transform/decode/lumen-dni`, `transform/decode/lumen-iban` | El supervisor ve la lista enmascarada, pero no puede revelar los datos. Cifrado y tokenización permanecen disponibles para el gestor. |
 
-MySQL tiene roles RO y RW, no un rol de escritura sin lectura. Por eso bloquear toda lectura implica bloquear ambos roles. La aplicación usa RO para todos los SELECT, incluido el gestor, y RW solo cuando guarda.
+El acceso habitual usa RO para SELECT y RW para guardar borradores. Ambos permiten leer. La contratación añade una credencial diferente, limitada a EXECUTE del procedimiento; los bloqueos de base de datos incluyen también este rol.
 
 ## Qué cambia realmente en Vault
 
@@ -33,12 +33,16 @@ Hay cuatro políticas independientes: `lumen-block-xai`, `lumen-block-database-r
 path "database/creds/chatbot-readwrite" {
   capabilities = ["deny"]
 }
+path "database/creds/chatbot-contract" {
+  capabilities = ["deny"]
+}
 ```
 
 El `deny` prevalece sobre el permiso de la política de base. RAR debe permitir la ruta, pero nunca puede superar una denegación de la política. No se edita el JWT ni se espera a que caduque: las nuevas peticiones se evalúan contra la política actual de Vault. [Políticas de Vault](https://developer.hashicorp.com/vault/docs/concepts/policies) · [RAR](https://developer.hashicorp.com/vault/ai/iam/concepts/rar/enforcement).
 
 La asociación depende del flujo:
 
+- **Contratación CIBA:** los tres bloqueos se asignan al token nativo mediante `auth/ciba-contract/role/validator`; este paso no utiliza OBO.
 - **xAI autónomo:** `lumen-block-xai` forma parte de las políticas de la entidad `chatbot-xai`. Es lo que limita Client Credentials.
 - **MySQL y protección de datos OBO:** los tres bloqueos forman parte de `ceiling_policies` del agente `chatbot-oidc`. Vault comprueba tanto los permisos del usuario como ese límite del actor. Las políticas límite del registro se aplican a OBO; por sí solas no bloquean el acceso autónomo. [Agent registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry).
 
@@ -122,3 +126,5 @@ El supervisor no puede recuperar los datos con `decrypt` bloqueado:
 ![Descifrado denegado para el supervisor](runs/20261015-rar-blocks/screenshots/decrypt-blocked.jpg)
 
 [Descifrado restaurado — todos los valores son ficticios](runs/20261015-rar-blocks/screenshots/decrypt-restored.jpg) · [Lectura SQL bloqueada](runs/20261015-rar-blocks/screenshots/database-read-blocked.jpg) · [Clave xAI reutilizada con reautorización](runs/20261015-rar-blocks/screenshots/xai-rar-reuse.jpg) · [xAI recuperado](runs/20261015-rar-blocks/screenshots/xai-restored.jpg).
+
+La [contratación CIBA](manual/17-contratacion-ciba.md) usa `database/creds/chatbot-contract`. Los bloqueos `database-read` y `database-write` incluyen este rol y revocan sus leases. El rol JWT CIBA también adjunta el bloqueo de descifrado.
