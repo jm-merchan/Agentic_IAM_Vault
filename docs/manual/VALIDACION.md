@@ -1,5 +1,32 @@
 # Validación actual e historial de reinstalación manual
 
+## Retirada e instalación manual por bloques · 23 de octubre de 2026
+
+Se eliminaron los tres namespaces de la demo, sus diez PV con los directorios de
+datos y 17 recursos de Verify. La instalación ejecutó los bloques Bash de las
+guías por fases, con revisión de sus resultados. Se verificaron UID nuevos para
+los namespaces y PV e IDs nuevos para los 17 recursos Verify. Se conservaron los
+prerrequisitos externos, el Validador real y `.env`, sin cambios en este archivo.
+
+Pasaron **137 comprobaciones funcionales con 54 trazas**, **18 pruebas de
+infraestructura**, 12 combinaciones de agentes por tarea, 12 de espacios personales
+y 4 casos RAR. CIBA recibió aprobación real del Validador y pasó sus nueve
+comprobaciones; el contrato se formalizó una vez y las descargas del backend
+devolvieron el mismo PDF. La contratación quedó habilitada y Lumen siguió operativo
+tras reiniciar su proceso.
+
+Se corrigieron el salto a un Bash anidado en el instalador y la ausencia de
+`VAULT_ENV_FILE` en la sesión manual. Las guías incorporan recuperación de Vault
+sellado y PV `Released`, además de los prerrequisitos Python y la carga del entorno
+para CIBA. Pasaron **46 pruebas locales de configuración manual** y la validación
+estática del repositorio. Esta ejecución no repite la suite completa ni la revisión
+visual histórica; tampoco acredita login ni descarga del PDF desde Chrome.
+
+Las JWKS públicas de Claude se actualizaron y compararon en la consola con las del
+nuevo Vault. Las pruebas posteriores verificaron inferencia, rechazo de replay y
+límites de audiencia. El [informe de ejecución](../runs/20261023T084800Z-manual-reinstall/README.md)
+contiene inventarios, incidencias, correcciones y resultados fechados de cada prueba.
+
 ## Validación final del repositorio · 22 de octubre de 2026
 
 La [validación final](../runs/20261022T161825Z-repo-validation/README.md) revisa

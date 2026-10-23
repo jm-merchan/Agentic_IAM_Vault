@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-23T09:02:39.828431+00:00",
+  "method": "Chrome, existing issuer Edit > inline JWKS > Save > Edit > Copy code; full public JSON comparison",
+  "issuer_id": "fdis_01WW7ri14c9BK9AHsC8gdG3q",
+  "public_keys_match": true,
+  "key_ids": [
+    "87690766-38e4-e1e2-7475-ce3dfadc4cbf",
+    "7089646c-b14f-90c8-b3ce-fab9d21db5bf"
+  ],
+  "jti_protection_enabled": true,
+  "max_token_lifetime_hours": 1,
+  "issuer_url": "https://nondemanding-indistinguishably-claude.ngrok-free.dev/v1/verify/spiffe",
+  "rule_and_permissions_unchanged": true
+}

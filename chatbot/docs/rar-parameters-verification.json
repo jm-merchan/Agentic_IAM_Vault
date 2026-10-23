@@ -6,7 +6,7 @@
   },
   "cases": [
     {
-      "checked_at": "2026-10-22T14:39:20.608560+00:00",
+      "checked_at": "2026-10-23T09:11:45.020225+00:00",
       "role": "writer",
       "mode": "write",
       "checks": [
@@ -18,10 +18,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "trace_id": "127131b0cc990aad97060cf94d7478ab",
           "request_ids": [
-            "fdf506fb-a955-eb3a-1ec5-8ee63347ef1e",
-            "2da1b3a9-ea6b-8a2c-babc-8dcb6ccf26be"
+            "73d65e88-d9e3-7d99-3903-d1156486a6a3",
+            "c4fdc5df-13b3-c2be-6898-4ce30590c316"
           ]
         },
         {
@@ -32,9 +32,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "trace_id": "127131b0cc990aad97060cf94d7478ab",
           "request_ids": [
-            "ee5ec9ca-1a22-7961-c559-c3be6ede0658",
+            "9e994615-a9c9-7e5b-830c-378243bd80fe",
             ""
           ]
         },
@@ -46,9 +46,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "trace_id": "127131b0cc990aad97060cf94d7478ab",
           "request_ids": [
-            "f88c1114-7881-5dbf-9c56-c8acf69c6bdc",
+            "b3a33d11-93ef-43dc-eab0-943a42d9e155",
             ""
           ]
         },
@@ -60,9 +60,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "e5465ad33801cdeff29e93a0f0b5efba",
+          "trace_id": "127131b0cc990aad97060cf94d7478ab",
           "request_ids": [
-            "84a00b88-d06d-4573-924e-65aa36a56bfb",
+            "0ae7df60-78a2-cd14-c559-815af823bb65",
             ""
           ]
         },
@@ -74,10 +74,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "84f5024ae5fe80b0b2c44fe423b839ca",
+          "trace_id": "6e386f486d212d1aa04d2aece7ca3b66",
           "request_ids": [
-            "995180fa-e4ca-686c-2c94-807ee6f90988",
-            "1c40d6a4-19ff-4e9e-b1f4-dffc02b92358"
+            "5676201b-adb2-9ef6-a423-f1c4219cdcb7",
+            "7969a35c-e6b1-d703-8bec-b1fa58d6b7a6"
           ]
         },
         {
@@ -88,9 +88,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "84f5024ae5fe80b0b2c44fe423b839ca",
+          "trace_id": "6e386f486d212d1aa04d2aece7ca3b66",
           "request_ids": [
-            "e8cdbf49-caba-de9a-f2dc-b8ff25ccf821",
+            "7a9ec8e8-532c-ed0f-6788-87929c512824",
             ""
           ]
         },
@@ -102,10 +102,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "8d9495d0c6dd394f398724bcd15b9ec8",
+          "trace_id": "a3b0f97d2f7cb552b9d02c76f23df5b9",
           "request_ids": [
-            "53992885-8bb7-0610-7c1b-c72f5f297893",
-            "bd49cce3-94b5-8618-ca34-18cc6c2ac934"
+            "dccfef0c-82d4-ec10-c4be-5abdabccd431",
+            "a6ba9fe1-3152-5b1f-4638-053881282623"
           ]
         },
         {
@@ -116,9 +116,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "8d9495d0c6dd394f398724bcd15b9ec8",
+          "trace_id": "a3b0f97d2f7cb552b9d02c76f23df5b9",
           "request_ids": [
-            "7016f5ea-744c-4717-3627-a2f0adf478b1",
+            "4fed8b2b-246f-bf93-6b18-5319c6d8f7af",
             ""
           ]
         },
@@ -130,10 +130,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "8d9495d0c6dd394f398724bcd15b9ec8",
+          "trace_id": "a3b0f97d2f7cb552b9d02c76f23df5b9",
           "request_ids": [
-            "4707a555-7ed8-8b15-187d-92141c9ad683",
-            "24cfcf88-40c6-46de-f062-2ab854651d21"
+            "08bb619e-4e34-7729-2162-f38b996997e6",
+            "dd202308-4cf6-6c36-7b37-6a9c4321bc04"
           ]
         },
         {
@@ -144,10 +144,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "trace_id": "a4bb279c6be999a4c1fbf2286bf8eaed",
           "request_ids": [
-            "e0504591-f5dd-4207-e335-30f099f27fa9",
-            "b2e3c4b0-7d9f-a17f-c163-765baf639828"
+            "d322611c-ae5b-15f4-39f9-2572baf8f4df",
+            "be18ab80-f4b7-95f1-97e9-6e78293ab2cb"
           ]
         },
         {
@@ -158,9 +158,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "trace_id": "a4bb279c6be999a4c1fbf2286bf8eaed",
           "request_ids": [
-            "9c13dbe8-5a99-bafc-1c74-53b9a4c4d970",
+            "a0c94f05-948b-8ce1-3721-57aecedf9fdc",
             ""
           ]
         },
@@ -172,9 +172,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "trace_id": "a4bb279c6be999a4c1fbf2286bf8eaed",
           "request_ids": [
-            "8e665ddd-4b6c-f8a4-b871-ca659064f667",
+            "1bf91d1c-9bb3-8223-f0e5-4a34dfaf9669",
             ""
           ]
         },
@@ -186,9 +186,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "7867b8e1ba50ce5e0f0d71a37ed6e983",
+          "trace_id": "a4bb279c6be999a4c1fbf2286bf8eaed",
           "request_ids": [
-            "e8e0695f-9058-0b13-f8da-db11a2b82c8c",
+            "dfd8d945-14e2-366a-8249-2fb3f9736b85",
             ""
           ]
         },
@@ -200,10 +200,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "72b16c283dc9e01b784c9862e4d80d93",
+          "trace_id": "9c732410cd022e2f1668f9e1f6cdce82",
           "request_ids": [
-            "b3349444-b05f-6d1a-5bc4-162bb6118e71",
-            "b94d024e-32ac-af65-5741-a425370c9e65"
+            "e06d2576-9af3-69b1-0d67-86ebc56f085a",
+            "4078bbc8-dfd4-0125-3a10-41c021014727"
           ]
         },
         {
@@ -214,16 +214,16 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "72b16c283dc9e01b784c9862e4d80d93",
+          "trace_id": "9c732410cd022e2f1668f9e1f6cdce82",
           "request_ids": [
-            "d92131c8-701f-da55-3647-8716b6251398",
+            "00725682-2ec1-8a62-c206-4e0dc564d5d4",
             ""
           ]
         }
       ]
     },
     {
-      "checked_at": "2026-10-22T14:39:25.580075+00:00",
+      "checked_at": "2026-10-23T09:11:49.808430+00:00",
       "role": "supervisor",
       "mode": "reveal",
       "checks": [
@@ -235,10 +235,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "a36e38fe1e4639df438100ae0f8d5b4f",
+          "trace_id": "3224ef6da7726d163a853a2046622d20",
           "request_ids": [
-            "b6157c09-0843-6a7a-fdd9-b90081cb4285",
-            "4862a1e5-c487-0155-d8b5-89b3f81acb26"
+            "a752ad5b-612e-c170-6efc-feeabf3316f9",
+            "45d7846e-b412-4bc3-e2f0-ba74a0dc5c59"
           ]
         },
         {
@@ -249,16 +249,16 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "a36e38fe1e4639df438100ae0f8d5b4f",
+          "trace_id": "3224ef6da7726d163a853a2046622d20",
           "request_ids": [
-            "72643778-b66a-2645-31fe-f3fadcd2b37d",
+            "cb57d523-0244-bd32-43db-3e735b709d67",
             ""
           ]
         }
       ]
     },
     {
-      "checked_at": "2026-10-22T14:39:32.359999+00:00",
+      "checked_at": "2026-10-23T09:11:56.955174+00:00",
       "role": "supervisor",
       "mode": "read",
       "checks": [
@@ -270,7 +270,7 @@
           "expected": "baseline_denied",
           "interpretation": "baseline_denied",
           "passed": true,
-          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "trace_id": "4dc1003ff4e71fadce1671b9f93fceb8",
           "request_ids": [
             "",
             ""
@@ -284,7 +284,7 @@
           "expected": "baseline_denied",
           "interpretation": "baseline_denied",
           "passed": true,
-          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "trace_id": "4dc1003ff4e71fadce1671b9f93fceb8",
           "request_ids": [
             "",
             ""
@@ -298,7 +298,7 @@
           "expected": "baseline_denied",
           "interpretation": "baseline_denied",
           "passed": true,
-          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "trace_id": "4dc1003ff4e71fadce1671b9f93fceb8",
           "request_ids": [
             "",
             ""
@@ -312,7 +312,7 @@
           "expected": "baseline_denied",
           "interpretation": "baseline_denied",
           "passed": true,
-          "trace_id": "a168ea5643c07c03d3b8b9f6a4dcb81f",
+          "trace_id": "4dc1003ff4e71fadce1671b9f93fceb8",
           "request_ids": [
             "",
             ""
@@ -321,7 +321,7 @@
       ]
     },
     {
-      "checked_at": "2026-10-22T14:39:38.907017+00:00",
+      "checked_at": "2026-10-23T09:12:04.888234+00:00",
       "role": "writer",
       "mode": "legacy",
       "checks": [
@@ -333,10 +333,10 @@
           "expected": "allowed",
           "interpretation": "allowed",
           "passed": true,
-          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "trace_id": "9a4aff646e0ea56738b2b480f9a6c949",
           "request_ids": [
-            "a704f753-0650-a2a7-3e24-2de9050ea663",
-            "06972705-10bc-7f28-9c2b-206c89093678"
+            "f15349d5-3c98-5844-e9cb-dce0eae3365a",
+            "dbbf0b81-8310-82fb-0601-0ff45ca20db1"
           ]
         },
         {
@@ -347,9 +347,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "trace_id": "9a4aff646e0ea56738b2b480f9a6c949",
           "request_ids": [
-            "1d9e44e6-8988-1c11-dc9a-c45cf3f996c8",
+            "838c762f-8f75-a8ab-3ca5-6b4a48b010c6",
             ""
           ]
         },
@@ -361,9 +361,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "trace_id": "9a4aff646e0ea56738b2b480f9a6c949",
           "request_ids": [
-            "29feac00-f3df-1425-da9a-5ae209811501",
+            "22e7b077-1b8f-ea9b-1698-c5e3460dfd47",
             ""
           ]
         },
@@ -375,9 +375,9 @@
           "expected": "rar_denied",
           "interpretation": "rar_denied",
           "passed": true,
-          "trace_id": "e8071383c729a0861f31884abb2bb7c1",
+          "trace_id": "9a4aff646e0ea56738b2b480f9a6c949",
           "request_ids": [
-            "e8132fdd-7fcd-246b-6ca0-014fe02bae8f",
+            "11eda848-08ba-1b04-7ea8-8ccd94263162",
             ""
           ]
         }

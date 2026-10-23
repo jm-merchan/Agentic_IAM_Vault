@@ -14,6 +14,46 @@ Las cuentas de prueba son usuarios Cloud Directory con contraseña activa, sin M
 
 ## 2. Retirar y reconstruir
 
+### Si el clúster estaba detenido
+
+La retirada necesita consultar Kubernetes y revocar los leases xAI en el Vault
+anterior. Si el Mac o Podman se reiniciaron, recuperar primero ese despliegue.
+Comprobar `podman machine list` y arrancar la VM solo si está detenida:
+
+```bash
+podman machine start podman-machine-default
+```
+
+Si `minikube status -p workshop` no muestra el API server en ejecución:
+
+```bash
+minikube start -p workshop
+```
+
+Un Vault con Shamir vuelve a quedar sellado al reiniciar sus pods. Desde Bash,
+desellar las tres réplicas con las claves del despliegue existente, sin volver
+a inicializarlo ni regenerar sus certificados:
+
+```bash
+state="${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}"
+test -s "$state/vault/cluster-keys.json"
+for pod in vault-0 vault-1 vault-2; do
+  jq '{key:.unseal_keys_b64[0]}' "$state/vault/cluster-keys.json" |
+    kubectl --context workshop -n vault exec -i "$pod" -- \
+      vault write -format=json sys/unseal - > /dev/null || break
+done
+kubectl --context workshop -n vault wait --for=condition=Ready \
+  pod/vault-0 pod/vault-1 pod/vault-2 --timeout=120s
+```
+
+Continuar solo si las tres réplicas están Ready. Si faltan las claves, recuperar
+el bootstrap correspondiente antes de retirar recursos: borrar los volúmenes
+de Vault impediría revocar las claves externas que aún gestionan sus leases.
+La simulación `bash demo.sh remove --dry-run` inventaría recursos, pero no prueba
+que Vault esté desellado ni ejecuta la revocación.
+
+### Ejecutar el ciclo
+
 Desde la raíz del workspace:
 
 ```bash
@@ -37,6 +77,75 @@ bash scripts/manual/rehearse.sh verify
 La ruta del informe pendiente se guarda en `$MANUAL/pending-verification-run`. Al ejecutar `verify` en una terminal nueva se reutiliza esa ruta, se finaliza el resultado del ciclo y solo entonces se retira la marca pendiente. Si la validación falla, la marca se conserva para diagnosticar y reintentar. Para verificar un despliegue distinto, indicar explícitamente `MANUAL_RUN` con un directorio nuevo.
 
 La instalación y la verificación funcional se ejecutan como fases separadas. La fase `verify` ejecuta los bloques 8–14 de Claude, precedidos por su bloque de entorno, incluida la inferencia y el replay negativo, antes de los recorridos generales.
+
+Los comandos de port-forward, ngrok, publicación JWKS y Lumen necesitan procesos
+activos. En una terminal normal, mantener abiertas las terminales correspondientes
+o usar el mecanismo de segundo plano del ensayo. `nohup` protege frente a SIGHUP,
+pero no frente a un ejecutor que elimine todo su árbol de procesos al cerrar una
+sesión. Si se usa uno de estos ejecutores, lanzar los mismos comandos en sesiones
+independientes y volver a comprobar `/health`, los puertos y las JWKS públicas
+después de cerrar la terminal de aprovisionamiento.
+
+### Volúmenes `Released` después de reiniciar Minikube
+
+En la reconstrucción del 23/10, los namespaces desaparecieron pero los diez PV
+quedaron en `Released`, con política `Delete`. El provisionador registró
+`identity annotation on PV does not match ours`: su identidad había cambiado
+al reiniciar. Es el comportamiento descrito en la
+[incidencia de Minikube #16140](https://github.com/kubernetes/minikube/issues/16140).
+La retirada espera a que desaparezcan los PV; mientras no ocurra, conserva las
+claves de recuperación y no marca el borrado como completado.
+
+Comprobar la causa antes de actuar:
+
+```bash
+kubectl --context workshop get pv
+kubectl --context workshop -n kube-system logs storage-provisioner --tail=100
+```
+
+Para este caso concreto, en el perfil **workshop de un solo nodo**, se puede
+retirar el directorio hostPath de cada volumen del inventario y después su objeto
+PV. El bloque siguiente exige que los tres namespaces ya no existan, valida todas
+las rutas antes de borrar y solo admite los diez nombres de PVC de esta demo.
+No quitar finalizers ni borrar únicamente el objeto PV: eso podría dejar los
+datos anteriores disponibles para el siguiente despliegue.
+
+Desde Bash, con el `remove-plan.json` de la retirada actual:
+
+```bash
+set -euo pipefail
+state="${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}"
+test -s "$state/remove-plan.json"
+test -z "$(kubectl --context workshop get namespace vault mysql lumen-observability --ignore-not-found -o name)"
+kubectl --context workshop get nodes -o json |
+  jq -e '.items|length==1 and .[0].metadata.name=="workshop"' >/dev/null
+kubectl --context workshop get pv -o json > "$state/pv-recovery.json"
+jq -e --slurpfile plan "$state/remove-plan.json" '
+  [.items[] | select(.metadata.name as $name | any($plan[0].volumes[]; .name==$name))] |
+  if length>0 and all(.[];
+    .status.phase=="Released" and .spec.persistentVolumeReclaimPolicy=="Delete" and
+    .metadata.annotations["pv.kubernetes.io/provisioned-by"]=="k8s.io/minikube-hostpath" and
+    ([.spec.claimRef.namespace,.spec.claimRef.name]|join("/")|
+      test("^(vault/(data|audit)-vault-[012]|mysql/data-mysql-enterprise-0|lumen-observability/(grafana|loki|tempo)-data)$")) and
+    .spec.hostPath.path==("/tmp/hostpath-provisioner/"+.spec.claimRef.namespace+"/"+.spec.claimRef.name))
+  then . else error("Inventario no compatible: detener la recuperación") end
+' "$state/pv-recovery.json" > "$state/pv-recovery-targets.json"
+jq -r '.[]|[.metadata.name,.metadata.uid,.spec.hostPath.path]|@tsv' \
+  "$state/pv-recovery-targets.json" > "$state/pv-recovery-targets.tsv"
+while IFS=$'\t' read -r name uid path; do
+  kubectl --context workshop get pv "$name" -o json |
+    jq -e --arg uid "$uid" '.metadata.uid==$uid and .status.phase=="Released"' >/dev/null
+  minikube ssh -p workshop -- \
+    "test ! -L '$path' && sudo rm -rf -- '$path' && test ! -e '$path'" </dev/null
+  kubectl --context workshop delete pv "$name" --wait=true --timeout=30s
+done < "$state/pv-recovery-targets.tsv"
+```
+
+Si `remove` todavía estaba esperando, continúa al desaparecer el último volumen.
+Si ya agotó su timeout, repetir `bash demo.sh remove` para completar la retirada
+local, comprobar `last-remove.json` y comenzar la instalación. No ejecutar otra
+retirada en paralelo. En este caso se comprobó también la ausencia de cada
+directorio dentro del nodo; la desaparición del namespace por sí sola no basta.
 
 ## 3. Validar los recorridos por script
 

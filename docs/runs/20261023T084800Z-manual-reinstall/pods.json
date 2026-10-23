@@ -1,0 +1,78 @@
+{
+  "checked_at": "2026-10-23T09:21:26.718496+00:00",
+  "all_ready": true,
+  "pods": [
+    {
+      "namespace": "vault",
+      "name": "vault-0",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "josemerchan/vault-xai:2.1.2-ent"
+      ]
+    },
+    {
+      "namespace": "vault",
+      "name": "vault-1",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "josemerchan/vault-xai:2.1.2-ent"
+      ]
+    },
+    {
+      "namespace": "vault",
+      "name": "vault-2",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "josemerchan/vault-xai:2.1.2-ent"
+      ]
+    },
+    {
+      "namespace": "mysql",
+      "name": "mysql-enterprise-0",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "container-registry.oracle.com/mysql/enterprise-server:8.3.0-aarch64"
+      ]
+    },
+    {
+      "namespace": "lumen-observability",
+      "name": "alloy-f8f74c8b7-s77xr",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "grafana/alloy:v1.21.0-rc.0"
+      ]
+    },
+    {
+      "namespace": "lumen-observability",
+      "name": "grafana-7f6bb9f98b-p9vfw",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "grafana/grafana:13.2.4"
+      ]
+    },
+    {
+      "namespace": "lumen-observability",
+      "name": "loki-85b66fcf9-mv9qj",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "grafana/loki:3.7.8"
+      ]
+    },
+    {
+      "namespace": "lumen-observability",
+      "name": "tempo-57dc8b8bdd-vwwc2",
+      "phase": "Running",
+      "ready": true,
+      "images": [
+        "grafana/tempo:2.10.8"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "verify_resources": 17,
+  "all_verify_ids_new": true,
+  "persistent_volumes": 10,
+  "all_pv_uids_new": true
+}

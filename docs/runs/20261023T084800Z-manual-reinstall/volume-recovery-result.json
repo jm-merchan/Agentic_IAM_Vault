@@ -1,0 +1,72 @@
+[
+  {
+    "name": "pvc-0a555fee-7fc8-4439-a21b-852f1a86ac3b",
+    "uid": "60a0ed20-3120-4b72-accf-4719489bcfa8",
+    "path": "/tmp/hostpath-provisioner/lumen-observability/loki-data",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-0ce4e7f6-314b-458c-82e7-e648e988365c",
+    "uid": "e2939851-bd15-467d-a6a0-02358ecb57ca",
+    "path": "/tmp/hostpath-provisioner/vault/audit-vault-0",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-1f29f4d4-e36b-4c4c-ac23-158b7e95255e",
+    "uid": "8844f1fd-3daf-4d04-b2e0-73c7e0692487",
+    "path": "/tmp/hostpath-provisioner/vault/data-vault-2",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-6638155e-bfa9-480f-b762-c140b94884c1",
+    "uid": "6a515d04-a3f3-451c-8f3d-a4d3d95bcc4e",
+    "path": "/tmp/hostpath-provisioner/mysql/data-mysql-enterprise-0",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-85459294-38fe-45a1-86a1-bc65da12464f",
+    "uid": "b39f2b4c-1dc9-4152-9f4d-91dc25a49148",
+    "path": "/tmp/hostpath-provisioner/vault/audit-vault-2",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-8619c163-3498-4ab0-91fb-f15a55782d92",
+    "uid": "ffa07a67-90eb-445a-afc6-9d2e476a588c",
+    "path": "/tmp/hostpath-provisioner/vault/data-vault-0",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-89ba3758-24d4-45c9-b202-6e02eb9ded71",
+    "uid": "1676dc74-a894-4e78-a9dc-85cb68f2f959",
+    "path": "/tmp/hostpath-provisioner/vault/audit-vault-1",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-9f36f71f-c81f-4f7b-abef-8d96ddaeafdb",
+    "uid": "597ff87f-481e-4ab5-b75d-046290c75490",
+    "path": "/tmp/hostpath-provisioner/vault/data-vault-1",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-cd00f8af-46eb-4ba4-bbc3-ae9db3b4c45f",
+    "uid": "1af82246-9d4e-4dd8-961f-d01dfb28f11e",
+    "path": "/tmp/hostpath-provisioner/lumen-observability/grafana-data",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  },
+  {
+    "name": "pvc-e4268f68-9d84-4fb7-a833-95414060c59c",
+    "uid": "e3f5f0c1-e9b3-43d8-82ec-a62d86508e29",
+    "path": "/tmp/hostpath-provisioner/lumen-observability/tempo-data",
+    "previous_identity": "3cb5f071-34f8-498c-bb18-c587eafdf03e",
+    "directory_absent": true
+  }
+]

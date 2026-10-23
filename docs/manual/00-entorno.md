@@ -96,6 +96,7 @@ set -a
 source "$LUMEN_ROOT/.env"
 set +a
 export MANUAL="$LUMEN_STATE_DIR/manual"
+export VAULT_ENV_FILE="$LUMEN_STATE_DIR/vault/config.env"
 export TENANT="${VERIFY_TENANT%/}"
 K=(kubectl --context workshop)
 cd "$LUMEN_ROOT"

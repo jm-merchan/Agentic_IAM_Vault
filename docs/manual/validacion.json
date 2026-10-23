@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-10-22T16:24:20.178207+00:00",
+  "checked_at": "2026-10-23T09:25:02.306515+00:00",
   "documents": 38,
-  "bash_blocks": 273,
+  "bash_blocks": 278,
   "shell_scripts": 92,
-  "local_links": 712,
+  "local_links": 717,
   "python_files": 92,
   "notebooks": 11,
   "bash_cells": 73,

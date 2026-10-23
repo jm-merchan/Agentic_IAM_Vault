@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-23T09:24:32.146669+00:00",
+  "pid": 40719,
+  "administrative_credentials_present": [],
+  "checked_variable_names": [
+    "VAULT_TOKEN",
+    "VERIFY_ADMIN_CLIENT_SECRET",
+    "OPENAI_ADMIN_API_KEY",
+    "XAI_MANAGEMENT_API_KEY",
+    "TAVILY_API_KEY",
+    "NGROK_AUTHTOKEN",
+    "ORACLE_REG_PASSWORD",
+    "MYSQL_ROOT_PASSWORD",
+    "VAULT_LICENSE",
+    "LUMEN_READER_PASSWORD",
+    "LUMEN_WRITER_PASSWORD",
+    "LUMEN_SUPERVISOR_PASSWORD",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_AUTH_TOKEN"
+  ],
+  "method": "Inspect only names in process environment; no credential values persisted"
+}

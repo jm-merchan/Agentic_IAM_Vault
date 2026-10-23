@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-23T08:50:01Z",
+  "namespaces": [
+    "default",
+    "kube-node-lease",
+    "kube-public",
+    "kube-system"
+  ],
+  "persistent_volumes": []
+}

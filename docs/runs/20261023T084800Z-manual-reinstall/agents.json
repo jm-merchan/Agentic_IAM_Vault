@@ -1,0 +1,53 @@
+[
+  {
+    "display_name": "chatbot-oidc",
+    "id": "ba169b93-735b-29e3-1c8b-6dd5c6c2e19e",
+    "entity_id": "7163dc0a-2a11-72e1-9fab-0f722bb09a7f",
+    "ceiling_policies": [
+      "chatbot-data-ceiling",
+      "lumen-block-database-read",
+      "lumen-block-database-write",
+      "lumen-block-decrypt",
+      "lumen-contract-ceiling",
+      "lumen-personal-write"
+    ],
+    "optional_authorization_details": false
+  },
+  {
+    "display_name": "chatbot-research",
+    "id": "a72a5b91-a0c4-4347-e2ca-1ba64cea9a81",
+    "entity_id": "1fdd8069-5f27-697c-410b-4ec0b20c33ee",
+    "ceiling_policies": [
+      "chatbot-research"
+    ],
+    "optional_authorization_details": true
+  },
+  {
+    "display_name": "chatbot-xai",
+    "id": "aaa6e21b-731a-7c3f-a805-a498715943dc",
+    "entity_id": "c808b283-de37-054a-38a2-9c7f37c53355",
+    "ceiling_policies": [
+      "chatbot-xai",
+      "lumen-block-xai"
+    ],
+    "optional_authorization_details": false
+  },
+  {
+    "display_name": "chatbot-openai",
+    "id": "bc411ad5-83ff-c53c-8c6a-f5aaf1e40d64",
+    "entity_id": "a9eca60d-f43e-213e-7502-9df63923c2a2",
+    "ceiling_policies": [
+      "chatbot-openai"
+    ],
+    "optional_authorization_details": false
+  },
+  {
+    "display_name": "chatbot-anthropic",
+    "id": "f6829483-395a-e349-2482-0c1f72916c04",
+    "entity_id": "36b1c9d1-3f73-4727-eb6f-d79cccd77495",
+    "ceiling_policies": [
+      "chatbot-anthropic"
+    ],
+    "optional_authorization_details": false
+  }
+]

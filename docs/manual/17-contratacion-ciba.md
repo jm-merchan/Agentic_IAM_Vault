@@ -11,19 +11,21 @@ El contrato es ficticio: no constituye una contratación comercial ni un cobro.
 
 ## Preparar y habilitar
 
-Desde la raíz del repositorio, después de agentes, grupos y MySQL:
+Desde la raíz del repositorio, después de agentes, grupos y MySQL, con el
+[runtime Python instalado](10-aplicacion.md#2-instalar-el-runtime):
 
 ```bash
-bash chatbot/scripts/configure-contracts.sh
+bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh
 ```
 
-El instalador carga las variables por sí mismo y conserva el Validador seleccionado.
+El envoltorio carga `.env` y exporta la ruta del bootstrap de Vault, también
+desde una terminal nueva. El instalador conserva el Validador seleccionado.
 En este tenant es la cuenta existente `jose.merchan@ibm.com@www.ibm.com`
 (ID `64300857U3`), que recibe la petición por correo. Conserva su contraseña,
 perfil y privilegios administrativos. Para seleccionar otra cuenta existente:
 
 ```bash
-bash chatbot/scripts/configure-contracts.sh --validator 'usuario@dominio.example'
+bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh --validator 'usuario@dominio.example'
 ```
 
 Sin selección previa prepara `lumen-validator`, con correo ficticio: **no puede
@@ -43,7 +45,7 @@ Si termina correctamente escribe `chatbot/docs/contracts-verification.json`
 y `output/pdf/lumen-contrato-verificado.pdf`. Luego:
 
 ```bash
-bash chatbot/scripts/configure-contracts.sh --enable
+bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh --enable
 ```
 
 ```bash

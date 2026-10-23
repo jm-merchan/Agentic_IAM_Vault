@@ -1,0 +1,42 @@
+{
+  "checked_at": "2026-10-23T09:23:56.868650+00:00",
+  "cause": "Executor terminated descendants when interactive shell exited despite nohup",
+  "method": "Restart saved manual commands with subprocess start_new_session=True and private logs",
+  "services": [
+    {
+      "service": "publisher",
+      "pid": 40684,
+      "independent_session": true
+    },
+    {
+      "service": "ngrok",
+      "pid": 40685,
+      "independent_session": true
+    },
+    {
+      "service": "grafana",
+      "pid": 40686,
+      "independent_session": true
+    },
+    {
+      "service": "tempo",
+      "pid": 40687,
+      "independent_session": true
+    },
+    {
+      "service": "loki",
+      "pid": 40688,
+      "independent_session": true
+    },
+    {
+      "service": "lumen",
+      "pid": 40689,
+      "independent_session": true
+    }
+  ],
+  "verified_at": "2026-10-23T09:24:32.147215+00:00",
+  "all_ports_ready": true,
+  "health_ok": true,
+  "public_jwks_key_count": 2,
+  "runtime_admin_credentials_absent": true
+}

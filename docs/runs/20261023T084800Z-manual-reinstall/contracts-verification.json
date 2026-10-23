@@ -1,0 +1,33 @@
+{
+  "checked_at": "2026-10-23T09:08:00.209968+00:00",
+  "flow": "contract-ciba",
+  "passed": true,
+  "client_id": "60506d2e-7c5f-4ba5-9731-a3f7821baaf1",
+  "validator_subject": "64300857U3",
+  "application_id": "5feff551-e0f3-4dbb-94e5-025411029d49",
+  "contract_id": "3cf44eef-3072-4a0c-8645-eb912f955342",
+  "sha256": "0718351bd5a08e86a9134889731045ef121e22bb8fde6cf2254f3be115672beb",
+  "checks": [
+    "ordinary login rejected by CIBA Vault role",
+    "CIBA client rejects client_credentials",
+    "Writer OBO denied contract database credential",
+    "ordinary Writer SQL cannot formalize, call procedure or read protected PDF ciphertext",
+    "no contract row while CIBA pending",
+    "SQL retry is idempotent",
+    "one committed contract row with status contratada",
+    "owner downloads same committed PDF through OBO",
+    "contracted draft immutable to regular Writer SQL"
+  ],
+  "traces": [
+    "70def434c569c8e644abf8f66381c89c",
+    "56d51ed4ff9bf29698fbbb1322598e4e",
+    "1822e5109d52c87c2a61134b51e6d457",
+    "ecbe4b80af2e301e80e3efa82e1866f4",
+    "fd1d8d3c12ff555be086d74290eb498e",
+    "3b9652febc51922eb44992d09c46269b",
+    "248484183848b8e8d3b2617448c9c2e9",
+    "c3be12bd528dd6d1d3bca151a2b89682",
+    "5786afa703988b9c9e21f18e7e59b4dd",
+    "ad68f5c2620fb428b36f65461e650dc6"
+  ]
+}

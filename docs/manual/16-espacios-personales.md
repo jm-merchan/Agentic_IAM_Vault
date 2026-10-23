@@ -7,7 +7,8 @@ se envían al LLM.
 
 ## Preparación
 
-Después de `grupos`, ejecutar desde la raíz del repositorio:
+Después de `grupos`, con el [runtime Python instalado](10-aplicacion.md#2-instalar-el-runtime),
+ejecutar desde la raíz del repositorio:
 
 ```bash
 bash scripts/manual/paso-a-paso.sh ejecutar espacios-personales

@@ -11,7 +11,10 @@ require_model_inputs
 : > "$MANUAL/steps.jsonl"
 : > "$MANUAL/background-blocks.jsonl"
 step 00-entorno 2
-step 00-entorno 3
+# Block 3 opens a new interactive Bash for another terminal. We already run
+# inside Bash with session.sh loaded; execute its preflight, not a nested shell.
+step 00-entorno 4
+step 00-entorno 5
 step 01-vault 1
 for n in 3 4 5; do step 01-vault "$n"; done
 background 01-vault 6 vault

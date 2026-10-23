@@ -220,6 +220,20 @@ elif args[0] == 'read':
         'lumen-block-database-write', 'lumen-block-decrypt'] if suffix == 'oidc' else [policy])
 
 
+def test_manual_session_exports_vault_connection_to_child_scripts(lab):
+    root, env = lab
+    env.pop('VAULT_ENV_FILE', None)
+    # A fresh manual install has no legacy /tmp/vault/config.env. Child scripts
+    # must receive the path created by chapter 01 through the session export.
+    code = block('00-entorno', 2) + '''
+bash -euc 'test "$VAULT_ENV_FILE" = "$LUMEN_STATE_DIR/vault/config.env"
+source "$VAULT_ENV_FILE"
+test "$VAULT_ADDR" = https://fixture'
+'''
+    result = shell(code, env, root)
+    assert result.returncode == 0, result.stderr
+
+
 def plan_only(root):
     # Extract and parse the real document blocks, but don't execute their side effects.
     with (root / 'scripts/manual/common.sh').open('a') as out:

@@ -56,6 +56,12 @@ jq -jer '"Authorization: Bearer "+.access_token+ "\nContent-Type: application/js
 
 Repetir este paso si expira el token de administración. `curl --fail` detiene el bloque cuando recibe un error HTTP; no continuar a partir de un JSON vacío. Las respuestas con secretos se guardan en archivos, sin imprimirlas.
 
+Si un script indica `/tmp/vault/config.env: No such file or directory`, actualizar
+`session.sh` con el bloque de creación de sesión de [00](00-entorno.md#3-crear-una-sesión-de-trabajo-reutilizable)
+y volver a cargarlo. Debe exportar `VAULT_ENV_FILE` hacia
+`$LUMEN_STATE_DIR/vault/config.env`, donde el capítulo 01 guardó la conexión.
+No copiar claves antiguas a `/tmp/vault` ni volver a inicializar Vault.
+
 ## 2. Registrar el tipo RAR `vault:path_access`
 
 [rar-schema.json](../../verify/config/rar-schema.json) exige `type`, `path` y `capabilities`; permite `read/create/update/delete/sudo/list/deny` y las propiedades opcionales `allowed_parameters`, `denied_parameters` y `required_parameters`. Rechaza otras propiedades. Los tokens anteriores sin parámetros siguen siendo válidos. Inspeccionar el inventario primero:

@@ -13,8 +13,11 @@ incluye sus errores y concurrencia, la reanudación de usuarios y la validación
 de README, scripts y notebooks. Después se completó la
 [retirada y reinstalación real del 22/10](../runs/20261022T122934Z-full-e2e/README.md),
 con tres proveedores, matrices de permisos, CIBA aprobado y comprobaciones de navegador.
+El **23/10** se repitió la [retirada e instalación manual por bloques](../runs/20261023T084800Z-manual-reinstall/README.md),
+con recursos nuevos y CIBA aprobado. Esa ejecución documenta la recuperación de
+Vault sellado, los PV atascados tras reiniciar Minikube y las correcciones de sesión Bash.
 
-Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Revisadas el **22 de octubre de 2026**, incluidas las capturas de la interfaz, los botones de borradores y la separación entre resultados actuales e históricos. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
+Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Revisadas el **23 de octubre de 2026** durante la instalación manual; las capturas de interfaz conservan la fecha de su comprobación anterior. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
 
 ## Prerrequisitos y orden
 
