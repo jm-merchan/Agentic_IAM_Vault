@@ -1,70 +1,78 @@
 # Lumen · Vault Agentic IAM
 
-Lumen es una demo de autorización para agentes de IA. Utiliza un asistente de
-energía como ejemplo: el usuario consulta tarifas, guarda solicitudes con datos
-protegidos y puede pedir la aprobación de un contrato ficticio.
+Lumen is an authorization demo for AI agents. It uses an energy assistant as an
+example: users browse plans, save applications containing protected data, and
+request approval for a fictional contract.
 
-**IBM Verify autentica al usuario y Vault decide qué operaciones puede realizar
-el agente en su nombre.** La demo permite observar esas decisiones en las llamadas
-reales a Vault, MySQL y los proveedores de modelos. Todos los datos y contratos del
-recorrido son de prueba; ninguna acción contrata un suministro.
+**IBM Verify authenticates the user, and Vault decides which operations the agent
+can perform on their behalf.** The demo exposes those decisions through real
+calls to Vault, MySQL, and model providers. All data and contracts in the walkthrough
+are for testing; no action signs up for an energy supply service.
 
-[Instalar](#instalación) · [Probar la demo](#probar-la-demo) ·
-[Verificar](#verificación) · [Operar o retirar](#operación) ·
-[Manual paso a paso](docs/manual/README.md)
+[Install](#installation) · [Try the demo](#try-the-demo) ·
+[Verify](#verification) · [Operate or remove](#operations) ·
+[Step-by-step manual](docs/manual/README.md)
 
-![Interfaz actual de Lumen](docs/screenshots/current/home.jpg)
+![Current Lumen interface](docs/screenshots/current/home.jpg)
 
-## Qué demuestra
+<a id="qué-demuestra"></a>
 
-| Recorrido | Qué se comprueba |
+## What it demonstrates
+
+| Workflow | What it verifies |
 |---|---|
-| Consultar, guardar o revelar una solicitud | Vault combina permisos del usuario, límites del agente y restricciones RAR de la petición. Las credenciales MySQL son temporales. |
-| Proteger datos personales | Transit cifra los datos y Transform tokeniza DNI e IBAN. Los perfiles autorizados pueden recuperarlos. |
-| Cambiar de modelo | OpenAI y Claude usan identidades SPIFFE emitidas por Vault; xAI obtiene claves dinámicas. Se cambia de proveedor sin perder la conversación. |
-| Contratar con aprobación | Un Validador confirma en Verify mediante CIBA. Después se registra el contrato en MySQL y su propietario puede descargar el PDF. |
-| Inspeccionar una operación | La traza de Lumen y Grafana/Tempo/Loki muestran los intercambios y los resultados de autorización. |
+| Read, save, or reveal an application | Vault combines user permissions, agent limits, and the request's RAR restrictions. MySQL credentials are temporary. |
+| Protect personal data | Transit encrypts data, and Transform tokenizes national ID numbers (DNI) and IBANs. Authorized profiles can retrieve them. |
+| Switch models | OpenAI and Claude use SPIFFE identities issued by Vault; xAI receives dynamic keys. Users can switch providers without losing the conversation. |
+| Create a contract with approval | A Validator confirms the request in Verify through CIBA. The contract is then recorded in MySQL, and its owner can download the PDF. |
+| Inspect an operation | Lumen traces and Grafana/Tempo/Loki show the exchanges and authorization results. |
 
-La aplicación está escrita con NiceGUI y LangChain Deep Agents. MySQL Enterprise
-utiliza KMIP para sus claves de cifrado. La búsqueda web usa Tavily. La interfaz
-admite español e inglés.
+The application is built with NiceGUI and LangChain Deep Agents. MySQL Enterprise
+uses KMIP for its encryption keys. Web search uses Tavily. The interface supports
+English and Spanish.
 
-## Prerrequisitos
+<a id="prerrequisitos"></a>
 
-El lanzador de este repositorio está preparado para **macOS** y utiliza `launchd`.
-Necesitas Podman o Docker arrancado, con capacidad para una VM de Minikube de
-**4 CPU y 8 GiB de memoria**. El contexto Kubernetes de la demo es `workshop`.
+## Prerequisites
 
-Instala Bash, Python 3, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube,
-uv, ngrok, rsync, lsof y ripgrep. `plutil` y `launchctl` vienen con macOS. Node.js
-solo es necesario para ejecutar las pruebas JavaScript locales. La CLI `ant` se
-utiliza si eliges sincronizar Claude mediante su API administrativa.
+The launcher in this repository targets **macOS** and uses `launchd`.
+Podman or Docker must be running, with capacity for a Minikube VM with
+**4 CPUs and 8 GiB of memory**. The demo's Kubernetes context is `workshop`.
 
-| Servicio externo | Qué debes tener preparado |
+Install Bash, Python 3, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube,
+uv, ngrok, rsync, lsof, and ripgrep. `plutil` and `launchctl` are included with macOS.
+Node.js is only required to run the local JavaScript tests. The `ant` CLI is used
+if you choose to synchronize Claude through its administrative API.
+
+| External service | What you need to prepare |
 |---|---|
-| IBM Verify | Tenant y cliente API administrativo con los permisos de [00 · Entorno](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). |
-| Vault Enterprise | Licencia con Agentic IAM, KMIP y Transform. |
-| Oracle Container Registry | Cuenta con acceso habilitado a la imagen de MySQL Enterprise. |
-| OpenAI | Organización con acceso API, cuota y clave administrativa para preparar proyecto, cuenta de servicio y federación. |
-| xAI | Management API key con acceso al equipo de la demo. |
-| Claude | Organización con acceso API, cuota y permiso para preparar la federación de una cuenta de servicio. |
-| Tavily | API key para la búsqueda web. |
-| ngrok | Cuenta y dominio propio para publicar discovery y claves públicas de SPIFFE. |
+| IBM Verify | A tenant and an administrative API client with the permissions listed in [00 · Environment](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). |
+| Vault Enterprise | A license covering Agentic IAM, KMIP, and Transform. |
+| Oracle Container Registry | An account with access to the MySQL Enterprise image. |
+| OpenAI | An organization with API access, quota, and an administrative key to set up the project, service account, and federation. |
+| xAI | A Management API key with access to the demo's team. |
+| Claude | An organization with API access, quota, and permission to set up service account federation. |
+| Tavily | An API key for web search. |
+| ngrok | An account and a domain you control to publish SPIFFE discovery and public keys. |
 
-**El arranque completo configura los tres proveedores.** Elegir uno con
-`--provider` cambia la selección inicial, pero no elimina los requisitos de los
-otros dos. El lanzador crea la infraestructura local y los recursos de Lumen en
-Verify; las cuentas externas y sus permisos se preparan previamente.
+**A full startup configures all three providers.** Selecting one with `--provider`
+changes the initial selection but does not remove the requirements for the other
+two. The launcher creates the local infrastructure and Lumen resources in Verify;
+external accounts and their permissions must be prepared beforehand.
 
-## Instalación
+<a id="instalación"></a>
 
-Ejecuta los comandos desde la raíz del repositorio. Si prefieres avanzar una
-operación cada vez, usa el [instalador guiado](docs/manual/PASO-A-PASO.md). Para
-hacer cada operación con comandos individuales, sigue el [manual](docs/manual/README.md).
+## Installation
 
-### Preparar `.env`
+Run commands from the repository root. To proceed one operation at a time, use
+the [guided installer](docs/manual/PASO-A-PASO.md). To perform each operation with
+individual commands, follow the [manual](docs/manual/README.md).
 
-Crea la configuración sin sobrescribir una existente:
+<a id="preparar-env"></a>
+
+### Prepare `.env`
+
+Create the configuration without overwriting an existing file:
 
 ```bash
 cp -n .env.example .env
@@ -74,38 +82,40 @@ cp -n .env.example .env
 chmod 600 .env
 ```
 
-Abre `.env` en tu editor y completa las entradas de [`.env.example`](.env.example):
+Open `.env` in your editor and complete the entries in [`.env.example`](.env.example):
 
-- Tenant y credenciales administrativas de Verify.
-- Credenciales de xAI, OpenAI, Tavily y Oracle, y licencia de Vault.
-- Contraseñas iniciales de MySQL y de `lumen-reader`, `lumen-writer` y `lumen-supervisor`.
-- Tu `NGROK_DOMAIN`; añade `NGROK_AUTHTOKEN` si ngrok no está autenticado localmente.
-- Motor de contenedores. Para Docker, cambia **ambas** variables
-  `CONTAINER_ENGINE` y `MINIKUBE_DRIVER` a `docker`.
+- Verify tenant and administrative credentials.
+- xAI, OpenAI, Tavily, and Oracle credentials, and the Vault license.
+- Initial passwords for MySQL and for `lumen-reader`, `lumen-writer`, and `lumen-supervisor`.
+- Your `NGROK_DOMAIN`; add `NGROK_AUTHTOKEN` if ngrok is not authenticated locally.
+- Container engine. For Docker, change **both** `CONTAINER_ENGINE` and
+  `MINIKUBE_DRIVER` to `docker`.
 
-Los IDs de federación OpenAI/Claude se completan en el siguiente paso. `.env` usa
-sintaxis Bash y está excluido de Git. No añadas `VAULT_TOKEN`, `VAULT_ADDR` ni
-`VAULT_CACERT`: el instalador genera el bootstrap de Vault y lo guarda en el
-directorio privado de estado.
+The OpenAI/Claude federation IDs are filled in during the next step. `.env` uses
+Bash syntax and is excluded from Git. Do not add `VAULT_TOKEN`, `VAULT_ADDR`, or
+`VAULT_CACERT`: the installer generates the Vault bootstrap configuration and
+stores it in the private state directory.
 
-### Preparar OpenAI y Claude por primera vez
+<a id="preparar-openai-y-claude-por-primera-vez"></a>
 
-Si ya tienes las federaciones de esta demo y sus IDs en `.env`, conserva esos
-recursos y pasa a la comprobación de prerrequisitos.
+### Set up OpenAI and Claude for the first time
 
-**1. Prepara el emisor de Vault y los recursos OpenAI:**
+If you already have the demo's federations and their IDs in `.env`, keep those
+resources and proceed to the prerequisite check.
+
+**1. Prepare the Vault issuer and OpenAI resources:**
 
 ```bash
 ./demo.sh prepare-openai
 ```
 
-Este comando **ya despliega e inicializa Vault** si hace falta. Publica únicamente
-discovery/JWKS mediante ngrok y crea o reutiliza el proyecto y la cuenta de servicio
-OpenAI. Después completa el [proveedor WIF y su mapping](docs/OPENAI_SPIFFE.md#preparación-inicial-de-openai)
-en la consola OpenAI y guarda `OPENAI_IDENTITY_PROVIDER_ID` en `.env`.
+This command **deploys and initializes Vault** if needed. It publishes only
+discovery/JWKS through ngrok and creates or reuses the OpenAI project and service
+account. Then complete the [WIF provider and its mapping](docs/OPENAI_SPIFFE.md#preparación-inicial-de-openai)
+in the OpenAI console and save `OPENAI_IDENTITY_PROVIDER_ID` in `.env`.
 
-**2. Registra la federación Claude.** Reutiliza las claves públicas del emisor que
-acabas de preparar. Con el directorio de estado predeterminado, cópialas así:
+**2. Register the Claude federation.** Reuse the public keys from the issuer you
+just prepared. With the default state directory, copy them as follows:
 
 ```bash
 (
@@ -116,151 +126,165 @@ acabas de preparar. Con el directorio de estado predeterminado, cópialas así:
 )
 ```
 
-Sigue la [configuración del emisor y la regla en Claude](docs/manual/08-claude-spiffe.md#3-registrar-la-federación-usando-el-portal-claude).
-La URL del emisor es `https://<tu-NGROK_DOMAIN>/v1/verify/spiffe`; la regla utiliza
-el sujeto y la audiencia indicados en esa guía. Guarda los cinco IDs
-`ANTHROPIC_*` de la plantilla en `.env`. El arranque creará el rol Vault de Claude.
+Follow the [Claude issuer and rule setup](docs/manual/08-claude-spiffe.md#3-registrar-la-federación-usando-el-portal-claude).
+The issuer URL is `https://<your-NGROK_DOMAIN>/v1/verify/spiffe`; the rule uses the
+subject and audience specified in that guide. Save the template's five
+`ANTHROPIC_*` IDs in `.env`. Startup will create the Vault role for Claude.
 
-**3. Elige cómo mantener actualizadas las claves públicas de Claude:**
+**3. Choose how to keep Claude's public keys up to date:**
 
-| `LUMEN_CLAUDE_SYNC_MODE` | Preparación y comportamiento |
+| `LUMEN_CLAUDE_SYNC_MODE` | Setup and behavior |
 |---|---|
-| `api` — valor de la plantilla | Instala `ant` e inicia el perfil administrativo indicado en la [guía Claude](docs/manual/08-claude-spiffe.md). El instalador actualiza y comprueba las claves del emisor existente. |
-| `console` | Actualiza las claves en línea desde la consola Claude. El instalador exporta `claude/issuer-keys.json` dentro del directorio de estado, pero no las guarda en Claude. |
+| `api` — template default | Install `ant` and sign in with the administrative profile specified in the [Claude guide](docs/manual/08-claude-spiffe.md). The installer updates and checks the existing issuer's keys. |
+| `console` | Update the inline keys in the Claude console. The installer exports `claude/issuer-keys.json` inside the state directory but does not save them in Claude. |
 
-Con `console`, después de recrear Vault debes guardar las nuevas claves en el
-emisor. Si `start` se detiene en la comprobación Claude, actualízalas y repite el
-comando. Ambos modos requieren que pasen la federación y la inferencia reales.
-[Sincronización y rotación](docs/OPERACION.md#sincronizar-las-claves-de-claude).
+With `console`, you must save the new keys in the issuer after recreating Vault.
+If `start` stops at the Claude check, update the keys and rerun the command.
+Both modes require successful live federation and inference checks.
+[Synchronization and rotation](docs/OPERACION.md#sincronizar-las-claves-de-claude).
 
-### Comprobar e instalar
+<a id="comprobar-e-instalar"></a>
 
-Con las entradas y federaciones preparadas:
+### Check and install
+
+Once the inputs and federations are ready:
 
 ```bash
 ./demo.sh check
 ```
 
-Comprueba herramientas, variables, motor de contenedores y discovery de Verify.
-En modo Claude `api`, también comprueba el acceso administrativo al emisor y su
-regla. No despliega servicios ni acredita por sí solo todas las integraciones.
+This checks tools, variables, the container engine, and Verify discovery.
+In Claude `api` mode, it also checks administrative access to the issuer and its
+rule. It does not deploy services or, on its own, validate every integration.
 
 ```bash
 ./demo.sh start
 ```
 
-El comando prepara Vault, MySQL, identidades y políticas, los tres proveedores,
-auditoría, observabilidad y la aplicación. Ejecuta pruebas de aplicación e
-infraestructura y una inferencia federada con Claude. Si falla, muestra la etapa
-y el log privado correspondiente.
+This command prepares Vault, MySQL, identities and policies, all three providers,
+audit logging, observability, and the application. It runs application and
+infrastructure tests and a federated inference request with Claude. If it fails,
+it identifies the stage and the corresponding private log.
 
-Se puede repetir: reutiliza recursos existentes y actualiza su configuración.
-Conserva solicitudes guardadas, pero reinicia Lumen y termina sus sesiones.
-[Detalle del arranque](docs/OPERACION.md#qué-configura-el-arranque).
+The command can be repeated: it reuses existing resources and updates their
+configuration. It preserves saved applications but restarts Lumen and ends its
+sessions. [Startup details](docs/OPERACION.md#qué-configura-el-arranque).
 
-## Probar la demo
+<a id="probar-la-demo"></a>
 
-Abre **[http://localhost:8088](http://localhost:8088)**, pulsa **Entrar con Verify**
-y elige **Cloud Directory**. Usa `localhost`, porque el callback OIDC está
-configurado con ese nombre. Las contraseñas iniciales son las que elegiste en `.env`.
+## Try the demo
 
-| Usuario | Recorrido principal |
+Open **[http://localhost:8088](http://localhost:8088)**, click **Sign in with Verify**,
+and choose **Cloud Directory**. Use `localhost`, because the OIDC callback is
+configured with that hostname. The initial passwords are the ones you chose in `.env`.
+
+| User | Main workflow |
 |---|---|
-| `lumen-reader` | Consultar el catálogo y ver solicitudes enmascaradas. |
-| `lumen-writer` | Consultar y guardar solicitudes con datos protegidos. |
-| `lumen-supervisor` | Consultar y revelar datos mediante Vault; no guardar solicitudes. |
+| `lumen-reader` | Browse the catalog and view masked applications. |
+| `lumen-writer` | Browse and save applications containing protected data. |
+| `lumen-supervisor` | Read and reveal data through Vault; cannot save applications. |
 
-1. Entra como Reader, pide las tarifas y pulsa **Comprobar límites en Vault**.
-2. Entra como Writer y crea una solicitud usando **Usar datos de prueba**.
-3. Entra como Supervisor, abre la solicitud y revela sus datos.
-4. Abre la traza de cada operación para ver la identidad, las llamadas y los
-   permisos aplicados. [Recorrido y observabilidad](chatbot/OBSERVABILITY.md).
+1. Sign in as Reader, ask for the plans, and click **Check limits in Vault**.
+2. Sign in as Writer and create an application using **Use test data**.
+3. Sign in as Supervisor, open the application, and reveal its data.
+4. Open each operation's trace to inspect the identity, calls, and permissions
+   applied. [Walkthrough and observability](chatbot/OBSERVABILITY.md).
 
-El selector OpenAI/xAI/Claude cambia el modelo para la siguiente consulta y
-conserva la conversación. **EN / ES** cambia el idioma. Estos controles no cambian
-los permisos del usuario.
+The OpenAI/xAI/Claude selector changes the model for the next request while
+preserving the conversation. **EN / ES** changes the language. These controls do
+not change the user's permissions.
 
-Los recorridos adicionales tienen su propia guía:
+Additional workflows have their own guides:
 
-- [Agentes por tarea](docs/manual/14-agentes-por-tarea.md): comparar distintos límites con el mismo usuario.
-- [Parámetros RAR](docs/manual/15-parametros-rar.md): restringir parámetros de una petición.
-- [Espacios personales](docs/manual/16-espacios-personales.md): verificar aislamiento KV entre usuarios.
-- [Contratación CIBA](docs/manual/17-contratacion-ciba.md): preparar un Validador, aprobar una solicitud y descargar el PDF. **Una instalación nueva deja esta función deshabilitada hasta completar su prueba real y habilitarla.**
+- [Task agents](docs/manual/14-agentes-por-tarea.md): compare different limits with the same user.
+- [RAR parameters](docs/manual/15-parametros-rar.md): restrict request parameters.
+- [Personal spaces](docs/manual/16-espacios-personales.md): verify KV isolation between users.
+- [CIBA contracting](docs/manual/17-contratacion-ciba.md): prepare a Validator, approve a request, and download the PDF. **A fresh installation leaves this feature disabled until its live test has passed and it is explicitly enabled.**
 
-### Acceso a Vault y Grafana
+<a id="acceso-a-vault-y-grafana"></a>
 
-- [Vault](https://127.0.0.1:8443/ui/): las integraciones están en el namespace `verify`.
-- [Grafana](http://localhost:3000/d/lumen-iam): panel de trazas y auditoría.
+### Access Vault and Grafana
 
-Las instrucciones para recuperar sus credenciales están en
-[Acceso a Vault y Grafana](docs/OPERACION.md#acceso-a-vault-y-grafana).
+- [Vault](https://127.0.0.1:8443/ui/): integrations are in the `verify` namespace.
+- [Grafana](http://localhost:3000/d/lumen-iam): traces and audit dashboard.
 
-## Verificación
+Instructions for retrieving their credentials are in
+[Access to Vault and Grafana](docs/OPERACION.md#acceso-a-vault-y-grafana).
 
-Para comprobar pods, despliegues y endpoints locales:
+<a id="verificación"></a>
+
+## Verification
+
+To check pods, deployments, and local endpoints:
 
 ```bash
 ./demo.sh status
 ```
 
-Para ejecutar pruebas de aplicación e infraestructura y comprobar la federación
-e inferencia del proveedor elegido:
+To run application and infrastructure tests and check federation and inference
+for the selected provider:
 
 ```bash
 ./demo.sh verify --provider openai
 ```
 
-También puedes usar `--provider xai` o `--provider anthropic`. Estas verificaciones
-requieren los servicios activos y consumen uso real de los proveedores. El login
-humano, las matrices de autorización, CIBA y la revisión visual tienen pruebas
-adicionales descritas en sus capítulos; `verify` no equivale a ejecutar todas ellas.
+You can also use `--provider xai` or `--provider anthropic`. These checks require
+running services and incur actual provider usage. Human login, authorization
+matrices, CIBA, and visual review have additional tests described in their
+chapters; `verify` does not run all of them.
 
-Los informes del lanzador están en `~/.local/state/lumen-vault-demo/reports/` y el
-último resultado en `last-run.json`. La [ejecución del 22/10/2026](docs/runs/20261022T122934Z-full-e2e/README.md)
-documenta la reinstalación, los resultados y el paso de descarga de navegador que
-quedó sin confirmar. El [historial de validación](docs/manual/VALIDACION.md) conserva
-las demás ejecuciones con su fecha y alcance.
+Launcher reports are stored in `~/.local/state/lumen-vault-demo/reports/`, with the
+latest result in `last-run.json`. The [October 22, 2026 run](docs/runs/20261022T122934Z-full-e2e/README.md)
+documents the reinstallation, results, and browser download step that remained
+unconfirmed. The [validation history](docs/manual/VALIDACION.md) preserves other
+runs with their dates and scope.
 
-## Operación
+<a id="operación"></a>
 
-| Comando | Efecto |
+## Operations
+
+| Command | Effect |
 |---|---|
-| `./demo.sh start` | Preparar o reconciliar la demo y arrancar los procesos locales. |
-| `./demo.sh stop` | Detener los procesos locales gestionados; conserva el clúster y sus datos. |
-| `bash scripts/demo/start.sh` | Publicar el código de la aplicación y reiniciarla con la infraestructura ya activa. |
-| `./demo.sh blocks` | Consultar los bloqueos de acceso. |
-| `./demo.sh block database-write` | Bloquear nuevas escrituras y revocar los leases SQL afectados. |
-| `./demo.sh unblock database-write` | Retirar ese bloqueo. |
+| `./demo.sh start` | Prepare or reconcile the demo and start local processes. |
+| `./demo.sh stop` | Stop managed local processes; preserve the cluster and its data. |
+| `bash scripts/demo/start.sh` | Deploy the application code and restart it with the infrastructure already running. |
+| `./demo.sh blocks` | Inspect access blocks. |
+| `./demo.sh block database-write` | Block new writes and revoke affected SQL leases. |
+| `./demo.sh unblock database-write` | Remove that block. |
 
-Los objetivos de bloqueo son `xai`, `database-read`, `database-write` y `decrypt`.
-[Funcionamiento y alcance](docs/ACCESS_BLOCKS.md). Para logs, claves, rotación,
-actualización y problemas de reloj, consulta la [guía de operación](docs/OPERACION.md).
+The block targets are `xai`, `database-read`, `database-write`, and `decrypt`.
+[Behavior and scope](docs/ACCESS_BLOCKS.md). For logs, keys, rotation, upgrades,
+and clock issues, see the [operations guide](docs/OPERACION.md).
 
-### Volver a empezar desde cero
+<a id="volver-a-empezar-desde-cero"></a>
 
-Primero revisa el inventario:
+### Start over from scratch
+
+First, review the inventory:
 
 ```bash
 ./demo.sh remove --dry-run
 ```
 
-Para ejecutar la retirada:
+To perform the removal:
 
 ```bash
 ./demo.sh remove
 ```
 
-**Elimina irreversiblemente los datos de Vault, MySQL y observabilidad**, sus
-namespaces Kubernetes y volúmenes, y los recursos de Lumen inventariados en Verify.
-Conserva el código, `.env`, Minikube, las federaciones externas OpenAI/Claude y la
-cuenta real del Validador. Lee el [alcance completo](docs/OPERACION.md#retirar-y-reconstruir)
-antes de ejecutarlo. Después, `./demo.sh start` crea de nuevo la demo; si usas
-Claude en modo `console`, tendrás que actualizar sus claves públicas.
+**This permanently deletes Vault, MySQL, and observability data**, their Kubernetes
+namespaces and volumes, and the inventoried Lumen resources in Verify. It preserves
+the code, `.env`, Minikube, external OpenAI/Claude federations, and the real Validator
+account. Read the [full scope](docs/OPERACION.md#retirar-y-reconstruir) before running
+it. Afterwards, `./demo.sh start` recreates the demo; if you use Claude in `console`
+mode, you must update its public keys.
 
-## Revisión y pruebas locales
+<a id="revisión-y-pruebas-locales"></a>
 
-Estas comprobaciones usan servicios simulados y no necesitan desplegar la demo.
-Si falta el entorno Python, créalo con `bash chatbot/scripts/install.sh`.
+## Local review and tests
+
+These checks use mocked services and do not require deploying the demo.
+If the Python environment is missing, create it with `bash chatbot/scripts/install.sh`.
 
 ```bash
 /tmp/vault-chatbot-venv/bin/python -m pytest -q
@@ -274,25 +298,27 @@ node --test chatbot/tests/*.test.mjs
 python3 scripts/manual/validate.py
 ```
 
-La última valida sintaxis, enlaces y anclas locales, Markdown de notebooks y
-procedencia de las capturas de las guías.
-Los notebooks de referencia deben conservarse sin salidas ni contadores de ejecución.
+The last command validates syntax, local links and anchors, notebook Markdown,
+and the provenance of guide screenshots.
+Reference notebooks must remain free of saved outputs and execution counts.
 
-## Documentación del repositorio
+<a id="documentación-del-repositorio"></a>
 
-| Documento | Para qué sirve |
+## Repository documentation
+
+| Document | Purpose |
 |---|---|
-| [Manual de configuración](docs/manual/README.md) | Entender y ejecutar cada etapa con comandos individuales. |
-| [Instalador guiado](docs/manual/PASO-A-PASO.md) | Ejecutar los scripts una operación cada vez y reanudar tras un error. |
-| [Aplicación](chatbot/README.md) | Arquitectura, perfiles, proveedores y mantenimiento del código. |
-| [Observabilidad](chatbot/OBSERVABILITY.md) | Inspeccionar llamadas, datos capturados y auditoría; incluye la consola de peticiones reales. |
-| [Operación](docs/OPERACION.md) | Acceso administrativo, actualización, estado privado y retirada. |
-| [Validación final del repositorio · 22/10](docs/runs/20261022T161825Z-repo-validation/README.md) | Código final, pruebas, notebooks, enlaces, capturas y runtime. |
-| [Revisión integral del 22/10](docs/runs/20261022T140230Z-workspace-review/README.md) | Interfaz actual, capturas, servicios y límites de la verificación. |
-| [Cómo decide Vault · 22/10](docs/runs/20261022T154444Z-vault-decision/README.md) | Desplegable de autorización en cada llamada a Vault, con auditoría correlacionada y sus límites. |
-| [Revisión del código](docs/WORKSPACE_REVIEW.md) | Hallazgos, correcciones y pruebas de regresión. |
+| [Configuration manual](docs/manual/README.md) | Understand and execute each stage with individual commands. |
+| [Guided installer](docs/manual/PASO-A-PASO.md) | Run scripts one operation at a time and resume after an error. |
+| [Application](chatbot/README.md) | Architecture, profiles, providers, and code maintenance. |
+| [Observability](chatbot/OBSERVABILITY.md) | Inspect calls, captured data, and audit events; includes the console for live requests. |
+| [Operations](docs/OPERACION.md) | Administrative access, upgrades, private state, and removal. |
+| [Final repository validation · October 22](docs/runs/20261022T161825Z-repo-validation/README.md) | Final code, tests, notebooks, links, screenshots, and runtime. |
+| [Comprehensive review · October 22](docs/runs/20261022T140230Z-workspace-review/README.md) | Current interface, screenshots, services, and verification limits. |
+| [How Vault decides · October 22](docs/runs/20261022T154444Z-vault-decision/README.md) | Authorization details for each Vault call, with correlated audit events and their limits. |
+| [Code review](docs/WORKSPACE_REVIEW.md) | Findings, fixes, and regression tests. |
 
-Los notebooks de la raíz documentan etapas de la demo y reutilizan sus scripts;
-no son un requisito del lanzador. [Verify](verify/README.md) y [Okta](okta/README.md)
-conservan ejercicios separados. La ruta activa de Lumen usa **IBM Verify**; Okta
-está fuera de su instalación.
+The notebooks at the repository root document demo stages and reuse its scripts;
+they are not required by the launcher. [Verify](verify/README.md) and [Okta](okta/README.md)
+retain separate exercises. Lumen's active path uses **IBM Verify**; Okta is outside
+its installation scope.
