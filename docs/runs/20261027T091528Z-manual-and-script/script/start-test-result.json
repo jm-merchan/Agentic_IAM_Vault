@@ -1,0 +1,10 @@
+{
+  "passed": 582,
+  "failed": 1,
+  "subtests_passed": 2,
+  "duration_seconds": 285.2,
+  "failed_test": "test_remove_is_scoped_ordered_and_repeatable",
+  "cause": "Test fixture inherited the live legacy compatibility override",
+  "fixed": true,
+  "resumption_command": "LUMEN_LEGACY_VAULT_COMPAT=0 bash demo.sh verify --provider openai"
+}

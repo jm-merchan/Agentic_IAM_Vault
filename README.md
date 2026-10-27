@@ -244,6 +244,10 @@ documents the reinstallation, results, and browser download step that remained
 unconfirmed. The [validation history](docs/manual/VALIDACION.md) preserves other
 runs with their dates and scope.
 
+The [October 27 manual and script validation](docs/runs/20261027T091528Z-manual-and-script/README.md)
+records two independent rebuilds, current test results, browser checks and the
+fixes required after the English UI and OpenAI model changes.
+
 <a id="operación"></a>
 
 ## Operations

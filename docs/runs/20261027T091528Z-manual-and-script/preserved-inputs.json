@@ -1,0 +1,22 @@
+{
+  "legacy_vault_compat": 0,
+  "foreign_legacy_files_preserved": true,
+  "files": [
+    {
+      "path": "/tmp/vault/cluster-keys.json",
+      "exists": true,
+      "unchanged_since_initial_snapshot": true,
+      "modified_before_cleanup_started": true,
+      "modified_at": "2026-10-27T09:33:00.786492+00:00"
+    },
+    {
+      "path": "/tmp/vault/config.env",
+      "exists": true,
+      "unchanged_since_initial_snapshot": false,
+      "modified_before_cleanup_started": true,
+      "modified_at": "2026-10-27T09:45:39.027388+00:00"
+    }
+  ],
+  "note": "The foreign connection file changed after the initial snapshot but before Lumen cleanup started. Its recovery keys are unchanged. Lumen cleanup/start run with legacy compatibility disabled.",
+  "source_env_unchanged": true
+}

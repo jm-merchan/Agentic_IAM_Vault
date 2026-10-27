@@ -24,7 +24,7 @@ source "$DEMO_ROOT/deploy/vault-image.conf"
 image_tag=${VAULT_IMAGE_TAG:-$VAULT_IMAGE_VERSION-ent}
 
 # Adopt the previous notebooks' keys before doing anything to an existing cluster.
-if "${K[@]}" -n vault get statefulset vault >/dev/null 2>&1 && [ ! -s "$VSTATE/cluster-keys.json" ] && [ -s /tmp/vault/cluster-keys.json ]; then
+if [ "${LUMEN_LEGACY_VAULT_COMPAT:-1}" = 1 ] && "${K[@]}" -n vault get statefulset vault >/dev/null 2>&1 && [ ! -s "$VSTATE/cluster-keys.json" ] && [ -s /tmp/vault/cluster-keys.json ]; then
   cp /tmp/vault/cluster-keys.json "$VSTATE/cluster-keys.json"
   chmod 600 "$VSTATE/cluster-keys.json" /tmp/vault/cluster-keys.json
   [ ! -f /tmp/vault/config.env ] || chmod 600 /tmp/vault/config.env
@@ -102,9 +102,16 @@ load_vault
 vault status -format=json | jq -e '.initialized and (.sealed|not)' >/dev/null
 vault read -format=json sys/license/status | jq -e '.data.autoloaded.features | index("Agentic IAM")!=null and index("KMIP")!=null and index("Transform Secrets Engine")!=null' >/dev/null
 # Preserve notebook compatibility; authoritative recovery state is outside /tmp.
+if [ "${LUMEN_LEGACY_VAULT_COMPAT:-1}" = 1 ]; then
 [ ! -L /tmp/vault ] || fail '/tmp/vault es un enlace; no se copia la configuración de Vault'
+if [ -f /tmp/vault/cluster-keys.json ]; then
+  jq -e --slurpfile current "$VSTATE/cluster-keys.json" '.root_token==$current[0].root_token and .root_token!=null' /tmp/vault/cluster-keys.json >/dev/null || fail '/tmp/vault contiene claves de otro cluster; usa LUMEN_LEGACY_VAULT_COMPAT=0 para conservarlo'
+elif [ -f /tmp/vault/config.env ] && ! cmp -s /tmp/vault/config.env "$VAULT_ENV_FILE"; then
+  fail '/tmp/vault contiene una configuración ajena; usa LUMEN_LEGACY_VAULT_COMPAT=0 para conservarla'
+fi
 mkdir -p /tmp/vault
 [ "$(stat -f %u /tmp/vault)" = "$(id -u)" ] || fail '/tmp/vault pertenece a otro usuario; no se copia la configuración de Vault'
 chmod 700 /tmp/vault
 install -m 600 "$VAULT_ENV_FILE" /tmp/vault/config.env
+fi
 echo 'Vault disponible, claves persistidas y licencia verificada.'

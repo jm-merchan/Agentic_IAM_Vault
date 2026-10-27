@@ -174,6 +174,14 @@ with `LUMEN_STATE_DIR`. The Vault bootstrap is kept there and a
 compatible copy is kept in `/tmp/vault/config.env`. Keys from another cluster cause
 an explicit stop; they are not overwritten.
 
+If `/tmp/vault` belongs to another lab, set `LUMEN_LEGACY_VAULT_COMPAT=0`
+for both `remove` and `start`. This disables legacy key adoption, connection-file
+copies and legacy cleanup; all Lumen state stays in `LUMEN_STATE_DIR`.
+For example, run `LUMEN_LEGACY_VAULT_COMPAT=0 ./demo.sh remove --dry-run`
+before the corresponding removal and start commands. Existing default ownership
+checks remain enabled when the option is absent. Ports still must be free or
+owned by this demo.
+
 Lumen and the port-forwards use `launchd` user services with private
 definitions in `services/`. They stay active after the command ends; the tunnels
 recover if they end after a pod restarts. They are not configured to start

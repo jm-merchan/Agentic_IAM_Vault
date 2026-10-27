@@ -1,0 +1,98 @@
+{
+  "checked_at": "2026-10-27T10:13:54.968584+00:00",
+  "application_id": "d969ed08-716d-4963-ba62-b485820c0066",
+  "contract_visible_after_restart": true,
+  "expired_request_still_draft": true,
+  "writer_oidc_login_after_restart": true,
+  "download_button_invoked": true,
+  "backend_trace_id": "27eab948934a4c1500bd814ecfd52aeb",
+  "backend_spans": [
+    {
+      "name": "verify.client_credentials",
+      "status": "UNSET",
+      "attributes": {
+        "auth.flow": "client_credentials",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "verify.token_exchange",
+      "status": "UNSET",
+      "attributes": {
+        "vault.path": "database/creds/chatbot-readonly",
+        "auth.flow": "obo",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "verify.obo_exchange",
+      "status": "UNSET",
+      "attributes": {
+        "vault.path": "database/creds/chatbot-readonly",
+        "auth.flow": "obo",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "vault.read",
+      "status": "UNSET",
+      "attributes": {
+        "vault.path": "database/creds/chatbot-readonly",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "mysql.query",
+      "status": "UNSET",
+      "attributes": {}
+    },
+    {
+      "name": "data.access",
+      "status": "UNSET",
+      "attributes": {}
+    },
+    {
+      "name": "verify.client_credentials",
+      "status": "UNSET",
+      "attributes": {
+        "auth.flow": "client_credentials",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "verify.token_exchange",
+      "status": "UNSET",
+      "attributes": {
+        "vault.path": "secrets/data/lumen-contracts/efb4e188-b0be-6035-892d-d4e32a3c7a7a/1d5e7167-0b90-4c4b-90b1-3751b616e22a",
+        "auth.flow": "obo",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "verify.obo_exchange",
+      "status": "UNSET",
+      "attributes": {
+        "vault.path": "secrets/data/lumen-contracts/efb4e188-b0be-6035-892d-d4e32a3c7a7a/1d5e7167-0b90-4c4b-90b1-3751b616e22a",
+        "auth.flow": "obo",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "vault.read",
+      "status": "UNSET",
+      "attributes": {
+        "vault.path": "secrets/data/lumen-contracts/efb4e188-b0be-6035-892d-d4e32a3c7a7a/1d5e7167-0b90-4c4b-90b1-3751b616e22a",
+        "http.response.status_code": 200
+      }
+    },
+    {
+      "name": "lumen.contract.download",
+      "status": "UNSET",
+      "attributes": {}
+    }
+  ],
+  "browser_download_event_received": false,
+  "browser_saved_file_verified": false,
+  "limitation": "Download event timed out. Browser policy blocked chrome://downloads/; no workaround attempted. Backend PDF bytes and digest were verified by the CIBA test.",
+  "screenshot": "screenshots/contract-after-restart.jpg"
+}

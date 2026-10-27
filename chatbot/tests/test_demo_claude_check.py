@@ -51,9 +51,9 @@ def test_start_requires_real_claude_verification(tmp_path, sync_status, claude_s
     assert (result.returncode == 0) is report["completed"]
     if sync_status or claude_status:
         assert report["steps"][-1] == {
-            "name": ("Claves públicas del emisor Claude (API o consola)" if sync_status
-                     else "Claude: federación SPIFFE e inferencia real"), "passed": False}
-        assert "Demo lista" not in result.stdout
+            "name": ("Claude issuer public keys (API or console)" if sync_status
+                     else "Claude: SPIFFE federation and real inference"), "passed": False}
+        assert "Demo ready" not in result.stdout
 
 
 def test_failed_verification_exports_only_public_keys_and_recovery_steps(tmp_path):

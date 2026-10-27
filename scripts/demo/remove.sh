@@ -29,11 +29,15 @@ jq -e 'all(.[];.reclaim_policy=="Delete")' "$REMOVE_WORK/volumes.json" >/dev/nul
 vault_sts=$("${K[@]}" -n vault get statefulset vault --ignore-not-found -o name)
 legacy_keys=false
 legacy_config=false
+if [ "${LUMEN_LEGACY_VAULT_COMPAT:-1}" = 1 ]; then
 if [ -f /tmp/vault/cluster-keys.json ] && [ -f "$state/vault/cluster-keys.json" ]; then
   jq -e --slurpfile current "$state/vault/cluster-keys.json" '.root_token==$current[0].root_token and .root_token!=null' /tmp/vault/cluster-keys.json >/dev/null || fail '/tmp/vault contiene claves de otro cluster; no se eliminan automáticamente'
   legacy_keys=true
 fi
 if [ -f /tmp/vault/config.env ] && [ -f "$VAULT_ENV_FILE" ] && cmp -s /tmp/vault/config.env "$VAULT_ENV_FILE"; then legacy_config=true; fi
+else
+  printf 'Compatibilidad legacy desactivada: /tmp/vault se conserva sin leer ni modificar.\n'
+fi
 remove_verify_login
 remove_verify_inventory
 jq -n --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg tenant "$VERIFY_TENANT" --arg state "$state" --argjson dry_run "$dry_run" \

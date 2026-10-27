@@ -299,11 +299,12 @@ jq '{token_type,expires_in,expires_at,scope}' "$MANUAL/openai-access.json"
 jq -jer '"Authorization: Bearer "+.access_token+"\nContent-Type: application/json\n"' \
   "$MANUAL/openai-access.json" > "$MANUAL/openai-inference.headers"
 jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-5.6-luna}" '{model:$model,
-  messages:[{role:"user",content:"Responde solo: SPIFFE OK"}],max_tokens:30}' > "$MANUAL/openai-inference.json"
+  messages:[{role:"user",content:"Responde solo: SPIFFE OK"}],max_completion_tokens:256}
+  + (if $model|test("^gpt-5\\.[0-9]") then {reasoning_effort:"none"} else {} end)' > "$MANUAL/openai-inference.json"
 curl --fail --silent --show-error --header "@$MANUAL/openai-inference.headers" \
   --data-binary "@$MANUAL/openai-inference.json" https://api.openai.com/v1/chat/completions \
   > "$MANUAL/openai-result.json"
-jq '.choices[0].message.content' "$MANUAL/openai-result.json"
+jq -er '.choices[0].message.content | select(type == "string" and contains("SPIFFE OK"))' "$MANUAL/openai-result.json"
 ```
 
 La inferencia consume cuota. OpenAI verifica firma, issuer, audiencia y mapping; el token emitido no dura más que el SVID y no hay refresh token. [Contrato de token exchange](https://developers.openai.com/api/reference/workload-identity-federation).
@@ -311,3 +312,10 @@ La inferencia consume cuota. OpenAI verifica firma, issuer, audiencia y mapping;
 En Lumen, cada ejecución emite e intercambia un SVID nuevo; además se valida localmente con PyJWT antes de enviarlo a OpenAI. Se exigen más de 210 segundos disponibles al comenzar, con ejecución máxima de 180 y margen de 30. Los comandos manuales anteriores muestran el intercambio mínimo; no sustituyen esas validaciones del runtime ni crean spans de aplicación.
 
 Fuentes locales: [spiffe.sh](../../scripts/demo/spiffe.sh), [openai-admin.sh](../../scripts/demo/openai-admin.sh), [configure-openai.sh](../../chatbot/scripts/configure-openai.sh), [spiffe.py](../../chatbot/app/spiffe.py). Trazas del JWT-SVID: [09](09-observabilidad.md).
+
+La petición usa `max_completion_tokens`, el
+[límite de salida de Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
+y desactiva el razonamiento para el modelo GPT-5.x configurado, igual que la aplicación.
+La comprobación exige una respuesta no vacía con `SPIFFE OK`; un HTTP correcto
+no demuestra por sí solo que haya suficiente presupuesto de salida. `max_tokens`
+produjo HTTP 400 con `gpt-5.6-luna` durante la ejecución manual del 27 de octubre.

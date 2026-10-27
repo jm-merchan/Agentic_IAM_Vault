@@ -1,0 +1,7 @@
+{
+  "passed": 585,
+  "subtests_passed": 2,
+  "duration_seconds": 251.71,
+  "command": "LUMEN_LEGACY_VAULT_COMPAT=0 bash demo.sh verify --provider openai",
+  "all_passed": true
+}

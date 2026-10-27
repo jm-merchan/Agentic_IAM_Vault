@@ -1,0 +1,28 @@
+{
+  "run": "20261027T095705Z",
+  "action": "verify",
+  "dry_run": false,
+  "completed": true,
+  "steps": [
+    {
+      "name": "Runtime persistence and secret isolation",
+      "passed": true
+    },
+    {
+      "name": "Application tests",
+      "passed": true
+    },
+    {
+      "name": "MySQL, agent permissions, and Tavily search",
+      "passed": true
+    },
+    {
+      "name": "Final service status",
+      "passed": true
+    },
+    {
+      "name": "OpenAI: SPIFFE JWT-SVID, token exchange, and inference",
+      "passed": true
+    }
+  ]
+}

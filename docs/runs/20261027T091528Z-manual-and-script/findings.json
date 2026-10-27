@@ -1,0 +1,37 @@
+{
+  "source_commit": "350b892d94423be532a5a0bc3689b1df1977e2f5",
+  "findings": [
+    {
+      "component": "Claude orchestrator tests",
+      "observed": "Two assertions expected Spanish deployment step labels after scripts switched to English.",
+      "fix": "Updated expected labels and successful-output guard."
+    },
+    {
+      "component": "Manual OpenAI inference",
+      "observed": "HTTP 400 unsupported_parameter for max_tokens with gpt-5.6-luna. WIF exchange succeeded.",
+      "fix": "max_completion_tokens=256, GPT-5.x reasoning_effort=none, require non-empty SPIFFE OK.",
+      "reference": "https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create"
+    },
+    {
+      "component": "Permission verification",
+      "observed": "Three live verification paths searched for a Spanish 9/9 result although new sessions default to English.",
+      "fix": "Assert permissions.probe telemetry count and matches_expected; regression tested for both locales and unexpected grants."
+    },
+    {
+      "component": "Scope verification",
+      "observed": "Weather refusal was correctly enforced in trace 56ee2eb478a7639398f3d05035753e88 but compared to Spanish refusal text.",
+      "fix": "Compare to the session-language refusal, retaining the trace assertion for no Vault/model on a repeated blocked request."
+    },
+    {
+      "component": "Independent labs sharing /tmp/vault",
+      "observed": "A separate workshop-k8s lab replaced the local Vault port and wrote its own legacy recovery keys. The Lumen removal guard stopped before changes.",
+      "fix": "Optional LUMEN_LEGACY_VAULT_COMPAT=0 disables all legacy adoption/copy/cleanup while preserving default guard behavior. This run explicitly uses it for the second removal and scripted startup. Default startup also refuses to overwrite foreign legacy keys or connection settings.",
+      "validation": "20 teardown/start tests passed, including foreign-key preservation and no legacy adoption/overwrite."
+    },
+    {
+      "component": "Test environment isolation",
+      "observed": "The first script startup passed provisioning and Claude inference, then one teardown test inherited LUMEN_LEGACY_VAULT_COMPAT=0 while expecting the default legacy cleanup behavior (582 passed, 1 failed).",
+      "fix": "The isolated teardown fixture now sets its default explicitly; individual compatibility tests override it. Resume the deployed installation through demo.sh verify --provider openai."
+    }
+  ]
+}

@@ -1,5 +1,33 @@
 # Validación actual e historial de reinstalación manual
 
+## Instalación manual y con demo.sh · 27 de octubre de 2026
+
+La [ejecución del 27 de octubre](../runs/20261027T091528Z-manual-and-script/README.md)
+retiró la infraestructura anterior, instaló desde los bloques de las guías y
+repitió la retirada para crear una instalación independiente con `demo.sh start`.
+El informe distingue los resultados de cada ciclo y conserva los intentos fallidos.
+
+La verificación manual pasó 137 comprobaciones funcionales, 18 de infraestructura,
+36 de agentes por tarea, 120 de espacios personales, 25 de RAR y 9 de CIBA con
+aprobación humana. Chrome verificó login, permisos, guardado de un borrador,
+enmascaramiento y denegación del revelado al Writer.
+
+En la instalación del script, `demo.sh verify --provider openai` pasó **585 tests
+y 2 subtests**, infraestructura e inferencia federada. Las matrices de agentes,
+espacios personales y RAR también pasaron, al igual que la inferencia de Claude
+y la caducidad real de una clave xAI. El informe enlazado registra el estado de
+los intentos anteriores. La segunda instalación también pasó los 137 checks con
+54 trazas y las nueve comprobaciones CIBA con aprobación humana. La contratación
+quedó habilitada; Chrome confirmó su persistencia tras reiniciar Lumen y que el
+intento caducado seguía como borrador. El backend verificó los bytes y el hash del
+PDF, pero no se pudo acreditar su recepción por Chrome: el evento de descarga
+no llegó y la política del navegador bloqueó su página interna de descargas.
+
+Se corrigieron parámetros de inferencia OpenAI y verificaciones que dependían
+de textos en español. La opción `LUMEN_LEGACY_VAULT_COMPAT=0` permitió conservar
+el `/tmp/vault` de otro laboratorio; `.env` permaneció intacto. Las comprobaciones
+por defecto siguen rechazando claves ajenas.
+
 ## Retirada e instalación manual por bloques · 23 de octubre de 2026
 
 Se eliminaron los tres namespaces de la demo, sus diez PV con los directorios de

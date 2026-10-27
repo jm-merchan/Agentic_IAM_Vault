@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-10-27T10:06:25.578538+00:00",
+  "method": "scripted OIDC Authorization Code + PKCE; real application services; no browser",
+  "checks": [
+    {
+      "check": "reader oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "reader may_act",
+      "passed": true
+    },
+    {
+      "check": "reader nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "reader catalog",
+      "passed": true
+    },
+    {
+      "check": "writer oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "writer may_act",
+      "passed": true
+    }
+  ],
+  "traces": [
+    {
+      "name": "reader.permissions",
+      "trace_id": "c0fde3e1bea055e7516011ecf1a59d05"
+    },
+    {
+      "name": "reader.catalog",
+      "trace_id": "a88aca707dc268538076db50622ff872"
+    },
+    {
+      "name": "writer.permissions",
+      "trace_id": "0912bbb1d62087f66d746a7e45db69e4"
+    }
+  ],
+  "all_passed": false,
+  "error_type": "ConnectError"
+}

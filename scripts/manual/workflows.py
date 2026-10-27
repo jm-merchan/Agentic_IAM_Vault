@@ -11,6 +11,7 @@ from app.applications import generate_demo_form, validate_form
 from app.agent import reply, make_model
 from app.model_config import select_provider
 from app.guardrails import OUT_OF_SCOPE
+from app.i18n import Translator
 from app.telemetry import span, trace_id, records_for, PROVIDER
 
 ROOT=Path(os.environ['LUMEN_ROOT'])
@@ -46,9 +47,13 @@ async def main():
         sessions[role]=s
         result=await action(role+'.permissions',lambda s=s:services.permission_probe(s))
         (PRIVATE/f'permissions-{role}.txt').write_text(result)
-        check(role+' nine Vault permissions','9 de 9 comprobaciones' in result)
+        probe = next(r['attributes'] for r in records_for({traces[-1]['trace_id']})
+                     if r['name'] == 'permissions.probe')
+        check(role+' nine Vault permissions',probe.get('probe.check_count') == 9
+              and probe.get('probe.matches_expected') is True)
         check(role+' catalog',len(await action(role+'.catalog',lambda s=s:services.plans(s)))==3)
     reader,writer,supervisor=(sessions[x] for x in ('reader','writer','supervisor'))
+    out_of_scope = Translator(reader.language)(OUT_OF_SCOPE)
     check('all three provider profiles loaded',set(config['models'])=={'openai','xai','anthropic'})
     shared_before=copy.deepcopy(config)
     # Use the same runtime service and select xAI on a separate test session.
@@ -123,16 +128,16 @@ async def main():
             check(provider+' SVID absent from prompts',all(svid not in json.dumps(r['attributes']) for r in model_records))
         result=await action(provider+'.agent.tavily',lambda:reply(services,reader,'Busca en la web información sobre autoconsumo solar y cita las fuentes.'))
         names={r['name'] for r in records_for({traces[-1]['trace_id']})}
-        check(provider+' scope allows energy search',result!=OUT_OF_SCOPE)
+        check(provider+' scope allows energy search',result!=out_of_scope)
         check(provider+' Deep Agents Tavily tool', 'tool.buscar_en_web' in names)
         check(provider+' Tavily cited sources','https://' in result)
         blocked=await action(provider+'.guardrail.weather',lambda:reply(services,reader,'¿Qué tiempo hace hoy en Palencia?'))
-        check(provider+' weather rejected',blocked==OUT_OF_SCOPE)
+        check(provider+' weather rejected',blocked==out_of_scope)
         reader.messages.extend([{'role':'user','content':'¿Qué tiempo hace hoy en Palencia?'},{'role':'assistant','content':blocked}])
         reader.messages[:]=reader.messages[-20:]
         follow=await action(provider+'.guardrail.followup',lambda:reply(services,reader,'venga'))
         names={r['name'] for r in records_for({traces[-1]['trace_id']})}
-        check(provider+' followup rejected without Vault or model',follow==OUT_OF_SCOPE and not any(n.startswith(('vault.','openai.','anthropic.','xai.')) for n in names))
+        check(provider+' followup rejected without Vault or model',follow==out_of_scope and not any(n.startswith(('vault.','openai.','anthropic.','xai.')) for n in names))
     check('shared provider configuration unchanged',config==shared_before)
     if xai:
         while xai._xai_credential.expires_at-time.monotonic()>209:

@@ -1,0 +1,6 @@
+{
+  "passed": 580,
+  "subtests_passed": 2,
+  "duration_seconds": 205.74,
+  "scope": "Full application suite after localization and OpenAI example fixes, before legacy-isolation option"
+}

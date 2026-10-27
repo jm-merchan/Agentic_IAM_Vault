@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-10-27T10:01:20.738478+00:00",
+  "scope": "MySQL privileges and autonomous research; OBO tested separately",
+  "tests": [
+    {
+      "test": "readonly_select",
+      "passed": true
+    },
+    {
+      "test": "readonly_inventory_select",
+      "passed": true
+    },
+    {
+      "test": "readonly_insert_denied",
+      "passed": true
+    },
+    {
+      "test": "readwrite_select",
+      "passed": true
+    },
+    {
+      "test": "readwrite_inventory_select",
+      "passed": true
+    },
+    {
+      "test": "readwrite_insert_allowed",
+      "passed": true
+    },
+    {
+      "test": "registered_research_agent_tavily_read",
+      "passed": true
+    },
+    {
+      "test": "research_denied_database_creds_chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "test": "research_denied_secrets_data_verify-admin",
+      "passed": true
+    },
+    {
+      "test": "research_denied_secrets_data_chatbot_oidc",
+      "passed": true
+    },
+    {
+      "test": "research_denied_secrets_data_xai",
+      "passed": true
+    },
+    {
+      "test": "database_agent_without_human_obo_denied",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_database_creds_chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_secrets_data_tavily",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_secrets_data_verify-admin",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_denied_secrets_data_chatbot_users_writer",
+      "passed": true
+    },
+    {
+      "test": "bootstrap_revoke_self",
+      "passed": true
+    },
+    {
+      "test": "tavily_live_search",
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

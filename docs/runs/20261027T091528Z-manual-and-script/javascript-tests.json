@@ -1,0 +1,5 @@
+{
+  "passed": 15,
+  "failed": 0,
+  "command": "node --test chatbot/tests/*.test.mjs"
+}

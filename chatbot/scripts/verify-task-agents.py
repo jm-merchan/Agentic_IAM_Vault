@@ -12,7 +12,7 @@ import httpx
 from app.security import Identity, Session, AccessDenied, load_config
 from app.services import Services
 from app.task_agents import actor_credential
-from app.telemetry import span, trace_id
+from app.telemetry import span, trace_id, records_for
 
 
 async def main():
@@ -46,7 +46,10 @@ async def main():
         with span('verification.task_agents', **{'user.role': role, 'agent.mode': mode}):
             evidence['trace_id'] = trace_id()
             result = await services.permission_probe(session)
-            assert '9 de 9 comprobaciones' in result, result
+            probe = next(r['attributes'] for r in records_for({evidence['trace_id']})
+                         if r['name'] == 'permissions.probe')
+            assert (probe.get('probe.check_count') == 9
+                    and probe.get('probe.matches_expected') is True), result
             evidence['checks'].append({'name': 'nine_real_vault_decisions', 'passed': True})
             plans = await services.plans(session)
             assert len(plans) == 3

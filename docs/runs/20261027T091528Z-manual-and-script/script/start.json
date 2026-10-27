@@ -1,0 +1,132 @@
+{
+  "run": "20261027T094737Z",
+  "action": "start",
+  "dry_run": false,
+  "completed": false,
+  "steps": [
+    {
+      "name": "Prerequisites and .env",
+      "passed": true
+    },
+    {
+      "name": "Minikube, Vault, TLS, init/unseal, and plugin",
+      "passed": true
+    },
+    {
+      "name": "MySQL Enterprise and KMIP",
+      "passed": true
+    },
+    {
+      "name": "verify namespace and integration secrets",
+      "passed": true
+    },
+    {
+      "name": "RAR and Vault OAuth profile",
+      "passed": true
+    },
+    {
+      "name": "Python environment",
+      "passed": true
+    },
+    {
+      "name": "MySQL RO/RW roles and catalog",
+      "passed": true
+    },
+    {
+      "name": "OIDC, Tavily, and STS clients in Verify",
+      "passed": true
+    },
+    {
+      "name": "Three users and groups",
+      "passed": true
+    },
+    {
+      "name": "Transit, tokenization, and applications",
+      "passed": true
+    },
+    {
+      "name": "Policies, entities, and registered agents",
+      "passed": true
+    },
+    {
+      "name": "Optional task agents",
+      "passed": true
+    },
+    {
+      "name": "OIDC assignments and Vault groups",
+      "passed": true
+    },
+    {
+      "name": "Optional personal spaces",
+      "passed": true
+    },
+    {
+      "name": "Contracting with CIBA, Vault, and MySQL",
+      "passed": true
+    },
+    {
+      "name": "xAI dynamic engine",
+      "passed": true
+    },
+    {
+      "name": "xAI identity",
+      "passed": true
+    },
+    {
+      "name": "Vault SPIFFE JWT-SVID for OpenAI",
+      "passed": true
+    },
+    {
+      "name": "Vault SPIFFE JWT-SVID for Claude",
+      "passed": true
+    },
+    {
+      "name": "Public discovery and JWKS via ngrok",
+      "passed": true
+    },
+    {
+      "name": "Claude issuer public keys (API or console)",
+      "passed": true
+    },
+    {
+      "name": "OpenAI project and service account",
+      "passed": true
+    },
+    {
+      "name": "OpenAI identity",
+      "passed": true
+    },
+    {
+      "name": "Claude identity",
+      "passed": true
+    },
+    {
+      "name": "Provider catalog for the selector",
+      "passed": true
+    },
+    {
+      "name": "Correlated Vault audit",
+      "passed": true
+    },
+    {
+      "name": "Grafana, Loki, Tempo, and Alloy",
+      "passed": true
+    },
+    {
+      "name": "Local ports and Lumen",
+      "passed": true
+    },
+    {
+      "name": "Claude: SPIFFE federation and real inference",
+      "passed": true
+    },
+    {
+      "name": "Runtime persistence and secret isolation",
+      "passed": true
+    },
+    {
+      "name": "Application tests",
+      "passed": false
+    }
+  ]
+}

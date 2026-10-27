@@ -111,3 +111,23 @@ async def test_successful_http_with_wrong_recovered_value_does_not_pass():
                                                {'data': {'plaintext': 'WRONG_CANARY'}}])
     with pytest.raises(AccessDenied, match='resultado ficticio esperado'):
         await service.permission_probe(object())
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('language', ['en', 'es'])
+@pytest.mark.parametrize('unexpected_access', [False, True])
+async def test_probe_trace_reports_actual_decisions_independently_of_language(language, unexpected_access):
+    from app.security import Session
+    from app.telemetry import span, trace_id, records_for
+
+    service, _ = make_service()
+    if unexpected_access:
+        service.vault_get = AsyncMock(return_value={'data': {'password': 'CANARY_PASSWORD'}})
+    with span('verification.localized_probe'):
+        tid = trace_id()
+        output = await service.permission_probe(Session('probe', language=language))
+    probe = next(r['attributes'] for r in records_for({tid}) if r['name'] == 'permissions.probe')
+    assert probe['probe.check_count'] == 9
+    assert probe['probe.matches_expected'] is (not unexpected_access)
+    assert 'CANARY' not in output
+    assert ('Vault permission check' if language == 'en' else 'Comprobación de permisos en Vault') in output

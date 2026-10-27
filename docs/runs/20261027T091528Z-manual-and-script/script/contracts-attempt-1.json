@@ -1,0 +1,11 @@
+{
+  "checked_at": "2026-10-27T10:06:04.827922+00:00",
+  "binding_message": "Lumen contrato 4e83d66b 15d7ea",
+  "all_passed": false,
+  "last_verify_result": "authorization_pending",
+  "failure": "Writer session expired before approval was received",
+  "human_reported_approved": true,
+  "contract_finalization_verified": false,
+  "runtime_contracting_enabled": false,
+  "note": "No historical passing report is used for this client. Fresh approval required."
+}

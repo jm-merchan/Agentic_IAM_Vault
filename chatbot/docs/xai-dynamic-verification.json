@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-26T15:38:09Z",
+  "checked_at": "2026-10-27T09:58:57Z",
   "auth_flow": "client_credentials",
   "credential_path": "verify/xai/creds/lumen",
   "test_ttl_seconds": 60,

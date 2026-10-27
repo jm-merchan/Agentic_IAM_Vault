@@ -1,0 +1,8 @@
+{
+  "passed": 20,
+  "duration_seconds": 88.52,
+  "files": [
+    "test_demo_remove.py",
+    "test_demo_vault_start.py"
+  ]
+}

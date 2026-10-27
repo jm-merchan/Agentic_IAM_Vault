@@ -1,0 +1,96 @@
+{
+  "checked_at": "2026-10-27T10:14:31.558771+00:00",
+  "source_commit": "350b892d94423be532a5a0bc3689b1df1977e2f5",
+  "cycles": {
+    "manual": {
+      "all_core_checks_passed": true,
+      "namespaces_rebuilt": true,
+      "verify_users_rebuilt": true,
+      "removed_namespaces": 3,
+      "removed_volumes": 10,
+      "removed_verify_resources": 17,
+      "workflow_checks": 137,
+      "workflow_traces": 54,
+      "infrastructure_checks": 18,
+      "task_agent_checks": 36,
+      "personal_space_checks": 120,
+      "rar_checks": 25,
+      "ciba_checks": 9,
+      "browser_checks": 9,
+      "all_blocks_inactive": true
+    },
+    "script": {
+      "all_core_checks_passed": true,
+      "namespaces_rebuilt": true,
+      "verify_users_rebuilt": true,
+      "removed_namespaces": 3,
+      "removed_volumes": 10,
+      "removed_verify_resources": 18,
+      "workflow_checks": 137,
+      "workflow_traces": 54,
+      "infrastructure_checks": 18,
+      "task_agent_checks": 36,
+      "personal_space_checks": 120,
+      "rar_checks": 25,
+      "ciba_checks": 9,
+      "browser_checks": 6,
+      "all_blocks_inactive": true
+    }
+  },
+  "python": {
+    "passed": 585,
+    "subtests_passed": 2,
+    "duration_seconds": 251.71,
+    "command": "LUMEN_LEGACY_VAULT_COMPAT=0 bash demo.sh verify --provider openai",
+    "all_passed": true
+  },
+  "javascript": {
+    "passed": 15,
+    "failed": 0,
+    "command": "node --test chatbot/tests/*.test.mjs"
+  },
+  "static": {
+    "checked_at": "2026-10-27T10:16:29.345332+00:00",
+    "documents": 38,
+    "bash_blocks": 277,
+    "shell_scripts": 93,
+    "local_links": 721,
+    "python_files": 92,
+    "notebooks": 11,
+    "bash_cells": 75,
+    "current_screenshots": 46,
+    "errors": [],
+    "all_passed": true,
+    "scope": "Static syntax, local links/anchors, notebook Markdown and screenshot provenance only. No provisioning, credentials issuance, inference, revocation or deletion."
+  },
+  "browser_file_delivery_verified": false,
+  "limitations": [
+    "Chrome did not emit a download event; its downloads page was blocked by browser policy. The backend PDF and digest passed.",
+    "Intermittent TLS ConnectError failures to Verify occurred in unsuccessful attempts; successful reruns are reported separately. No transport retry or TLS bypass was added."
+  ],
+  "all_core_checks_passed": true,
+  "script_start_resumed_with_verify": true,
+  "contracts_enabled": true,
+  "env_unchanged": true,
+  "runtime_files_match": 55,
+  "final_services": [
+    {
+      "service": "lumen",
+      "http_status": 200
+    },
+    {
+      "service": "grafana",
+      "http_status": 200
+    },
+    {
+      "service": "tempo",
+      "http_status": 200
+    },
+    {
+      "service": "loki",
+      "http_status": 200
+    }
+  ],
+  "final_runtime_secret_isolation_passed": true,
+  "finished_at": "2026-10-27T10:17:07.237719+00:00"
+}

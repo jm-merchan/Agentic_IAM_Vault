@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-10-26T16:04:58.396934+00:00",
+  "checked_at": "2026-10-27T10:01:27.417306+00:00",
   "provider": "openai",
   "integration": "SPIFFE JWT-SVID",
   "model": "gpt-5.6-luna",
-  "trace_id": "97e224f6308f2c3d4cbb6ed5af32afbc",
+  "trace_id": "ed4f2aee1f06e75bd25c4262281a1f58",
   "checks": {
     "spiffe_exchange": true,
     "inference": true,

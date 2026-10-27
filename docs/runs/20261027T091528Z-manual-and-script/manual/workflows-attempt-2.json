@@ -1,0 +1,186 @@
+{
+  "checked_at": "2026-10-27T09:25:30.824576+00:00",
+  "method": "scripted OIDC Authorization Code + PKCE; real application services; no browser",
+  "checks": [
+    {
+      "check": "reader oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "reader may_act",
+      "passed": true
+    },
+    {
+      "check": "reader nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "reader catalog",
+      "passed": true
+    },
+    {
+      "check": "writer oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "writer may_act",
+      "passed": true
+    },
+    {
+      "check": "writer nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "writer catalog",
+      "passed": true
+    },
+    {
+      "check": "supervisor oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "supervisor may_act",
+      "passed": true
+    },
+    {
+      "check": "supervisor nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "supervisor catalog",
+      "passed": true
+    },
+    {
+      "check": "all three provider profiles loaded",
+      "passed": true
+    },
+    {
+      "check": "xai reauthorized cache",
+      "passed": true
+    },
+    {
+      "check": "five form steps validated",
+      "passed": true
+    },
+    {
+      "check": "writer idempotent save",
+      "passed": true
+    },
+    {
+      "check": "reader masked fields",
+      "passed": true
+    },
+    {
+      "check": "reader save denied",
+      "passed": true
+    },
+    {
+      "check": "reader reveal Vault 403",
+      "passed": true
+    },
+    {
+      "check": "writer masked fields",
+      "passed": true
+    },
+    {
+      "check": "writer reveal Vault 403",
+      "passed": true
+    },
+    {
+      "check": "supervisor masked fields",
+      "passed": true
+    },
+    {
+      "check": "supervisor save denied",
+      "passed": true
+    },
+    {
+      "check": "supervisor exact decrypt and decode",
+      "passed": true
+    },
+    {
+      "check": "database-write old database/creds/chatbot-readwrite",
+      "passed": true
+    }
+  ],
+  "traces": [
+    {
+      "name": "reader.permissions",
+      "trace_id": "c82d992d8f1cc0b47598f641e1623b7d"
+    },
+    {
+      "name": "reader.catalog",
+      "trace_id": "b271edec43155066f7749c9936df0f6c"
+    },
+    {
+      "name": "writer.permissions",
+      "trace_id": "f01bcf74ad041de424a43684d1fbc7bb"
+    },
+    {
+      "name": "writer.catalog",
+      "trace_id": "712cdcbae41e380f6dc68eb2a7be547b"
+    },
+    {
+      "name": "supervisor.permissions",
+      "trace_id": "e380ba57f3b1ec643ea6511380127bf1"
+    },
+    {
+      "name": "supervisor.catalog",
+      "trace_id": "3d7c352076a902cb2f15807a1d943072"
+    },
+    {
+      "name": "xai.initial",
+      "trace_id": "32e0949a412fc89b0dd32054d0c4aa57"
+    },
+    {
+      "name": "xai.cache",
+      "trace_id": "c64f494bc603f42e7bda8692353a83b5"
+    },
+    {
+      "name": "writer.application.save",
+      "trace_id": "eafba8efac11ca7d30333d7f88e68711"
+    },
+    {
+      "name": "writer.application.retry",
+      "trace_id": "64d6371da0aa4235df1d865e6053fcac"
+    },
+    {
+      "name": "reader.masked",
+      "trace_id": "98acd59cb3445f1b9da5978d461e022d"
+    },
+    {
+      "name": "reader.save.denied",
+      "trace_id": "fb4545b223d67df077062011c5c562ca"
+    },
+    {
+      "name": "reader.reveal.denied",
+      "trace_id": "1060ebcff79778cab28ba4c154657978"
+    },
+    {
+      "name": "writer.masked",
+      "trace_id": "524835678475a37bbd5cd745db23cb4b"
+    },
+    {
+      "name": "writer.reveal.denied",
+      "trace_id": "c1a02a446770c02478649e47a8de7ccf"
+    },
+    {
+      "name": "supervisor.masked",
+      "trace_id": "cd7f99089468261fdfbe028d3ec53bbf"
+    },
+    {
+      "name": "supervisor.save.denied",
+      "trace_id": "9e3dfab0ffdbe106f4e9e6b3c810a49a"
+    },
+    {
+      "name": "supervisor.reveal",
+      "trace_id": "0aea2062fe8e408f756b6e89d1d1c110"
+    },
+    {
+      "name": "database-write.old",
+      "trace_id": "2e5cf3fd722718c597f52404e3695a0a"
+    }
+  ],
+  "all_passed": false,
+  "error_type": "ConnectError"
+}

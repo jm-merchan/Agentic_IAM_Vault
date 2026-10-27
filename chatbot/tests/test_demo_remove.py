@@ -130,7 +130,7 @@ def lab(tmp_path):
     bindir=tmp_path/'bin'; bindir.mkdir()
     for name in ('curl','kubectl','vault','helm','launchctl','plutil','lsof','ps'):
         file=bindir/name; file.write_text(MOCK); file.chmod(0o700)
-    env={**os.environ,'PATH':str(bindir)+os.pathsep+os.environ['PATH'],'DEMO_ENV_FILE':str(env_file),'LUMEN_STATE_DIR':str(state),'REMOVE_TEST_STATE':str(data)}
+    env={**os.environ,'PATH':str(bindir)+os.pathsep+os.environ['PATH'],'DEMO_ENV_FILE':str(env_file),'LUMEN_STATE_DIR':str(state),'REMOVE_TEST_STATE':str(data),'LUMEN_LEGACY_VAULT_COMPAT':'1'}
     return {'root':root,'state':state,'data':data,'env':env,'legacy':legacy,'telemetry':telemetry,'env_file':env_file}
 
 
@@ -267,3 +267,19 @@ def test_retained_volume_aborts_before_changes(lab):
     change(lab,pvs=data['pvs']); result=run(lab)
     assert result.returncode!=0
     assert not any(is_delete(e) or e[0]=='launchctl' for e in events(lab))
+
+
+@pytest.mark.parametrize('compat', ['0', '1'])
+def test_foreign_legacy_keys_are_never_removed(lab, compat):
+    foreign = json.dumps({'root_token': 'other-cluster', 'unseal_keys_b64': ['other-key']})
+    (lab['legacy']/'cluster-keys.json').write_text(foreign)
+    before = {p.name: p.read_bytes() for p in lab['legacy'].iterdir()}
+    lab['env']['LUMEN_LEGACY_VAULT_COMPAT'] = compat
+    result = run(lab)
+    assert {p.name: p.read_bytes() for p in lab['legacy'].iterdir()} == before
+    if compat == '0':
+        assert result.returncode == 0, result.stderr + result.stdout
+        assert json.loads(lab['data'].read_text())['namespaces'] == ['unrelated']
+    else:
+        assert result.returncode != 0
+        assert not any(is_delete(e) or e[0] == 'launchctl' for e in events(lab))

@@ -25,6 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from app.security import load_config, Identity, Session
 from app.services import Services
+from app.telemetry import span, trace_id, records_for
 
 async def main():
     config = load_config()
@@ -42,8 +43,12 @@ async def main():
         session = Session("guided-" + role, subject=claims["sub"], name=role,
                           groups=claims["groups"], access_token=tokens["access_token"],
                           expires_at=min(claims["exp"], id_claims["exp"]))
-        result = await services.permission_probe(session)
-        passed = "9 de 9 comprobaciones" in result
+        with span("verification.guided_obo", **{"user.role": role}):
+            await services.permission_probe(session)
+            probe = next(r["attributes"] for r in records_for({trace_id()})
+                         if r["name"] == "permissions.probe")
+            passed = (probe.get("probe.check_count") == 9
+                      and probe.get("probe.matches_expected") is True)
         checks.append({"role": role, "passed": passed})
         print(f"{role}: {'9/9 OK' if passed else 'FALLO'}", flush=True)
     report = {"checked_at": datetime.now(timezone.utc).isoformat(), "checks": checks,

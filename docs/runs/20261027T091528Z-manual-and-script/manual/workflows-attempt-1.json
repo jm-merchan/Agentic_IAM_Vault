@@ -1,0 +1,382 @@
+{
+  "checked_at": "2026-10-27T09:23:14.776264+00:00",
+  "method": "scripted OIDC Authorization Code + PKCE; real application services; no browser",
+  "checks": [
+    {
+      "check": "reader oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "reader may_act",
+      "passed": true
+    },
+    {
+      "check": "reader nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "reader catalog",
+      "passed": true
+    },
+    {
+      "check": "writer oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "writer may_act",
+      "passed": true
+    },
+    {
+      "check": "writer nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "writer catalog",
+      "passed": true
+    },
+    {
+      "check": "supervisor oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "supervisor may_act",
+      "passed": true
+    },
+    {
+      "check": "supervisor nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "supervisor catalog",
+      "passed": true
+    },
+    {
+      "check": "all three provider profiles loaded",
+      "passed": true
+    },
+    {
+      "check": "xai reauthorized cache",
+      "passed": true
+    },
+    {
+      "check": "five form steps validated",
+      "passed": true
+    },
+    {
+      "check": "writer idempotent save",
+      "passed": true
+    },
+    {
+      "check": "reader masked fields",
+      "passed": true
+    },
+    {
+      "check": "reader save denied",
+      "passed": true
+    },
+    {
+      "check": "reader reveal Vault 403",
+      "passed": true
+    },
+    {
+      "check": "writer masked fields",
+      "passed": true
+    },
+    {
+      "check": "writer reveal Vault 403",
+      "passed": true
+    },
+    {
+      "check": "supervisor masked fields",
+      "passed": true
+    },
+    {
+      "check": "supervisor save denied",
+      "passed": true
+    },
+    {
+      "check": "supervisor exact decrypt and decode",
+      "passed": true
+    },
+    {
+      "check": "database-write old database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-write fresh database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "write block preserves SELECT",
+      "passed": true
+    },
+    {
+      "check": "database-write same JWT restored database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-read old database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "check": "database-read fresh database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "check": "database-read old database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-read fresh database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-read same JWT restored database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "check": "database-read same JWT restored database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "decrypt old transit/decrypt/lumen-applications",
+      "passed": true
+    },
+    {
+      "check": "decrypt fresh transit/decrypt/lumen-applications",
+      "passed": true
+    },
+    {
+      "check": "decrypt old transform/decode/lumen-dni",
+      "passed": true
+    },
+    {
+      "check": "decrypt fresh transform/decode/lumen-dni",
+      "passed": true
+    },
+    {
+      "check": "decrypt old transform/decode/lumen-iban",
+      "passed": true
+    },
+    {
+      "check": "decrypt fresh transform/decode/lumen-iban",
+      "passed": true
+    },
+    {
+      "check": "decrypt block stops reveal",
+      "passed": true
+    },
+    {
+      "check": "decrypt same JWT restored transit/decrypt/lumen-applications",
+      "passed": true
+    },
+    {
+      "check": "decrypt same JWT restored transform/decode/lumen-dni",
+      "passed": true
+    },
+    {
+      "check": "decrypt same JWT restored transform/decode/lumen-iban",
+      "passed": true
+    },
+    {
+      "check": "openai selection preserves history",
+      "passed": true
+    },
+    {
+      "check": "openai selection isolated from writer",
+      "passed": true
+    },
+    {
+      "check": "openai grounded catalog via OBO",
+      "passed": true
+    },
+    {
+      "check": "openai model trace matches selection",
+      "passed": true
+    },
+    {
+      "check": "openai SVID trace signature and subject",
+      "passed": true
+    },
+    {
+      "check": "openai SVID absent from prompts",
+      "passed": true
+    },
+    {
+      "check": "openai scope allows energy search",
+      "passed": true
+    },
+    {
+      "check": "openai Deep Agents Tavily tool",
+      "passed": true
+    },
+    {
+      "check": "openai Tavily cited sources",
+      "passed": true
+    },
+    {
+      "check": "openai weather rejected",
+      "passed": false
+    }
+  ],
+  "traces": [
+    {
+      "name": "reader.permissions",
+      "trace_id": "7136791ba06377621de39d1786ed94ca"
+    },
+    {
+      "name": "reader.catalog",
+      "trace_id": "37833c4d8d6a2a76e9b1fd73e7077068"
+    },
+    {
+      "name": "writer.permissions",
+      "trace_id": "944a547228ca93b98ada98a8a16d2907"
+    },
+    {
+      "name": "writer.catalog",
+      "trace_id": "999d0b94103252769b40ee7340169194"
+    },
+    {
+      "name": "supervisor.permissions",
+      "trace_id": "00a2cb95c3a84d1ebdf24f394586f0c8"
+    },
+    {
+      "name": "supervisor.catalog",
+      "trace_id": "e5831e8ca97c710ccc1194099243b12e"
+    },
+    {
+      "name": "xai.initial",
+      "trace_id": "08d77b9c82d423e119b75903c0a4bde7"
+    },
+    {
+      "name": "xai.cache",
+      "trace_id": "69f16210e32b6b09e637b155026a104f"
+    },
+    {
+      "name": "writer.application.save",
+      "trace_id": "b3afe4fd1a4dffaa8eac3d90458beedf"
+    },
+    {
+      "name": "writer.application.retry",
+      "trace_id": "d3f5bcffa43389b671871c4672e5e383"
+    },
+    {
+      "name": "reader.masked",
+      "trace_id": "046a654d15f7603581e5e6cbeb88d528"
+    },
+    {
+      "name": "reader.save.denied",
+      "trace_id": "38eac3f80764647ed27eb936f626304b"
+    },
+    {
+      "name": "reader.reveal.denied",
+      "trace_id": "c062405e0a23038ff6f0e1759a6454f6"
+    },
+    {
+      "name": "writer.masked",
+      "trace_id": "f31d58c45facc9b56c7a8a896039995b"
+    },
+    {
+      "name": "writer.reveal.denied",
+      "trace_id": "bbf4d7315f13a4d6865d173c613a61bb"
+    },
+    {
+      "name": "supervisor.masked",
+      "trace_id": "2708076c7ae74cb744f116e56a470783"
+    },
+    {
+      "name": "supervisor.save.denied",
+      "trace_id": "a8eb9dc2068a4b71cbe8320d0b8798a1"
+    },
+    {
+      "name": "supervisor.reveal",
+      "trace_id": "f988156ba213ed837038b671cdf0b04f"
+    },
+    {
+      "name": "database-write.old",
+      "trace_id": "6ae0cb2c733483925c404743cb0549b9"
+    },
+    {
+      "name": "database-write.fresh",
+      "trace_id": "78c319c79528c154617f52af957d5f69"
+    },
+    {
+      "name": "database-write.restored",
+      "trace_id": "1c8d756287513ea1f07da5a34c59ffa9"
+    },
+    {
+      "name": "database-read.old",
+      "trace_id": "616f2a8fe93c364771a0a9c00f1b864c"
+    },
+    {
+      "name": "database-read.fresh",
+      "trace_id": "25e1ee2b8353494e2e3789e87c0183fc"
+    },
+    {
+      "name": "database-read.old",
+      "trace_id": "cc36e07018ece75f356e705d8b66fb21"
+    },
+    {
+      "name": "database-read.fresh",
+      "trace_id": "84a0b2489344ab57827b4651b0e9f0da"
+    },
+    {
+      "name": "database-read.restored",
+      "trace_id": "e017fef971e08f86b767f15ec20802a1"
+    },
+    {
+      "name": "database-read.restored",
+      "trace_id": "f1b7f81692363e764ac611af5c508491"
+    },
+    {
+      "name": "decrypt.old",
+      "trace_id": "b3836e56df685f3e4b770d5a760e3faf"
+    },
+    {
+      "name": "decrypt.fresh",
+      "trace_id": "87c0a86d9de82a6041b6faa8e0238bf1"
+    },
+    {
+      "name": "decrypt.old",
+      "trace_id": "42bb5a0c67b0cf266a317385e703c5c7"
+    },
+    {
+      "name": "decrypt.fresh",
+      "trace_id": "fa6cb7403d1b2ba330be7f3a1f7abf23"
+    },
+    {
+      "name": "decrypt.old",
+      "trace_id": "8f3d53e19cedf94e3b6abd868b158075"
+    },
+    {
+      "name": "decrypt.fresh",
+      "trace_id": "bd21bae67684562e0529d86c4722d306"
+    },
+    {
+      "name": "decrypt.restored",
+      "trace_id": "92838912d8c5044a7558de764e6da813"
+    },
+    {
+      "name": "decrypt.restored",
+      "trace_id": "4329cbcb2245dade239b90d1d4c96e3a"
+    },
+    {
+      "name": "decrypt.restored",
+      "trace_id": "d1d82f70fde7b6f5fd4757db4e2cdc4f"
+    },
+    {
+      "name": "openai.agent.catalog",
+      "trace_id": "7c38ce741b8cb9c79dc7a3adb5220509"
+    },
+    {
+      "name": "openai.agent.tavily",
+      "trace_id": "a0659fd8d5370861c9b4586856275d4e"
+    },
+    {
+      "name": "openai.guardrail.weather",
+      "trace_id": "56ee2eb478a7639398f3d05035753e88"
+    }
+  ],
+  "all_passed": false,
+  "error_type": "AssertionError"
+}

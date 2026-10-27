@@ -1,0 +1,882 @@
+{
+  "checked_at": "2026-10-27T10:12:03.817042+00:00",
+  "method": "scripted OIDC Authorization Code + PKCE; real application services; no browser",
+  "checks": [
+    {
+      "check": "reader oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "reader may_act",
+      "passed": true
+    },
+    {
+      "check": "reader nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "reader catalog",
+      "passed": true
+    },
+    {
+      "check": "writer oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "writer may_act",
+      "passed": true
+    },
+    {
+      "check": "writer nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "writer catalog",
+      "passed": true
+    },
+    {
+      "check": "supervisor oidc identity and nonce",
+      "passed": true
+    },
+    {
+      "check": "supervisor may_act",
+      "passed": true
+    },
+    {
+      "check": "supervisor nine Vault permissions",
+      "passed": true
+    },
+    {
+      "check": "supervisor catalog",
+      "passed": true
+    },
+    {
+      "check": "all three provider profiles loaded",
+      "passed": true
+    },
+    {
+      "check": "xai reauthorized cache",
+      "passed": true
+    },
+    {
+      "check": "five form steps validated",
+      "passed": true
+    },
+    {
+      "check": "writer idempotent save",
+      "passed": true
+    },
+    {
+      "check": "reader masked fields",
+      "passed": true
+    },
+    {
+      "check": "reader save denied",
+      "passed": true
+    },
+    {
+      "check": "reader reveal Vault 403",
+      "passed": true
+    },
+    {
+      "check": "writer masked fields",
+      "passed": true
+    },
+    {
+      "check": "writer reveal Vault 403",
+      "passed": true
+    },
+    {
+      "check": "supervisor masked fields",
+      "passed": true
+    },
+    {
+      "check": "supervisor save denied",
+      "passed": true
+    },
+    {
+      "check": "supervisor exact decrypt and decode",
+      "passed": true
+    },
+    {
+      "check": "database-write old database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-write fresh database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "write block preserves SELECT",
+      "passed": true
+    },
+    {
+      "check": "database-write same JWT restored database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-read old database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "check": "database-read fresh database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "check": "database-read old database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-read fresh database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "database-read same JWT restored database/creds/chatbot-readonly",
+      "passed": true
+    },
+    {
+      "check": "database-read same JWT restored database/creds/chatbot-readwrite",
+      "passed": true
+    },
+    {
+      "check": "decrypt old transit/decrypt/lumen-applications",
+      "passed": true
+    },
+    {
+      "check": "decrypt fresh transit/decrypt/lumen-applications",
+      "passed": true
+    },
+    {
+      "check": "decrypt old transform/decode/lumen-dni",
+      "passed": true
+    },
+    {
+      "check": "decrypt fresh transform/decode/lumen-dni",
+      "passed": true
+    },
+    {
+      "check": "decrypt old transform/decode/lumen-iban",
+      "passed": true
+    },
+    {
+      "check": "decrypt fresh transform/decode/lumen-iban",
+      "passed": true
+    },
+    {
+      "check": "decrypt block stops reveal",
+      "passed": true
+    },
+    {
+      "check": "decrypt same JWT restored transit/decrypt/lumen-applications",
+      "passed": true
+    },
+    {
+      "check": "decrypt same JWT restored transform/decode/lumen-dni",
+      "passed": true
+    },
+    {
+      "check": "decrypt same JWT restored transform/decode/lumen-iban",
+      "passed": true
+    },
+    {
+      "check": "openai selection preserves history",
+      "passed": true
+    },
+    {
+      "check": "openai selection isolated from writer",
+      "passed": true
+    },
+    {
+      "check": "openai grounded catalog via OBO",
+      "passed": true
+    },
+    {
+      "check": "openai model trace matches selection",
+      "passed": true
+    },
+    {
+      "check": "openai SVID trace signature and subject",
+      "passed": true
+    },
+    {
+      "check": "openai SVID absent from prompts",
+      "passed": true
+    },
+    {
+      "check": "openai scope allows energy search",
+      "passed": true
+    },
+    {
+      "check": "openai Deep Agents Tavily tool",
+      "passed": true
+    },
+    {
+      "check": "openai Tavily cited sources",
+      "passed": true
+    },
+    {
+      "check": "openai weather rejected",
+      "passed": true
+    },
+    {
+      "check": "openai followup rejected without Vault or model",
+      "passed": true
+    },
+    {
+      "check": "xai selection preserves history",
+      "passed": true
+    },
+    {
+      "check": "xai selection isolated from writer",
+      "passed": true
+    },
+    {
+      "check": "xai grounded catalog via OBO",
+      "passed": true
+    },
+    {
+      "check": "xai model trace matches selection",
+      "passed": true
+    },
+    {
+      "check": "xai scope allows energy search",
+      "passed": true
+    },
+    {
+      "check": "xai Deep Agents Tavily tool",
+      "passed": true
+    },
+    {
+      "check": "xai Tavily cited sources",
+      "passed": true
+    },
+    {
+      "check": "xai weather rejected",
+      "passed": true
+    },
+    {
+      "check": "xai followup rejected without Vault or model",
+      "passed": true
+    },
+    {
+      "check": "anthropic selection preserves history",
+      "passed": true
+    },
+    {
+      "check": "anthropic selection isolated from writer",
+      "passed": true
+    },
+    {
+      "check": "anthropic grounded catalog via OBO",
+      "passed": true
+    },
+    {
+      "check": "anthropic model trace matches selection",
+      "passed": true
+    },
+    {
+      "check": "anthropic SVID trace signature and subject",
+      "passed": true
+    },
+    {
+      "check": "anthropic SVID absent from prompts",
+      "passed": true
+    },
+    {
+      "check": "anthropic scope allows energy search",
+      "passed": true
+    },
+    {
+      "check": "anthropic Deep Agents Tavily tool",
+      "passed": true
+    },
+    {
+      "check": "anthropic Tavily cited sources",
+      "passed": true
+    },
+    {
+      "check": "anthropic weather rejected",
+      "passed": true
+    },
+    {
+      "check": "anthropic followup rejected without Vault or model",
+      "passed": true
+    },
+    {
+      "check": "shared provider configuration unchanged",
+      "passed": true
+    },
+    {
+      "check": "xai replaced before expiry",
+      "passed": true
+    },
+    {
+      "check": "xai dynamic inference",
+      "passed": true
+    },
+    {
+      "check": "xai old xai/creds/lumen",
+      "passed": true
+    },
+    {
+      "check": "xai old secrets/data/chatbot/xai-access",
+      "passed": true
+    },
+    {
+      "check": "xai cache reauthorization denied",
+      "passed": true
+    },
+    {
+      "check": "xai issued key revoked",
+      "passed": true
+    },
+    {
+      "check": "xai available after unblock",
+      "passed": true
+    },
+    {
+      "check": "trace and audit reader.permissions",
+      "passed": true
+    },
+    {
+      "check": "trace and audit reader.catalog",
+      "passed": true
+    },
+    {
+      "check": "trace and audit writer.permissions",
+      "passed": true
+    },
+    {
+      "check": "trace and audit writer.catalog",
+      "passed": true
+    },
+    {
+      "check": "trace and audit supervisor.permissions",
+      "passed": true
+    },
+    {
+      "check": "trace and audit supervisor.catalog",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.initial",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.cache",
+      "passed": true
+    },
+    {
+      "check": "trace and audit writer.application.save",
+      "passed": true
+    },
+    {
+      "check": "trace and audit writer.application.retry",
+      "passed": true
+    },
+    {
+      "check": "trace and audit reader.masked",
+      "passed": true
+    },
+    {
+      "check": "trace and audit reader.save.denied",
+      "passed": true
+    },
+    {
+      "check": "trace and audit reader.reveal.denied",
+      "passed": true
+    },
+    {
+      "check": "trace and audit writer.masked",
+      "passed": true
+    },
+    {
+      "check": "trace and audit writer.reveal.denied",
+      "passed": true
+    },
+    {
+      "check": "trace and audit supervisor.masked",
+      "passed": true
+    },
+    {
+      "check": "trace and audit supervisor.save.denied",
+      "passed": true
+    },
+    {
+      "check": "trace and audit supervisor.reveal",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-write.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-write.fresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-write.restored",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-read.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-read.fresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-read.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-read.fresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-read.restored",
+      "passed": true
+    },
+    {
+      "check": "trace and audit database-read.restored",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.fresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.fresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.fresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.restored",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.restored",
+      "passed": true
+    },
+    {
+      "check": "trace and audit decrypt.restored",
+      "passed": true
+    },
+    {
+      "check": "trace and audit openai.agent.catalog",
+      "passed": true
+    },
+    {
+      "check": "trace and audit openai.agent.tavily",
+      "passed": true
+    },
+    {
+      "check": "trace and audit openai.guardrail.weather",
+      "passed": true
+    },
+    {
+      "check": "trace and audit openai.guardrail.followup",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.agent.catalog",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.agent.tavily",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.guardrail.weather",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.guardrail.followup",
+      "passed": true
+    },
+    {
+      "check": "trace and audit anthropic.agent.catalog",
+      "passed": true
+    },
+    {
+      "check": "trace and audit anthropic.agent.tavily",
+      "passed": true
+    },
+    {
+      "check": "trace and audit anthropic.guardrail.weather",
+      "passed": true
+    },
+    {
+      "check": "trace and audit anthropic.guardrail.followup",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.refresh",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.inference",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.block.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.block.old",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.block.new",
+      "passed": true
+    },
+    {
+      "check": "trace and audit xai.restored",
+      "passed": true
+    }
+  ],
+  "traces": [
+    {
+      "name": "reader.permissions",
+      "trace_id": "b0a2b8793117f599e9b935672a366877",
+      "vault_requests": 9,
+      "raw_audit_events": 18
+    },
+    {
+      "name": "reader.catalog",
+      "trace_id": "53385a8bd96a21ce5f1a5a1ec6aac9ea",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "writer.permissions",
+      "trace_id": "10eb724c358267aad6ccefb18cd4d84c",
+      "vault_requests": 9,
+      "raw_audit_events": 18
+    },
+    {
+      "name": "writer.catalog",
+      "trace_id": "4834c583b0c7912ec74c2e8f0736ca57",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "supervisor.permissions",
+      "trace_id": "5a4671f525bd71e5051dc93ae8d6c307",
+      "vault_requests": 9,
+      "raw_audit_events": 18
+    },
+    {
+      "name": "supervisor.catalog",
+      "trace_id": "3d5b647390a89288c67ee17f6b597406",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "xai.initial",
+      "trace_id": "360c453116f8878eb96fac402702d6c5",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "xai.cache",
+      "trace_id": "a6cc890cca8ef9405ce5634ffe55f0a5",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "writer.application.save",
+      "trace_id": "7a6320627267086a00b7fbd70a7a5401",
+      "vault_requests": 5,
+      "raw_audit_events": 10
+    },
+    {
+      "name": "writer.application.retry",
+      "trace_id": "61f30105717610898cd0deca4ec88702",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "reader.masked",
+      "trace_id": "e5ca3abf9c04c7761ba13ed0a43ea1c3",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "reader.save.denied",
+      "trace_id": "8902cfddad832ae3866b09216973838c",
+      "vault_requests": 0,
+      "raw_audit_events": 0
+    },
+    {
+      "name": "reader.reveal.denied",
+      "trace_id": "7da389bad48021713bf825b7643545f8",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "writer.masked",
+      "trace_id": "c9d2e79348dc3a999e8dc49a9d8e6089",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "writer.reveal.denied",
+      "trace_id": "eba6a06b312c57410cd4aab8b536009e",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "supervisor.masked",
+      "trace_id": "f95f9578bcb8733def6ce3406a402731",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "supervisor.save.denied",
+      "trace_id": "f010876e1daf36a981825c85895e40cc",
+      "vault_requests": 0,
+      "raw_audit_events": 0
+    },
+    {
+      "name": "supervisor.reveal",
+      "trace_id": "860b58b12f03b9847dae5238f0b34b03",
+      "vault_requests": 4,
+      "raw_audit_events": 8
+    },
+    {
+      "name": "database-write.old",
+      "trace_id": "ed753c1e5e6616384a782d9b1fa71fac",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-write.fresh",
+      "trace_id": "660c35bb310044d3723a603d2961da78",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-write.restored",
+      "trace_id": "25d51e977189964729300b2fd3840ba3",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-read.old",
+      "trace_id": "ba0ff9dde8d36423c6e031af4acbfd25",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-read.fresh",
+      "trace_id": "4a2a2011c88255083d5ef2270b32a52d",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-read.old",
+      "trace_id": "63df384c6f05cbe71d4fcd691995ea4c",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-read.fresh",
+      "trace_id": "fdb0ed3c3253f47128113f59d0e792bd",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-read.restored",
+      "trace_id": "f3ba6c5c0b9302b773f8ff1758a85fd9",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "database-read.restored",
+      "trace_id": "9732257f5c53ecd2ff597f2386a51249",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.old",
+      "trace_id": "ed480645ec03a6dea9daca63956609a8",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.fresh",
+      "trace_id": "188429e41d42c3e36fc96244e1cf43c8",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.old",
+      "trace_id": "3dfa34a35cc859054ab840b411366cd9",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.fresh",
+      "trace_id": "0b349dd902373cc3b38711692e4c01d4",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.old",
+      "trace_id": "b7096d34b89ae5cc7a25d8b49299b6c7",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.fresh",
+      "trace_id": "e1c59d272f2789d74a4e40794479d4b4",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.restored",
+      "trace_id": "f30d424d2937d65edbe7cd70adbfbe56",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.restored",
+      "trace_id": "4dde06772c3aab287627f232381f2831",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "decrypt.restored",
+      "trace_id": "bf75d467efff625150f2ba6bd681deba",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "openai.agent.catalog",
+      "trace_id": "b87fa763dbab76d4bba0dcaeae45c6cf",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "openai.agent.tavily",
+      "trace_id": "b5271fa800319fe83cf15a15d5ed7247",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "openai.guardrail.weather",
+      "trace_id": "502a913cd8a902ccb373f586ea3b20d5",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "openai.guardrail.followup",
+      "trace_id": "7111359768c18caee059a47a2a0fcc70",
+      "vault_requests": 0,
+      "raw_audit_events": 0
+    },
+    {
+      "name": "xai.agent.catalog",
+      "trace_id": "705a7ae2eec613c16047aa895a453928",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "xai.agent.tavily",
+      "trace_id": "a019abc9aa8f244bd2fd6c05da3023c4",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "xai.guardrail.weather",
+      "trace_id": "7987659cc50df80ff9d80b284a19260d",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "xai.guardrail.followup",
+      "trace_id": "6be05fd420505e734fa305a739d8889a",
+      "vault_requests": 0,
+      "raw_audit_events": 0
+    },
+    {
+      "name": "anthropic.agent.catalog",
+      "trace_id": "948fc75a51af7dae705dae76cbdc2997",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "anthropic.agent.tavily",
+      "trace_id": "2151e65b10a3ffa1d34f7a10064991d8",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "anthropic.guardrail.weather",
+      "trace_id": "b7cf34c163cdc912b5e3e9184f00761e",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "anthropic.guardrail.followup",
+      "trace_id": "89bbebb74d8826968d971cb67b1eae41",
+      "vault_requests": 0,
+      "raw_audit_events": 0
+    },
+    {
+      "name": "xai.refresh",
+      "trace_id": "3c2a83fbaa4e4a541d470a140c0c41d9",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    },
+    {
+      "name": "xai.inference",
+      "trace_id": "a7c9c8d621f82045f9ef64fe9d052412",
+      "vault_requests": 0,
+      "raw_audit_events": 0
+    },
+    {
+      "name": "xai.block.old",
+      "trace_id": "9d861bf30dc42d709f74cb7e4ac2eb69",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "xai.block.old",
+      "trace_id": "16b03a996b41efef46e6b352eff6decd",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "xai.block.new",
+      "trace_id": "722ab12f0e327ed130bde7187fbd12a6",
+      "vault_requests": 1,
+      "raw_audit_events": 2
+    },
+    {
+      "name": "xai.restored",
+      "trace_id": "3e795984f15bae472b116484bcd9c598",
+      "vault_requests": 2,
+      "raw_audit_events": 4
+    }
+  ],
+  "application_id": "946da0e0-4c7e-4e3b-8e2a-88153e742b4c",
+  "all_passed": true
+}

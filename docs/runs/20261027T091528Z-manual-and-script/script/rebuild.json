@@ -1,0 +1,10 @@
+{
+  "context": "workshop",
+  "legacy_vault_compat": 0,
+  "namespaces_rebuilt": true,
+  "removed_namespaces": 3,
+  "removed_volumes": 10,
+  "removed_verify_resources": 18,
+  "removal_completed": true,
+  "preserved_real_validator": true
+}

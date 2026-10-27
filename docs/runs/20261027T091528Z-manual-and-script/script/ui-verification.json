@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-27T09:54:54.613816+00:00",
+  "method": "Actual Chrome UI against the launchd-managed script deployment",
+  "checks": [
+    {
+      "name": "fresh_supervisor_oidc_login",
+      "passed": true
+    },
+    {
+      "name": "supervisor_nine_real_vault_decisions",
+      "passed": true
+    },
+    {
+      "name": "switch_to_claude",
+      "passed": true
+    },
+    {
+      "name": "switch_to_xai",
+      "passed": true
+    },
+    {
+      "name": "switch_back_to_openai",
+      "passed": true
+    },
+    {
+      "name": "identity_and_conversation_preserved_after_provider_switches",
+      "passed": true
+    }
+  ],
+  "all_passed": true,
+  "permissions_trace_id": "8a5a89ac2c7942468b626ca845139309",
+  "screenshots": [
+    "screenshots/supervisor-permissions.jpg",
+    "screenshots/claude-issuer.jpg"
+  ]
+}

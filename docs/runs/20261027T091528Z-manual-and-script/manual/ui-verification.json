@@ -1,0 +1,618 @@
+{
+  "checked_at": "2026-10-27T09:33:24.741907+00:00",
+  "method": "Actual Chrome UI through Computer Use, OIDC logins with existing private lab credentials",
+  "all_passed": true,
+  "checks": [
+    "Spanish and English UI switch",
+    "Reader PKCE login",
+    "Reader 9/9 Vault permission matrix in English",
+    "Reader write refused before any external call",
+    "Writer PKCE login",
+    "Use test data through five visible form steps",
+    "Writer saved synthetic draft",
+    "Masked list omits original DNI and IBAN",
+    "Writer reveal refused by Vault HTTP 403"
+  ],
+  "application_id": "e798812b-26e8-4e75-a0a7-16231533f6de",
+  "cases": {
+    "reader_permissions": {
+      "trace_id": "7cdeb715dd6c8a41567e1aa21cd6040f",
+      "spans": [
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.read",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readwrite",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readwrite",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.read",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readwrite",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "secrets/data/verify-admin",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "secrets/data/verify-admin",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.read",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "secrets/data/verify-admin",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/encrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/encrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transit/encrypt/lumen-applications",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/decrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/decrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transit/decrypt/lumen-applications",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-dni",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/decode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/decode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transform/decode/lumen-dni",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-iban",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/decode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/decode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transform/decode/lumen-iban",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "permissions.probe",
+          "status": "UNSET",
+          "attributes": {
+            "probe.check_count": 9,
+            "probe.matches_expected": true
+          }
+        },
+        {
+          "name": "lumen.action",
+          "status": "UNSET",
+          "attributes": {}
+        }
+      ]
+    },
+    "reader_write_denied": {
+      "trace_id": "8e73fd612095f6670d753cd319996107",
+      "spans": [
+        {
+          "name": "lumen.action",
+          "status": "ERROR",
+          "attributes": {
+            "error.type": "AccessDenied"
+          }
+        }
+      ]
+    },
+    "writer_save": {
+      "trace_id": "565a8c4a6f2eda38accf1ac73543c774",
+      "spans": [
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.read",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "mysql.query",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "data.access",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/encrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/encrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/encrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-dni",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transform/encode/lumen-iban",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readwrite",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readwrite",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.read",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readwrite",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "mysql.query",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "data.access",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "application.save",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "lumen.application.submit",
+          "status": "UNSET",
+          "attributes": {}
+        }
+      ]
+    },
+    "writer_reveal_denied": {
+      "trace_id": "2b5bb103826d482dd48cbda7e78e76e1",
+      "spans": [
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.read",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "database/creds/chatbot-readonly",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "mysql.query",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "data.access",
+          "status": "UNSET",
+          "attributes": {}
+        },
+        {
+          "name": "verify.client_credentials",
+          "status": "UNSET",
+          "attributes": {
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.token_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/decrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "verify.obo_exchange",
+          "status": "UNSET",
+          "attributes": {
+            "vault.path": "transit/decrypt/lumen-applications",
+            "http.response.status_code": 200
+          }
+        },
+        {
+          "name": "vault.write",
+          "status": "ERROR",
+          "attributes": {
+            "vault.path": "transit/decrypt/lumen-applications",
+            "http.response.status_code": 403,
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "application.reveal",
+          "status": "ERROR",
+          "attributes": {
+            "error.type": "VaultPermissionDenied"
+          }
+        },
+        {
+          "name": "lumen.application.reveal",
+          "status": "ERROR",
+          "attributes": {
+            "error.type": "VaultPermissionDenied"
+          }
+        }
+      ]
+    }
+  }
+}

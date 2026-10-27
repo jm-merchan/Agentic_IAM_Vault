@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-10-27T09:39:49.284221+00:00",
+  "state": "resolved",
+  "manual_workflows_passed_before_conflict": true,
+  "script_rebuild_started": false,
+  "conflict": {
+    "local_port": 8443,
+    "foreign_pid": 7394,
+    "foreign_command": "kubectl -n vault port-forward --address 0.0.0.0 pod/vault-0 8443:8200",
+    "current_context": "workshop-k8s",
+    "demo_context": "workshop",
+    "observed_issuer": "minikubeCA",
+    "expected_issuer": "Lumen Vault Lab CA",
+    "effect": "Infrastructure test cannot validate the peer certificate. No certificate validation bypass used."
+  },
+  "port_released_without_signalling_foreign_process": true,
+  "legacy_vault_compat": 0
+}

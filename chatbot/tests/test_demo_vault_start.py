@@ -105,3 +105,50 @@ def test_vault_waits_for_creation_before_running(tmp_path, denied):
         assert result.returncode == 0, result.stdout + result.stderr + repr(paths)
         assert set(requests) == {"vault-0", "vault-1", "vault-2"}
         assert all(count > 1 for count in requests.values())
+
+
+def test_disabled_legacy_compatibility_neither_adopts_nor_overwrites(tmp_path):
+    legacy = tmp_path/'foreign-vault'
+    legacy.mkdir()
+    (legacy/'cluster-keys.json').write_text('foreign recovery keys')
+    (legacy/'config.env').write_text('foreign connection')
+    state = tmp_path/'lumen-vault'
+    state.mkdir()
+    config = state/'config.env'
+    config.write_text('local connection')
+    source = (ROOT/'scripts/demo/vault.sh').read_text()
+    adopt = source.split('# Adopt the previous notebooks')[1].split('\nif ! "${K[@]}"')[0]
+    adopt = adopt[adopt.index('\nif '):]
+    publish = source.split('# Preserve notebook compatibility;')[1]
+    publish = publish[publish.index('\nif '):]
+    script = ('K=(true)\nfail() { exit 1; }\n' + adopt + '\n' + publish).replace('/tmp/vault', str(legacy))
+    result = subprocess.run(['bash', '-eu', '-c', script], capture_output=True, text=True,
+                            env={**os.environ, 'LUMEN_LEGACY_VAULT_COMPAT': '0',
+                                 'VSTATE': str(state), 'VAULT_ENV_FILE': str(config)})
+    assert result.returncode == 0, result.stderr
+    assert not (state/'cluster-keys.json').exists()
+    assert (legacy/'cluster-keys.json').read_text() == 'foreign recovery keys'
+    assert (legacy/'config.env').read_text() == 'foreign connection'
+
+
+@pytest.mark.parametrize('with_keys', [False, True])
+def test_default_legacy_copy_refuses_foreign_state(tmp_path, with_keys):
+    legacy = tmp_path/'foreign-vault'
+    legacy.mkdir()
+    (legacy/'config.env').write_text('foreign connection')
+    if with_keys:
+        (legacy/'cluster-keys.json').write_text(json.dumps({'root_token': 'foreign'}))
+    state = tmp_path/'lumen-vault'
+    state.mkdir()
+    (state/'cluster-keys.json').write_text(json.dumps({'root_token': 'lumen'}))
+    config = state/'config.env'
+    config.write_text('lumen connection')
+    source = (ROOT/'scripts/demo/vault.sh').read_text().split('# Preserve notebook compatibility;')[1]
+    script = 'fail() { exit 1; }\n' + source[source.index('\nif '):]
+    script = script.replace('/tmp/vault', str(legacy))
+    before = {f.name: f.read_bytes() for f in legacy.iterdir()}
+    result = subprocess.run(['bash', '-eu', '-c', script], capture_output=True, text=True,
+                            env={**os.environ, 'LUMEN_LEGACY_VAULT_COMPAT': '1',
+                                 'VSTATE': str(state), 'VAULT_ENV_FILE': str(config)})
+    assert result.returncode != 0
+    assert {f.name: f.read_bytes() for f in legacy.iterdir()} == before
