@@ -1,7 +1,7 @@
 {
   "name": "chatbot-xai",
-  "entity_id": "f75a8b1d-b828-28ab-182a-1fdca6772d0f",
-  "client_id": "f0ca2ad2-402f-467d-aac0-660480d8164c",
+  "entity_id": "6d9c0a07-23f0-49fd-0c17-6f7b87ff8995",
+  "client_id": "a2183171-5304-4470-88a8-aab7c8ee7330",
   "ceiling_policy": "chatbot-xai",
   "credential_path": "xai/creds/lumen",
   "auth_flow": "client_credentials"

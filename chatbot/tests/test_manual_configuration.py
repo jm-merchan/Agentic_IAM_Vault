@@ -36,6 +36,7 @@ def lab(tmp_path):
     (root / 'chatbot/policies').symlink_to(ROOT / 'chatbot/policies', target_is_directory=True)
     (root / 'scripts/demo').mkdir()
     shutil.copy(ROOT / 'scripts/demo/common.sh', root / 'scripts/demo/common.sh')
+    shutil.copy(ROOT / 'scripts/demo/env-file.sh', root / 'scripts/demo/env-file.sh')
     (root / 'verify/scripts').mkdir(parents=True)
     shutil.copy(ROOT / 'verify/scripts/common.sh', root / 'verify/scripts/common.sh')
     for path in (ROOT / 'scripts/manual').glob('*.sh'):
@@ -103,7 +104,7 @@ def test_manual_catalog_publishes_all_independent_profiles(lab, initial):
     assert config['provider'] == ('openai' if initial == 'auto' else initial)
     assert set(config['providers']) == {'openai', 'xai', 'anthropic'}
     assert {k: v['model'] for k, v in config['providers'].items()} == {
-        'openai': 'gpt-4.1-nano', 'xai': 'grok-4.3', 'anthropic': 'claude-haiku-5-5'}
+        'openai': 'gpt-5.6-luna', 'xai': 'grok-4.3', 'anthropic': 'claude-haiku-5-5'}
     assert config['providers']['openai']['service_account_id'] == env['OPENAI_SERVICE_ACCOUNT_ID']
     assert config['providers']['anthropic']['service_account_id'] == env['ANTHROPIC_SERVICE_ACCOUNT_ID']
     assert config['providers']['openai']['spiffe_id'] != config['providers']['anthropic']['spiffe_id']
@@ -205,7 +206,7 @@ elif args[0] == 'read':
     policy = 'chatbot-data-ceiling' if suffix == 'oidc' else 'chatbot-research'
     assert writes[0]['args'] == [
         'write', 'identity/entity/name/chatbot-' + suffix,
-        'external_id=client-' + suffix, 'policies=' + policy]
+        'external_id=client-' + suffix, 'policies=' + ('' if suffix == 'oidc' else policy)]
     aliases = [call for call in writes if call['args'][1] == 'identity/entity-alias']
     assert len(aliases) == (0 if existing_alias else 1)
     if aliases:

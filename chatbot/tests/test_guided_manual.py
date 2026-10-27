@@ -39,6 +39,7 @@ def guide_lab(tmp_path, monkeypatch):
     for name in ("guided-run.sh", "guided.py", "paso-a-paso.sh"):
         shutil.copy(ROOT / "scripts/manual" / name, root / "scripts/manual" / name)
     shutil.copy(ROOT / "scripts/demo/common.sh", root / "scripts/demo/common.sh")
+    shutil.copy(ROOT / "scripts/demo/env-file.sh", root / "scripts/demo/env-file.sh")
     (root / ".env").write_text("VERIFY_TENANT=https://fixture.verify.ibm.com\nVALUE=first\n")
     # demo.sh exports its real input path. Fixture subprocesses must load only
     # their synthetic configuration, including when pytest runs inside start.

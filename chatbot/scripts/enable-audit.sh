@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set +x
 set -euo pipefail
-source "${VAULT_ENV_FILE:-/tmp/vault/config.env}"
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_TOKEN VAULT_CACERT VAULT_NAMESPACE=''
 # Preserve the original device and its HMAC salt, including historical comparisons.
 if ! vault audit list -format=json | jq -e 'has("lumen-stdout/")' >/dev/null; then
-  vault audit enable -path=lumen-stdout file file_path=stdout log_raw=false hmac_accessor=true
+  vault audit enable -path=lumen-stdout file file_path=stdout log_raw=false hmac_accessor=true >/dev/null
 fi
 vault write sys/config/auditing/request-headers/traceparent hmac=false >/dev/null
 AUDIT_MODE=${LUMEN_VAULT_AUDIT_MODE:-raw}
@@ -14,65 +14,35 @@ PROTECTION_FILTER='namespace == "verify/" and (path == "transit/encrypt/lumen-ap
 XAI_FILTER='namespace == "verify/" and path == "xai/creds/lumen"'
 XAI_ACCESS_FILTER='namespace == "verify/" and path == "secrets/data/chatbot/xai-access"'
 SPIFFE_FILTER='namespace == "verify/" and (path == "spiffe/role/lumen-openai/mintjwt" or path == "spiffe/role/lumen-anthropic/mintjwt")'
+RAW_DEVICES='lumen-spiffe-raw lumen-agent-raw lumen-protection-raw lumen-xai-raw lumen-xai-access-raw'
+# A raw device whose filter or options drifted is recreated, never left half-configured.
+ensure_raw() {
+  local name=$1 description=$2 file_path=$3 filter=$4 healthy='.log_raw=="true" and .hmac_accessor=="false" and .filter==$filter'
+  if vault audit list -format=json | jq -e --arg name "$name/" --arg filter "$filter" \
+      "has(\$name) and (.[\$name].options | ($healthy) | not)" >/dev/null; then
+    vault audit disable "$name" >/dev/null
+  fi
+  if ! vault audit list -format=json | jq -e --arg name "$name/" 'has($name)' >/dev/null; then
+    vault audit enable -path="$name" -description="$description" \
+      file file_path="$file_path" mode=0000 log_raw=true hmac_accessor=false filter="$filter" >/dev/null
+  fi
+  vault audit list -format=json | jq -e --arg name "$name/" --arg filter "$filter" ".[\$name].options | $healthy" >/dev/null
+}
 case "$AUDIT_MODE" in
   raw)
-    if vault audit list -format=json | jq -e --arg filter "$SPIFFE_FILTER" \
-      'has("lumen-spiffe-raw/") and .["lumen-spiffe-raw/"].options.filter!=$filter' >/dev/null; then
-      vault audit disable lumen-spiffe-raw
-    fi
-    if ! vault audit list -format=json | jq -e 'has("lumen-spiffe-raw/")' >/dev/null; then
-      vault audit enable -path=lumen-spiffe-raw \
-        -description='Lumen lab: Vault-issued SPIFFE JWT-SVID for model providers' \
-        file file_path=/proc/self/fd/2 mode=0000 log_raw=true hmac_accessor=false filter="$SPIFFE_FILTER"
-    fi
-    vault audit list -format=json | jq -e --arg filter "$SPIFFE_FILTER" \
-      '.["lumen-spiffe-raw/"].options | .log_raw=="true" and .hmac_accessor=="false" and .filter==$filter' >/dev/null
-    if ! vault audit list -format=json | jq -e 'has("lumen-agent-raw/")' >/dev/null; then
-      vault audit enable -path=lumen-agent-raw \
-        -description='Lumen lab: raw agent routes in verify, including denied admin probe' \
-        file file_path=/dev/stdout mode=0000 log_raw=true hmac_accessor=false filter="$AGENT_FILTER"
-    fi
-    vault audit list -format=json | jq -e --arg filter "$AGENT_FILTER" \
-      '.["lumen-agent-raw/"].options | .log_raw=="true" and .hmac_accessor=="false" and .filter==$filter' >/dev/null
-    if ! vault audit list -format=json | jq -e 'has("lumen-protection-raw/")' >/dev/null; then
-      vault audit enable -path=lumen-protection-raw \
-        -description='Lumen lab: raw Transit and Transform requests in verify' \
-        file file_path=/dev/stderr mode=0000 log_raw=true hmac_accessor=false filter="$PROTECTION_FILTER"
-    fi
-    vault audit list -format=json | jq -e --arg filter "$PROTECTION_FILTER" \
-      '.["lumen-protection-raw/"].options | .log_raw=="true" and .hmac_accessor=="false" and .filter==$filter' >/dev/null
-    if ! vault audit list -format=json | jq -e 'has("lumen-xai-raw/")' >/dev/null; then
-      vault audit enable -path=lumen-xai-raw \
-        -description='Lumen lab: dynamic xAI inference credentials in verify' \
-        file file_path=/proc/self/fd/1 mode=0000 log_raw=true hmac_accessor=false filter="$XAI_FILTER"
-    fi
-    vault audit list -format=json | jq -e --arg filter "$XAI_FILTER" \
-      '.["lumen-xai-raw/"].options | .log_raw=="true" and .hmac_accessor=="false" and .filter==$filter' >/dev/null
-    if ! vault audit list -format=json | jq -e 'has("lumen-xai-access-raw/")' >/dev/null; then
-      vault audit enable -path=lumen-xai-access-raw \
-        -description='Lumen lab: RAR authorization before cached xAI use' \
-        file file_path=/dev/fd/1 mode=0000 log_raw=true hmac_accessor=false filter="$XAI_ACCESS_FILTER"
-    fi
-    vault audit list -format=json | jq -e --arg filter "$XAI_ACCESS_FILTER" \
-      '.["lumen-xai-access-raw/"].options | .log_raw=="true" and .hmac_accessor=="false" and .filter==$filter' >/dev/null
+    ensure_raw lumen-spiffe-raw 'Lumen lab: Vault-issued SPIFFE JWT-SVID for model providers' /proc/self/fd/2 "$SPIFFE_FILTER"
+    ensure_raw lumen-agent-raw 'Lumen lab: raw agent routes in verify, including denied admin probe' /dev/stdout "$AGENT_FILTER"
+    ensure_raw lumen-protection-raw 'Lumen lab: raw Transit and Transform requests in verify' /dev/stderr "$PROTECTION_FILTER"
+    ensure_raw lumen-xai-raw 'Lumen lab: dynamic xAI inference credentials in verify' /proc/self/fd/1 "$XAI_FILTER"
+    ensure_raw lumen-xai-access-raw 'Lumen lab: RAR authorization before cached xAI use' /dev/fd/1 "$XAI_ACCESS_FILTER"
     ;;
   hmac)
-    if vault audit list -format=json | jq -e 'has("lumen-spiffe-raw/")' >/dev/null; then
-      vault audit disable lumen-spiffe-raw
-    fi
-    if vault audit list -format=json | jq -e 'has("lumen-agent-raw/")' >/dev/null; then
-      vault audit disable lumen-agent-raw
-    fi
-    if vault audit list -format=json | jq -e 'has("lumen-protection-raw/")' >/dev/null; then
-      vault audit disable lumen-protection-raw
-    fi
-    if vault audit list -format=json | jq -e 'has("lumen-xai-raw/")' >/dev/null; then
-      vault audit disable lumen-xai-raw
-    fi
-    if vault audit list -format=json | jq -e 'has("lumen-xai-access-raw/")' >/dev/null; then
-      vault audit disable lumen-xai-access-raw
-    fi
+    for name in $RAW_DEVICES; do
+      if vault audit list -format=json | jq -e --arg name "$name/" 'has($name)' >/dev/null; then
+        vault audit disable "$name" >/dev/null
+      fi
+    done
     ;;
-  *) echo 'LUMEN_VAULT_AUDIT_MODE debe ser raw o hmac' >&2; exit 2 ;;
+  *) echo 'LUMEN_VAULT_AUDIT_MODE must be raw or hmac' >&2; exit 2 ;;
 esac
 vault audit list -format=json | jq 'with_entries(.value |= {type, options})'

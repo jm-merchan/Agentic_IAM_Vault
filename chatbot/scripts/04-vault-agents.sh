@@ -6,7 +6,7 @@ source "$CHATBOT_DIR/scripts/access-controls.sh"
 for suffix in oidc research; do
   kv_read "chatbot/$suffix" > "$TMP_WORK/preflight-$suffix.json"
   jq -e '.client_id|type=="string" and length>0' "$TMP_WORK/preflight-$suffix.json" >/dev/null ||
-    fail "Falta client_id en chatbot/$suffix; ejecuta el paso $suffix."
+    fail "Missing client_id in chatbot/$suffix; run the $suffix step."
 done
 initialize_block_policies
 vault read -format=json sys/config/oauth-resource-server/verify > "$TMP_WORK/profile.json"
@@ -51,11 +51,14 @@ for suffix in oidc research; do
   cid=$(jq -er .client_id "$TMP_WORK/client.json")
   policy=chatbot-data-ceiling
   optional=false
-  [ "$suffix" != research ] || { policy=chatbot-research; optional=true; }
+  # The OBO agent only acts for a user: its ceiling limits that user's policies,
+  # so the entity itself grants nothing to a token without a human subject.
+  entity_policies=''
+  [ "$suffix" != research ] || { policy=chatbot-research; optional=true; entity_policies=$policy; }
   name="chatbot-$suffix"
-  vault write "identity/entity/name/$name" external_id="$cid" policies="$policy" >/dev/null
+  vault write "identity/entity/name/$name" external_id="$cid" policies="$entity_policies" >/dev/null
   entity=$(vault read -field=id "identity/entity/name/$name")
-  alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id] | if length>1 then error("Alias duplicado") else .[0]//empty end')
+  alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id] | if length>1 then error("Duplicate alias") else .[0]//empty end')
   if [ -z "$alias_id" ]; then
     vault write identity/entity-alias name="$name" canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$cid" >/dev/null
   fi

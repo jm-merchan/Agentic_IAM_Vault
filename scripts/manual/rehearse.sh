@@ -11,7 +11,7 @@ if [ "${1:-}" = verify ] && [ -z "${MANUAL_RUN:-}" ]; then
 fi
 source "$(dirname "$0")/common.sh"
 set -a
-source "$MANUAL_ROOT/.env"
+source "$DEMO_ENV_FILE"
 set +a
 pending_verification() {
  printf '%s\n' "$MANUAL_RUN" > "$MANUAL/pending-verification-run"

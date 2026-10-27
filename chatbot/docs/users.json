@@ -1,23 +1,23 @@
 [
   {
     "username": "lumen-reader",
-    "user_id": "646009UD96",
+    "user_id": "645009K6YD",
     "group": "chatbot-readers",
-    "group_id": "647000285R",
+    "group_id": "646009UJGZ",
     "password_reset_required": false
   },
   {
     "username": "lumen-writer",
-    "user_id": "645009K11A",
+    "user_id": "6470002E09",
     "group": "chatbot-writers",
-    "group_id": "64800026CK",
+    "group_id": "645009K6YE",
     "password_reset_required": false
   },
   {
     "username": "lumen-supervisor",
-    "user_id": "646009UD97",
+    "user_id": "646009UJH0",
     "group": "chatbot-supervisors",
-    "group_id": "645009K11B",
+    "group_id": "645009K6YF",
     "password_reset_required": false
   }
 ]

@@ -3,8 +3,6 @@ from contextlib import contextmanager
 import base64
 import json
 
-from opentelemetry import trace
-
 from .rar import LAB_CONTEXT, authorization_details
 from .security import AccessDenied
 from .telemetry import span, trace_id

@@ -1,107 +1,108 @@
-# Reconstrucción end-to-end — OpenAI SPIFFE
+# End-to-end rebuild — OpenAI SPIFFE
 
-> Histórico: este informe corresponde al ciclo automatizado anterior. El despliegue se retiró después para la [instalación manual](manual/VALIDACION.md); sus trazas y capturas no corresponden al clúster actual.
-Verificación real del **15 de octubre de 2026**, en Minikube `workshop`, Vault Enterprise `josemerchan/vault-xai:2.1.2-ent` e IBM Verify `merchan.verify.ibm.com`. Se eliminaron los recursos, se comprobó el estado vacío y se reconstruyó la demo desde `.env`. Las capturas de esta página pertenecen al despliegue nuevo.
+> Historical: this report belongs to the earlier automated cycle. The deployment was later removed for the [manual installation](manual/VALIDACION.md); its traces and screenshots do not correspond to the current cluster.
+Real verification on **October 15, 2026**, on Minikube `workshop`, Vault Enterprise `josemerchan/vault-xai:2.1.2-ent` and IBM Verify `merchan.verify.ibm.com`. The resources were deleted, the empty state was checked and the demo was rebuilt from `.env`. The screenshots on this page belong to the new deployment.
 
-Referencia reproducible: [notebook 9 — OpenAI/Vault SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb). [Guía de integración](OPENAI_SPIFFE.md). Evidencias: `runs/20261015T114709Z-openai-clean/`.
+Reproducible reference: [notebook 9 — OpenAI/Vault SPIFFE](../9_OpenAI_Vault_SPIFFE.ipynb). [Integration guide](OPENAI_SPIFFE.md). Evidence: `runs/20261015T114709Z-openai-clean/`.
 
-## Retirada y reconstrucción
+## Teardown and rebuild
 
-Se ejecutaron `./demo.sh remove --dry-run`, `./demo.sh remove` y `CHATBOT_VERIFY_ACCESS=1 ./demo.sh start`. El flag activa checks OBO adicionales después del login real de cada usuario; no simula su identidad.
+`./demo.sh remove --dry-run`, `./demo.sh remove` and `CHATBOT_VERIFY_ACCESS=1 ./demo.sh start` were run. The flag enables additional OBO checks after each user's real sign-in; it does not simulate their identity.
 
-| Comprobación | Resultado y evidencia |
+| Check | Result and evidence |
 |---|---|
-| Retirada de Verify | 11 recursos: cuatro apps, STS, tres usuarios y tres grupos. [Resultado](runs/20261015T114709Z-openai-clean/remove.json) |
-| Retirada de Kubernetes | Se retiraron los diez volúmenes de la demo; quedaron cero namespaces y cero PV de la demo. Bootstrap anterior eliminado; `.env` conservado. [Estado limpio](runs/20261015T114709Z-openai-clean/clean-state.json) |
-| Recursos Verify recreados | Mismos 11 nombres, todos con identificadores nuevos. [Comparación](runs/20261015T114709Z-openai-clean/verify-resources-recreated.json) |
-| Identidad nueva de Vault | Root token distinto, namespaces con otros UID y claves SPIFFE nuevas. [Comparación sin secretos](runs/20261015T114709Z-openai-clean/recreation.json) |
-| Arranque automático | `auto` eligió OpenAI al existir ambas credenciales administrativas. [Etapas](runs/20261015T114709Z-openai-clean/start-auto-openai.json) |
-| Confianza externa | Se conservaron proyecto, cuenta de servicio, proveedor y mapping OpenAI. El proyecto tiene cero API keys estáticas. [Comprobación](runs/20261015T114709Z-openai-clean/openai-provisioning.json) |
-| Issuer público | Discovery/JWKS publicados; cuatro rutas privadas devuelven 404. [Resultados](runs/20261015T114709Z-openai-clean/public-route-checks.txt) |
+| Verify teardown | 11 resources: four apps, STS, three users and three groups. [Result](runs/20261015T114709Z-openai-clean/remove.json) |
+| Kubernetes teardown | The ten demo volumes were removed; zero demo namespaces and zero demo PVs remained. Previous bootstrap deleted; `.env` kept. [Clean state](runs/20261015T114709Z-openai-clean/clean-state.json) |
+| Recreated Verify resources | Same 11 names, all with new identifiers. [Comparison](runs/20261015T114709Z-openai-clean/verify-resources-recreated.json) |
+| New Vault identity | Different root token, namespaces with other UIDs and new SPIFFE keys. [Comparison without secrets](runs/20261015T114709Z-openai-clean/recreation.json) |
+| Automatic startup | `auto` chose OpenAI because both administrative credentials were present. [Stages](runs/20261015T114709Z-openai-clean/start-auto-openai.json) |
+| External trust | The OpenAI project, service account, provider and mapping were kept. The project has zero static API keys. [Check](runs/20261015T114709Z-openai-clean/openai-provisioning.json) |
+| Public issuer | Discovery/JWKS published; four private paths return 404. [Results](runs/20261015T114709Z-openai-clean/public-route-checks.txt) |
 
-**Alcance de “desde cero”:** los datos y recursos operativos de la demo se recrean. Se conservan `.env`, el cliente administrativo de Verify, el esquema RAR compartido, Minikube/cachés y la confianza administrativa en OpenAI. La creación inicial de esa confianza sigue siendo un prerrequisito externo documentado en el notebook; no se ha recreado el mapping por endpoints privados del dashboard.
+**Scope of "from scratch":** the demo's data and operational resources are recreated. `.env`, the Verify administrative client, the shared RAR schema, Minikube/caches and the administrative trust in OpenAI are kept. Creating that trust initially remains an external prerequisite documented in the notebook; the mapping was not recreated through private dashboard endpoints.
 
-El primer arranque encontró un HTTP 503 de OpenAI y se reanudó después de añadir reintentos GET. Otro intento detectó JWT “not valid yet”: la VM había quedado unos 14 minutos atrás durante la prueba. Se sincronizó el reloj con el host y se mantuvo `caffeinate` durante la validación. El arranque posterior terminó correctamente; no se amplió la tolerancia ni se desactivó validación TLS/JWT. [Intento 503](runs/20261015T114709Z-openai-clean/start-transient-503.json) · [Intento con desfase](runs/20261015T114709Z-openai-clean/start-clock-skew.json).
+The first startup hit an HTTP 503 from OpenAI and resumed after GET retries were added. Another attempt detected a JWT that was "not valid yet": the VM had fallen about 14 minutes behind during the test. The clock was synced with the host and `caffeinate` was kept running during validation. The next startup finished successfully; the leeway was not widened and TLS/JWT validation was not disabled. [503 attempt](runs/20261015T114709Z-openai-clean/start-transient-503.json) · [Clock skew attempt](runs/20261015T114709Z-openai-clean/start-clock-skew.json).
 
-## Casos de uso evaluados
+## Use cases evaluated
 
-| Caso | Resultado observado |
+| Case | Observed result |
 |---|---|
-| OpenAI SPIFFE | JWT-SVID nuevo, token exchange e inferencia reales; una segunda ejecución obtiene otra credencial. Cinco comprobaciones correctas |
-| Lector | OpenAI consulta catálogo e inventario mediante herramientas y OBO SQL RO; escritura local bloqueada; SQL RW y recuperación de sensibles reciben 403 |
-| Gestor | Prepara la solicitud con Deep Agents/OpenAI; completa cinco pasos y guarda con SQL RW, Transit encrypt y Transform encode; no puede revelar |
-| Supervisor | Consulta la bandeja enmascarada, recupera perfil/DNI/IBAN con OBO y no puede crear solicitudes ni obtener SQL RW |
-| Permisos | 9/9 rutas coinciden para cada perfil: **27 comprobaciones** de SQL, administración, Transit y Transform |
-| OBO al iniciar sesión | **20/20 checks** con usuarios reales: SQL SELECT, frontera de INSERT/rollback y denegación del secreto Tavily |
-| Tavily autónomo | Agente registrado, Client Credentials, secreto en Vault y resultados públicos; sin delegación del usuario para ese secreto |
-| `block database-read` | El lector recibe 403 sin cambiar sesión; al desbloquear vuelve a consultar |
-| `block database-write` | Guardado rechazado; cero filas parciales. Tras desbloquear se guarda una única solicitud |
-| `block decrypt` | Incluso el supervisor recibe 403; tras desbloquear recupera los valores originales |
-| xAI | Cambio real de proveedor, emisión dinámica, inferencia y rechazo de clave caducada; 12/12 checks |
-| RAR/bloqueo xAI | RAR ausente/incorrecto denegado, JWT anterior y nuevo bloqueados, lease revocado y recuperación tras desbloquear; 8/8 checks |
-| Presentación | Temas claro/oscuro, móvil 390 px sin desbordamiento y favicon servido igual al del workspace |
+| OpenAI SPIFFE | New JWT-SVID, real token exchange and inference; a second run obtains another credential. Five passing checks |
+| Reader | OpenAI queries the catalog and inventory through tools and OBO SQL RO; local write blocked; SQL RW and retrieval of sensitive data get 403 |
+| Writer | Prepares the application with Deep Agents/OpenAI; completes five steps and saves with SQL RW, Transit encrypt and Transform encode; cannot reveal |
+| Supervisor | Views the masked inbox, retrieves profile/DNI/IBAN with OBO and cannot create applications or obtain SQL RW |
+| Permissions | 9/9 paths match for each profile: **27 checks** across SQL, administration, Transit and Transform |
+| OBO at sign-in | **20/20 checks** with real users: SQL SELECT, INSERT/rollback boundary and denial of the Tavily secret |
+| Autonomous Tavily | Registered agent, Client Credentials, secret in Vault and public results; no user delegation for that secret |
+| `block database-read` | The reader gets 403 without changing session; after unblocking, queries work again |
+| `block database-write` | Save rejected; zero partial rows. After unblocking, a single application is saved |
+| `block decrypt` | Even the supervisor gets 403; after unblocking, the original values are retrieved |
+| xAI | Real provider switch, dynamic issuance, inference and rejection of an expired key; 12/12 checks |
+| xAI RAR/block | Missing/incorrect RAR denied, previous and new JWT blocked, lease revoked and recovery after unblocking; 8/8 checks |
+| Presentation | Light/dark themes, 390 px mobile with no overflow and a served favicon identical to the workspace one |
 
-Informes: [114 pruebas de aplicación + dos subcasos y etapas de verificación](runs/20261015T114709Z-openai-clean/verify-openai-run.json), [18 checks de infraestructura](runs/20261015T114709Z-openai-clean/infrastructure-tests.json), OBO [lector](runs/20261015T114709Z-openai-clean/obo-readonly.json), [gestor](runs/20261015T114709Z-openai-clean/obo-readwrite.json), [supervisor](runs/20261015T114709Z-openai-clean/obo-supervisor.json), [OpenAI](runs/20261015T114709Z-openai-clean/openai-inference.json), [xAI dinámico](runs/20261015T114709Z-openai-clean/xai-dynamic.json) y [xAI RAR/bloqueo](runs/20261015T114709Z-openai-clean/xai-blocks.json).
+Reports: [114 application tests + two subcases and verification stages](runs/20261015T114709Z-openai-clean/verify-openai-run.json), [18 infrastructure checks](runs/20261015T114709Z-openai-clean/infrastructure-tests.json), OBO [reader](runs/20261015T114709Z-openai-clean/obo-readonly.json), [writer](runs/20261015T114709Z-openai-clean/obo-readwrite.json), [supervisor](runs/20261015T114709Z-openai-clean/obo-supervisor.json), [OpenAI](runs/20261015T114709Z-openai-clean/openai-inference.json), [dynamic xAI](runs/20261015T114709Z-openai-clean/xai-dynamic.json) and [xAI RAR/block](runs/20261015T114709Z-openai-clean/xai-blocks.json).
 
-## Recorrido de los usuarios
+## User walkthrough
 
-El lector consulta datos con OpenAI; la actividad muestra credenciales SQL temporales obtenidas mediante OBO.
+The reader queries data with OpenAI; the activity panel shows temporary SQL credentials obtained through OBO.
 
-![Lector y catálogo/inventario](runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg)
+![Reader and catalog/inventory](runs/20261015T114709Z-openai-clean/screenshots/reader-openai-catalog.jpg)
 
-[Permisos del lector](runs/20261015T114709Z-openai-clean/screenshots/reader-permissions.jpg) · [Escritura denegada](runs/20261015T114709Z-openai-clean/screenshots/reader-write-denied.jpg) · [Lectura bloqueada](runs/20261015T114709Z-openai-clean/screenshots/reader-database-blocked.jpg) · [Lectura restaurada](runs/20261015T114709Z-openai-clean/screenshots/reader-database-restored.jpg) · [Tavily](runs/20261015T114709Z-openai-clean/screenshots/reader-tavily.jpg).
+[Reader permissions](runs/20261015T114709Z-openai-clean/screenshots/reader-permissions.jpg) · [Write denied](runs/20261015T114709Z-openai-clean/screenshots/reader-write-denied.jpg) · [Read blocked](runs/20261015T114709Z-openai-clean/screenshots/reader-database-blocked.jpg) · [Read restored](runs/20261015T114709Z-openai-clean/screenshots/reader-database-restored.jpg) · [Tavily](runs/20261015T114709Z-openai-clean/screenshots/reader-tavily.jpg).
 
-El gestor pide al agente preparar Luz Noche y completa el formulario. Se aceptaron dirección, titular, DNI e IBAN ficticios mediante Tab; un DNI con letra incorrecta se rechazó antes de avanzar. Ninguna acción contrata un suministro ni realiza cargos.
+The writer asks the agent to prepare Luz Noche and completes the form. Fictitious address, account holder, DNI and IBAN were accepted with Tab; a DNI with an incorrect letter was rejected before moving on. No action signs up for a supply or makes charges.
 
-![Revisión del formulario](runs/20261015T114709Z-openai-clean/screenshots/wizard-5-review.jpg)
+![Form review](runs/20261015T114709Z-openai-clean/screenshots/wizard-5-review.jpg)
 
-[Preparación por el agente](runs/20261015T114709Z-openai-clean/screenshots/writer-agent-prepares.jpg) · [Tarifa](runs/20261015T114709Z-openai-clean/screenshots/wizard-1-plan.jpg) · [Vivienda](runs/20261015T114709Z-openai-clean/screenshots/wizard-2-address.jpg) · [Validación DNI](runs/20261015T114709Z-openai-clean/screenshots/wizard-invalid-dni.jpg) · [Pago](runs/20261015T114709Z-openai-clean/screenshots/wizard-4-payment.jpg) · [Guardado bloqueado](runs/20261015T114709Z-openai-clean/screenshots/writer-save-blocked.jpg) · [Guardado correcto](runs/20261015T114709Z-openai-clean/screenshots/writer-save-success.jpg).
+[Preparation by the agent](runs/20261015T114709Z-openai-clean/screenshots/writer-agent-prepares.jpg) · [Tariff](runs/20261015T114709Z-openai-clean/screenshots/wizard-1-plan.jpg) · [Home](runs/20261015T114709Z-openai-clean/screenshots/wizard-2-address.jpg) · [DNI validation](runs/20261015T114709Z-openai-clean/screenshots/wizard-invalid-dni.jpg) · [Payment](runs/20261015T114709Z-openai-clean/screenshots/wizard-4-payment.jpg) · [Save blocked](runs/20261015T114709Z-openai-clean/screenshots/writer-save-blocked.jpg) · [Save succeeded](runs/20261015T114709Z-openai-clean/screenshots/writer-save-success.jpg).
 
-La solicitud `991f9bb8-9255-4582-a015-8cb5cfb0428b` queda en MySQL con `profile_ciphertext` de Transit, `dni_token`, `iban_token` y pistas enmascaradas. Se comprobó que los documentos originales normalizados no aparecen en la fila. [Evidencia de almacenamiento](runs/20261015T114709Z-openai-clean/protected-storage.json) y [cero filas tras la escritura bloqueada](runs/20261015T114709Z-openai-clean/blocked-save-database.json).
+Application `991f9bb8-9255-4582-a015-8cb5cfb0428b` is stored in MySQL with Transit `profile_ciphertext`, `dni_token`, `iban_token` and masked hints. It was checked that the normalized original documents do not appear in the row. [Storage evidence](runs/20261015T114709Z-openai-clean/protected-storage.json) and [zero rows after the blocked write](runs/20261015T114709Z-openai-clean/blocked-save-database.json).
 
-![Supervisor: recuperación autorizada](runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg)
+![Supervisor: authorized retrieval](runs/20261015T114709Z-openai-clean/screenshots/supervisor-reveal-success.jpg)
 
-[Gestor: recuperación denegada](runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg) · [Lector: vista enmascarada](runs/20261015T114709Z-openai-clean/screenshots/reader-masked-application.jpg) · [Lector: recuperación denegada](runs/20261015T114709Z-openai-clean/screenshots/reader-reveal-denied.jpg) · [Supervisor bloqueado](runs/20261015T114709Z-openai-clean/screenshots/supervisor-decrypt-blocked.jpg) · [Supervisor sin escritura](runs/20261015T114709Z-openai-clean/screenshots/supervisor-write-denied.jpg).
+[Writer: retrieval denied](runs/20261015T114709Z-openai-clean/screenshots/writer-reveal-denied.jpg) · [Reader: masked view](runs/20261015T114709Z-openai-clean/screenshots/reader-masked-application.jpg) · [Reader: retrieval denied](runs/20261015T114709Z-openai-clean/screenshots/reader-reveal-denied.jpg) · [Supervisor blocked](runs/20261015T114709Z-openai-clean/screenshots/supervisor-decrypt-blocked.jpg) · [Supervisor without write access](runs/20261015T114709Z-openai-clean/screenshots/supervisor-write-denied.jpg).
 
-El DNI y el IBAN recuperados coinciden con las sugerencias originales; tras cerrar el diálogo no permanecen en el DOM. Los cinco spans de llamadas al modelo contienen prompts/respuestas, y el DNI/IBAN del formulario no aparecen en esos mensajes. [Comparación de UI](runs/20261015T114709Z-openai-clean/reveal-ui.json) · [Modelo y favicon](runs/20261015T114709Z-openai-clean/model-content-ui-checks.json).
+The retrieved DNI and IBAN match the original suggestions; after the dialog closes they do not remain in the DOM. The five model call spans contain prompts/responses, and the DNI/IBAN from the form do not appear in those messages. [UI comparison](runs/20261015T114709Z-openai-clean/reveal-ui.json) · [Model and favicon](runs/20261015T114709Z-openai-clean/model-content-ui-checks.json).
 
-## Trazas y auditoría
+<a id="trazas-y-auditoría"></a>
+## Traces and auditing
 
-Se correlacionaron **16 trazas de los casos de uso, 229 spans y 55 operaciones de Vault**. Cada operación tiene su par request/response, incluidos los 403. Se compararon JWT enviado, JWT de auditoría, cuerpo y respuesta, sin copiar secretos al informe. [Resultado completo](runs/20261015T114709Z-openai-clean/all-ui-observability.json) · [Índice de Trace IDs](runs/20261015T114709Z-openai-clean/ui-traces.json).
+**16 use-case traces, 229 spans and 55 Vault operations** were correlated. Each operation has its request/response pair, including the 403s. The sent JWT, audit JWT, body and response were compared without copying secrets into the report. [Full result](runs/20261015T114709Z-openai-clean/all-ui-observability.json) · [Trace ID index](runs/20261015T114709Z-openai-clean/ui-traces.json).
 
-![Traza OpenAI/SPIFFE/OBO](runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
+![OpenAI/SPIFFE/OBO trace](runs/20261015T114709Z-openai-clean/screenshots/grafana-openai-spiffe-obo.jpg)
 
-La traza del catálogo/inventario es `095ebb9e2bc0f1564f5e53cd328d31ed`, con 21 spans. La recuperación del supervisor es `0e41593d38eb8f16182d37877aeafd70`, con SQL RO, Transit decrypt y dos Transform decode. Los enlaces de [la guía OpenAI](OPENAI_SPIFFE.md#trazas) abren Grafana con el intervalo correcto.
+The catalog/inventory trace is `095ebb9e2bc0f1564f5e53cd328d31ed`, with 21 spans. The supervisor retrieval is `0e41593d38eb8f16182d37877aeafd70`, with SQL RO, Transit decrypt and two Transform decodes. The links in [the OpenAI guide](OPENAI_SPIFFE.md#trazas) open Grafana with the correct time range.
 
-**Incidencia corregida:** Alloy 1.20.1 perdía cuatro eventos raw de petición, aunque estaban presentes en `kubectl logs`. Se observó una línea con timestamp `12:23:52.075392321Z` después de otra `12:23:52.075436363Z`, el caso descrito en [grafana/alloy#7076](https://github.com/grafana/alloy/issues/7076). Se fijó **1.21.0-rc.0**, que contiene [la corrección #7080](https://github.com/grafana/alloy/pull/7080). Al releer los logs originales, los cuatro eventos aparecieron en Loki y pasaron las 16 trazas. Además pasó una [nueva prueba de nueve rutas posterior a la actualización](runs/20261015T114709Z-openai-clean/fresh-after-alloy-fix.json).
+**Issue fixed:** Alloy 1.20.1 lost four raw request events, even though they were present in `kubectl logs`. A line with timestamp `12:23:52.075392321Z` was observed after another one with `12:23:52.075436363Z`, the case described in [grafana/alloy#7076](https://github.com/grafana/alloy/issues/7076). **1.21.0-rc.0** was pinned, which contains [fix #7080](https://github.com/grafana/alloy/pull/7080). When the original logs were reread, the four events appeared in Loki and all 16 traces passed. A [new nine-path test after the upgrade](runs/20261015T114709Z-openai-clean/fresh-after-alloy-fix.json) also passed.
 
-Se conserva [el diagnóstico previo](runs/20261015T114709Z-openai-clean/audit-gaps.json); los informes individuales fallidos de `traces/` describen esa primera pasada, no el resultado final. No se sustituyeron valores ni se relajaron las comparaciones. El dashboard cuenta `request.id` únicos para que la relectura no infle los contadores. Se configuró `updateIntervalSeconds: 30` para detectar cambios del ConfigMap por sondeo; los eventos de filesystem no habían actualizado el dashboard. [Comportamiento documentado por Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/#detect-updates-to-provisioned-dashboards-files).
+[The earlier diagnosis](runs/20261015T114709Z-openai-clean/audit-gaps.json) is kept; the individual failed reports in `traces/` describe that first pass, not the final result. No values were substituted and no comparisons were relaxed. The dashboard counts unique `request.id` values so that rereading does not inflate the counters. `updateIntervalSeconds: 30` was configured to detect ConfigMap changes by polling; filesystem events had not updated the dashboard. [Behavior documented by Grafana](https://grafana.com/docs/grafana/latest/administration/provisioning/#detect-updates-to-provisioned-dashboards-files).
 
-La versión de Alloy es candidata y está fijada expresamente para este laboratorio. La corrección no convierte el scraping de logs en almacenamiento inmutable: una caída larga, rotación de logs o determinadas reconexiones siguen requiriendo un sink duradero en producción. Los eventos raw contienen credenciales según la configuración solicitada para el lab; los informes JSON públicos incluyen solo metadatos y booleanos.
+The Alloy version is a release candidate and is pinned explicitly for this lab. The fix does not turn log scraping into immutable storage: a long outage, log rotation or certain reconnections still require a durable sink in production. The raw events contain credentials, per the configuration requested for the lab; the public JSON reports include only metadata and booleans.
 
-![Cuatro peticiones únicas de recuperación del supervisor](runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg)
+![Four unique supervisor retrieval requests](runs/20261015T114709Z-openai-clean/screenshots/grafana-supervisor-audit.jpg)
 
-## Reproducción y estado final
+## Reproduction and final state
 
 ```bash
 ./demo.sh remove --dry-run
 ./demo.sh remove
 CHATBOT_VERIFY_ACCESS=1 ./demo.sh start
 ./demo.sh verify --provider openai
-# Entrar con cada usuario y recorrer los casos anteriores.
+# Sign in with each user and walk through the cases above.
 
-# Regresión de la alternativa xAI:
+# Regression of the xAI alternative:
 ./demo.sh start --provider xai
 ./demo.sh verify --provider xai
 bash chatbot/scripts/test-xai-block.sh
 ./demo.sh start --provider openai
 ```
 
-`start` conserva los bloqueos; la prueba restaura todos con `unblock`. `remove` borra también las trazas del cluster. Las capturas e informes del workspace permanecen como evidencia fechada. Los recursos externos OpenAI se conservaron durante todo el ciclo. El notebook es una referencia por etapas con celdas Bash, sin salidas ni credenciales; `demo.sh` sigue siendo el punto de entrada de un solo paso.
+`start` keeps the blocks; the test restores all of them with `unblock`. `remove` also deletes the cluster traces. The workspace screenshots and reports remain as dated evidence. The external OpenAI resources were kept throughout the cycle. The notebook is a staged reference with Bash cells, without outputs or credentials; `demo.sh` remains the single-step entry point.
 
 
-Se dejó **OpenAI · gpt-4.1-mini · SPIFFE JWT-SVID** activo. La [última instalación](runs/20261015T114709Z-openai-clean/final-start-openai.json), la [verificación final](runs/20261015T114709Z-openai-clean/final-verify-openai.json), la [inferencia final](runs/20261015T114709Z-openai-clean/final-openai-inference.json) y su [correlación Tempo/Loki](runs/20261015T114709Z-openai-clean/final-openai-observability.json) pasaron después de volver desde xAI. Los cuatro bloqueos adicionales están retirados; siguen aplicándose los permisos de cada perfil y RAR. La solicitud ficticia de la prueba se conserva para demostrar su lectura.
+**OpenAI · gpt-4.1-mini · SPIFFE JWT-SVID** was left active. The [last installation](runs/20261015T114709Z-openai-clean/final-start-openai.json), the [final verification](runs/20261015T114709Z-openai-clean/final-verify-openai.json), the [final inference](runs/20261015T114709Z-openai-clean/final-openai-inference.json) and its [Tempo/Loki correlation](runs/20261015T114709Z-openai-clean/final-openai-observability.json) passed after switching back from xAI. The four additional blocks are removed; each profile's permissions and RAR still apply. The test's fictitious application is kept to demonstrate reading it.
 
-[Estado de servicios](runs/20261015T114709Z-openai-clean/final-status.txt) · [Estado de bloqueos](runs/20261015T114709Z-openai-clean/final-blocks.txt) · [Resumen de evidencias](runs/20261015T114709Z-openai-clean/summary.json) · [Validación estática de notebooks, scripts y enlaces](workspace-static-checks.json).
+[Service status](runs/20261015T114709Z-openai-clean/final-status.txt) · [Block status](runs/20261015T114709Z-openai-clean/final-blocks.txt) · [Evidence summary](runs/20261015T114709Z-openai-clean/summary.json) · [Static validation of notebooks, scripts and links](workspace-static-checks.json).
 
-![Estado final: OpenAI activo](runs/20261015T114709Z-openai-clean/screenshots/final-openai-home.jpg)
+![Final state: OpenAI active](runs/20261015T114709Z-openai-clean/screenshots/final-openai-home.jpg)

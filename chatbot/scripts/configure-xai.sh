@@ -36,5 +36,5 @@ if ! vault kv metadata get -mount=secrets chatbot/xai-access >/dev/null 2>&1; th
   openssl rand -hex 16 | jq -Rn '{generation:input}' | kv_write chatbot/xai-access
 fi
 bash "$CHATBOT_DIR/scripts/register-xai-agent.sh"
-jq -n --arg model "${LUMEN_XAI_MODEL:-grok-4.3}" '{provider:"xai",model:$model,credential_source:"vault_dynamic",credential_path:"xai/creds/lumen",credential_ttl:300,auth_flow:"client_credentials"}' | kv_write chatbot/model
+jq -n --arg model "${LUMEN_XAI_MODEL:-grok-4.3}" '{provider:"xai",model:$model,credential_source:"vault_dynamic",credential_path:"xai/creds/lumen",credential_ttl:300,auth_flow:"client_credentials"}' | model_profile_write
 echo 'xAI configured: cached dynamic credentials, replaced before insufficient validity. Restart Lumen.'

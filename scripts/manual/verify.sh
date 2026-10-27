@@ -33,6 +33,8 @@ done
 jq -s . "$MANUAL/agent-inventory.jsonl" > "$MANUAL_RUN/agents.json"
 for target in xai database-read database-write decrypt; do
  vault policy read "lumen-block-$target" > "$MANUAL/check-block.hcl"
- if rg -q '"deny"' "$MANUAL/check-block.hcl"; then echo "Bloqueo inesperado activo: $target" >&2;exit 1;fi
+ status=0; grep -q '"deny"' "$MANUAL/check-block.hcl" || status=$?
+ if [ "$status" -eq 0 ]; then echo "Bloqueo inesperado activo: $target" >&2;exit 1;fi
+ [ "$status" -eq 1 ] || { echo "No se pudo comprobar el bloqueo: $target" >&2;exit 1; }
 done
 printf '{"all_blocks_inactive":true}\n' > "$MANUAL_RUN/final-state.json"

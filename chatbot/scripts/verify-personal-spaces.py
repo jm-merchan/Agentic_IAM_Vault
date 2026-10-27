@@ -6,11 +6,11 @@ import os
 from pathlib import Path
 import sys
 
-from app.personal_spaces import access, configuration, secret_path
+from app.personal_spaces import access, configuration
 from app.security import load_config, Identity, Session
 from app.services import Services
 from app.task_agents import actor_credential
-from app.telemetry import span, trace_id
+from app.telemetry import span
 
 
 async def main():

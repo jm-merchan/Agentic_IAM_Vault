@@ -1,69 +1,69 @@
-# Ámbito de Lumen y JWT-SVID en las trazas
+# Lumen scope and JWT-SVID in traces
 
-La clasificación de ámbito usa el proveedor seleccionado en Lumen. Las capturas
-de esta guía se renovaron el **22/10/2026**. La búsqueda pública sobre energía
-está dentro del ámbito; los permisos de datos siguen dependiendo de Vault.
+Scope classification uses the provider selected in Lumen. The screenshots
+in this guide were refreshed on **10/22/2026**. Public energy searches
+are in scope; data permissions still depend on Vault.
 
-## Control antes del agente
+## Check before the agent
 
-El [control de ámbito](../chatbot/app/guardrails.py) se ejecuta desde `reply`, antes de construir el agente conversacional y darle herramientas. Usa una llamada independiente al mismo modelo, con salida estructurada y sin herramientas de datos o búsqueda. Clasifica energía, funciones de esta demo, conversación básica o fuera de ámbito. El historial solo ayuda a resolver referencias como «venga».
+The [scope control](../chatbot/app/guardrails.py) runs from `reply`, before the conversational agent is built and given tools. It uses a separate call to the same model, with structured output and no data or search tools. It classifies energy, features of this demo, basic conversation or out of scope. The history only helps resolve references such as «venga» ("go on").
 
-Si rechaza la consulta, el servidor devuelve una respuesta fija de redirección a energía en el idioma seleccionado en Lumen, español o inglés. No se ejecuta el agente ni se consulta Tavily/MySQL/Transit/Transform. Si falla la clasificación o no devuelve el esquema esperado, tampoco se ejecuta el agente. El prompt del agente refuerza el mismo límite y prohíbe ofrecer búsquedas, enlaces o continuaciones sobre otros temas.
+If it rejects the query, the server returns a fixed response redirecting to energy in the language selected in Lumen, Spanish or English. The agent is not run and Tavily/MySQL/Transit/Transform are not queried. If the classification fails or does not return the expected schema, the agent is not run either. The agent prompt reinforces the same limit and forbids offering searches, links or follow-ups on other topics.
 
-Una continuación breve tras ese rechazo —«venga», «sí», «continúa», «go ahead», «continue»— se rechaza directamente, sin otra llamada al modelo ni emisión de identidad. Se reconocen las dos versiones del rechazo aunque se haya cambiado EN/ES entre mensajes. Una pregunta nueva de energía sí pasa al clasificador. Las preguntas sobre cómo afecta la lluvia a paneles solares están dentro del ámbito; preguntar el pronóstico de una ciudad queda fuera. Mezclar una petición válida con otra ajena se rechaza.
+A short follow-up after that rejection («venga», «sí», «continúa», "go ahead", "continue") is rejected directly, without another model call or identity issuance. Both versions of the rejection are recognized even if EN/ES was switched between messages. A new energy question does go to the classifier. Questions about how rain affects solar panels are in scope; asking for a city's weather forecast is out of scope. Mixing a valid request with an unrelated one is rejected.
 
-El clasificador añade una llamada al modelo por consulta normal y comparte el presupuesto de 180 segundos de la ejecución. Para clasificar con OpenAI se necesita primero el JWT-SVID y el intercambio: una petición rechazada puede tener esa operación de Vault, pero no operaciones de datos/búsqueda. Las ACL de Vault, RAR y los permisos SQL siguen siendo la frontera de autorización. La clasificación semántica es probabilística; las pruebas acreditan los casos evaluados, no una garantía para cualquier texto adversarial.
+The classifier adds one model call per normal query and shares the run's 180-second budget. To classify with OpenAI, the JWT-SVID and the exchange are needed first: a rejected request may include that Vault operation, but no data/search operations. Vault ACLs, RAR and SQL permissions remain the authorization boundary. Semantic classification is probabilistic; the tests demonstrate the evaluated cases, not a guarantee for any adversarial text.
 
-En las trazas: `guardrail.energy_scope`, con `guardrail.allowed`, `guardrail.category`, `guardrail.stage` y, para la continuación local, `guardrail.rule=blocked_followup`. La llamada de clasificación `openai.chat`, `xai.chat` o `anthropic.chat` es hija de ese span y conserva entrada/salida según el modo de captura del modelo. El idioma elegido se indica al agente para sus nuevas respuestas; no reescribe el historial ni los datos de herramientas. Las respuestas de catálogo/propuesta las construye el servidor en ese idioma después de una consulta autorizada actual. [Comprobaciones bilingües](manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+In traces: `guardrail.energy_scope`, with `guardrail.allowed`, `guardrail.category`, `guardrail.stage` and, for the local follow-up, `guardrail.rule=blocked_followup`. The classification call `openai.chat`, `xai.chat` or `anthropic.chat` is a child of that span and keeps input/output according to the model capture mode. The chosen language is passed to the agent for its new answers; it does not rewrite the history or the tool data. Catalog/proposal answers are built by the server in that language after a current authorized query. [Bilingual checks](manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
-![Meteorología y continuación rechazadas](screenshots/current/scope-denied.jpg)
+![Weather and follow-up rejected](screenshots/current/scope-denied.jpg)
 
-## Ver el JWT-SVID
+## Viewing the JWT-SVID
 
-En una ejecución nueva, abrir **Ver última traza / View latest trace**, seleccionar la llamada a Vault que emite la identidad o el intercambio con el proveedor y pulsar **Ver valores sensibles / View sensitive values**. El visor muestra los valores realmente capturados y sus versiones decodificadas; EN/ES traduce los títulos, no los tokens. [Funcionamiento y retención](../chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
+In a new run, open **View latest trace / Ver última traza**, select the Vault call that issues the identity or the exchange with the provider and click **View sensitive values / Ver valores sensibles**. The viewer shows the values actually captured and their decoded versions; EN/ES translates the titles, not the tokens. [How it works and retention](../chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
 
-En Tempo, los spans de emisión e intercambio conservan además estos campos explícitos:
+In Tempo, the issuance and exchange spans also keep these explicit fields:
 
-| Paso | Campo | Qué muestra |
+| Step | Field | What it shows |
 |---|---|---|
-| `spiffe.mint_jwt_svid` | `spiffe.jwt_svid` | JWT-SVID completo emitido por Vault |
-| `spiffe.mint_jwt_svid` | `spiffe.jwt_svid.decoded` | Cabecera, claims y resultado de validación local de firma |
-| `openai.token_exchange` | `openai.exchange.subject_token` | El mismo JWT-SVID enviado a OpenAI |
-| `anthropic.token_exchange` | `anthropic.exchange.assertion` | JWT-SVID de un solo uso enviado a Claude |
+| `spiffe.mint_jwt_svid` | `spiffe.jwt_svid` | Full JWT-SVID issued by Vault |
+| `spiffe.mint_jwt_svid` | `spiffe.jwt_svid.decoded` | Header, claims and result of the local signature validation |
+| `openai.token_exchange` | `openai.exchange.subject_token` | The same JWT-SVID sent to OpenAI |
+| `anthropic.token_exchange` | `anthropic.exchange.assertion` | Single-use JWT-SVID sent to Claude |
 
-La tabla de metadatos muestra además `kid`, `jti`, issuer, audiencia, SPIFFE ID, `iat` y `exp`. La firma se valida con RS256 y JWKS de Vault antes de marcar `signature_verified=true`.
+The metadata table also shows `kid`, `jti`, issuer, audience, SPIFFE ID, `iat` and `exp`. The signature is validated with RS256 and Vault's JWKS before `signature_verified=true` is set.
 
-El JWT de Verify presentado **a Vault** sigue en `vault.auth.jwt`; es distinto del JWT-SVID emitido **por Vault**. El access token que devuelve OpenAI se usa en el servidor para inferencia; en modo laboratorio también se puede inspeccionar en la captura de la respuesta del intercambio. El JWT-SVID no se incorpora a los mensajes del modelo ni a las herramientas de negocio.
+The Verify JWT presented **to Vault** is still in `vault.auth.jwt`; it is different from the JWT-SVID issued **by Vault**. The access token returned by OpenAI is used on the server for inference; in lab mode it can also be inspected in the capture of the exchange response. The JWT-SVID is not included in the model messages or in the business tools.
 
-**Ver en Grafana** abre la misma traza de Tempo. Los campos raw dependen de `LUMEN_TRACE_VAULT_RAW=1`, ya habilitado en este laboratorio; con `0` desaparecen token y claims completos de nuevas trazas. Los datos grandes conservan indicadores de truncado. Las trazas anteriores no se reescriben: en ellas el JWT-SVID estaba dentro de `vault.http.response`, no en estos campos explícitos.
+**View in Grafana** opens the same Tempo trace. The raw fields depend on `LUMEN_TRACE_VAULT_RAW=1`, already enabled in this lab; with `0`, the full token and claims disappear from new traces. Large data keeps truncation markers. Earlier traces are not rewritten: in them, the JWT-SVID was inside `vault.http.response`, not in these explicit fields.
 
-[Captura histórica: JWT-SVID y claims en el visor local](runs/20261015-energy-scope-svid/screenshots/jwt-svid-expanded.jpg)
+[Historical screenshot: JWT-SVID and claims in the local viewer](runs/20261015-energy-scope-svid/screenshots/jwt-svid-expanded.jpg)
 
-## Verificación
+## Verification
 
-La [revisión integral del 22/10](runs/20261022T140230Z-workspace-review/README.md)
-registra rechazo de meteorología, continuación bloqueada y recuperación con una
-petición explícita de catálogo. También conserva un falso rechazo de OpenAI a
-una búsqueda de autoconsumo solar y a preguntas de arquitectura OBO de Lumen.
-La política aclara ambos casos y el clasificador OpenAI usa temperatura 0;
-la conversación conserva su configuración. Se repitieron 16 casos del proveedor
-inicial y 48 casos con formulaciones adicionales entre los tres proveedores.
-El rechazo del clasificador no acredita una denegación de Vault.
+The [full review of 10/22](runs/20261022T140230Z-workspace-review/README.md)
+records the weather rejection, the blocked follow-up and recovery with an
+explicit catalog request. It also keeps a false rejection by OpenAI of
+a search about solar self-consumption and of questions about Lumen's OBO architecture.
+The policy clarifies both cases and the OpenAI classifier uses temperature 0;
+the conversation keeps its configuration. 16 cases with the initial provider
+and 48 cases with additional phrasings across the three providers were repeated.
+A classifier rejection does not demonstrate a Vault denial.
 
-Para repetir la evaluación del proveedor inicial configurado:
+To repeat the evaluation of the configured initial provider:
 
 ```bash
-# Con la demo arrancada; hace llamadas reales al proveedor activo.
+# With the demo running; makes real calls to the active provider.
 bash chatbot/scripts/verify-guardrails.sh
 ```
 
-El script usa una sesión técnica solo para emitir la identidad del modelo y evaluar el clasificador. No suplanta usuarios ni prueba permisos OBO humanos; el recorrido de Chrome usa el login real de `lumen-reader`.
+The script uses a technical session only to issue the model identity and evaluate the classifier. It does not impersonate users or test human OBO permissions; the Chrome walkthrough uses the real `lumen-reader` sign-in.
 
-Referencia: [OpenAI function calling y selección de herramientas](https://developers.openai.com/api/docs/guides/function-calling#tool-choice). La salida estructurada del clasificador tiene una única función de decisión; el código de aplicación aplica esa decisión antes de ejecutar Deep Agents.
+Reference: [OpenAI function calling and tool choice](https://developers.openai.com/api/docs/guides/function-calling#tool-choice). The classifier's structured output has a single decision function; the application code applies that decision before running Deep Agents.
 
-![Consulta explícita del catálogo con Claude](screenshots/current/claude-catalogue.jpg)
+![Explicit catalog query with Claude](screenshots/current/claude-catalogue.jpg)
 
-El [ensayo adversarial del 15/10](runs/20261015-energy-scope-svid/live-evaluation.json)
-y su [correlación de auditoría](runs/20261015-energy-scope-svid/live-audit-correlation.json)
-son evidencia histórica. Abre **Ver última traza** en tu propia sesión para
-inspeccionar una ejecución vigente.
+The [adversarial run of 10/15](runs/20261015-energy-scope-svid/live-evaluation.json)
+and its [audit correlation](runs/20261015-energy-scope-svid/live-audit-correlation.json)
+are historical evidence. Open **View latest trace** in your own session to
+inspect a current run.

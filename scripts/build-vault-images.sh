@@ -2,7 +2,8 @@
 # Build both editions from a committed plugin checkout. Publishing is explicit.
 set -euo pipefail
 umask 077
-version=2.2.0
+source "$(dirname "$0")/../deploy/vault-image.conf"
+version=$VAULT_IMAGE_VERSION
 plugin_repo=${XAI_PLUGIN_REPO:-$HOME/Projects/vault-plugin-secrets-xai}
 repository=${VAULT_PUBLISH_REPOSITORY:-docker.io/josemerchan/vault-xai}
 publish=false

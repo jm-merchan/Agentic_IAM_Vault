@@ -32,6 +32,8 @@ se clasifica como energy + answer. Clasifica el tema solicitado, no si tú como
 clasificador dispones de navegador: otra fase decidirá qué herramienta ejecutar.
 demo: uso de Lumen, planes ficticios, catálogo, inventario KMIP, solicitudes, permisos,
 identidades, protección de datos y trazas de ESTA demo. No incluye preguntas técnicas generales.
+"Consulta los planes de energía y el inventario de esta demo" es demo + catalog: ambas
+partes pertenecen a Lumen, así que no es una mezcla con un tema ajeno.
 Las preguntas sobre la arquitectura de Lumen también son demo: IBM Verify,
 OAuth/PKCE, delegación OBO (on-behalf-of), techos de los agentes, ACL y RAR de
 Vault, identidades SPIFFE/SVID y su relación con el usuario autenticado.
@@ -99,7 +101,10 @@ async def assess_request(model, history, message, recorder, config):
         classifier = model.with_structured_output(ScopeDecision, method='function_calling')
         # OpenAI's default sampling introduced inconsistent scope decisions in
         # live checks. This setting affects only classification, not conversation.
-        options = {'temperature': 0} if config.get('provider', 'openai') == 'openai' else {}
+        # Reasoning models reject any temperature other than the default; GPT-5.x
+        # accepts it because make_model disables reasoning for tool calls.
+        options = {'temperature': 0} if (config.get('provider', 'openai') == 'openai'
+                                         and not re.match(r'(gpt-5(?!\.\d)|o\d)', str(config.get('model', '')))) else {}
         decision = await classifier.ainvoke([
             SystemMessage(content=SCOPE_POLICY),
             HumanMessage(content=json.dumps({'history': context, 'latest_request': message}, ensure_ascii=False)),

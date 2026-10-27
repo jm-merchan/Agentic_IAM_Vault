@@ -22,6 +22,8 @@ while read -r pid command; do
   "kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/grafana 3000:3000"|\
   "kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/tempo 4318:4318 3200:3200"|\
   "kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/tempo 3200:3200 4318:4318"|\
+  "kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/tempo 4318:4318"|\
+  "kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/tempo 3200:3200"|\
   "kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/loki 3100:3100") stop_tree "$pid";;
  esac
 done < <(ps -axo pid=,command=)

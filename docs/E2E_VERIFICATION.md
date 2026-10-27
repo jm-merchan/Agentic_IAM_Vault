@@ -1,14 +1,14 @@
-# Verificación end-to-end de Lumen
+# Lumen end-to-end verification
 
-**Histórico del 14/10.** Este despliegue fue eliminado. La [reconstrucción OpenAI del 15/10](E2E_OPENAI_VERIFICATION.md) recoge el estado y las capturas posteriores.
+**Historical, 10/14.** This deployment was removed. The [OpenAI rebuild of 10/15](E2E_OPENAI_VERIFICATION.md) covers the later state and screenshots.
 
-Ejecutada el **14 de octubre de 2026** sobre Minikube `workshop`, IBM Verify `merchan.verify.ibm.com` y Vault Enterprise con la imagen `josemerchan/vault-xai:2.1.2-ent`. Evidencia: [`runs/20261014T162141Z/manifest.json`](runs/20261014T162141Z/manifest.json).
+Run on **October 14, 2026** on Minikube `workshop`, IBM Verify `merchan.verify.ibm.com` and Vault Enterprise with the `josemerchan/vault-xai:2.1.2-ent` image. Evidence: [`runs/20261014T162141Z/manifest.json`](runs/20261014T162141Z/manifest.json).
 
-Se realizaron **dos retiradas reales**, una instalación completa desde estado vacío, una reconciliación posterior de la configuración OAuth y las pruebas de la interfaz con los tres usuarios. Durante el recorrido se corrigieron las incidencias que se detallan al final. Las capturas pertenecen a este despliegue; no se reutilizaron las de los recursos eliminados.
+**Two real teardowns** were performed, along with a full installation from an empty state, a later reconciliation of the OAuth configuration and interface tests with the three users. The issues detailed at the end were fixed during the run. The screenshots belong to this deployment; none from the removed resources were reused.
 
-La comprobación del botón se amplió el 15 de octubre para cubrir nueve rutas de SQL, Transit y Transform. Ver [la matriz y sus capturas actuales](PERMISSION_PROBES.md). Las capturas de tres rutas de este informe conservan el resultado de la versión del 14 de octubre.
+The button check was extended on October 15 to cover nine SQL, Transit and Transform paths. See [the matrix and its current screenshots](PERMISSION_PROBES.md). The three-path screenshots in this report keep the result of the October 14 version.
 
-## 1. Retirada y reconstrucción
+## 1. Teardown and rebuild
 
 ```bash
 ./demo.sh remove --dry-run
@@ -17,117 +17,117 @@ CHATBOT_VERIFY_ACCESS=1 ./demo.sh start
 ./demo.sh verify
 ```
 
-`CHATBOT_VERIFY_ACCESS=1` activa las comprobaciones OBO al entrar por OIDC con cada usuario. Las contraseñas se recuperan de Vault; no se incluyen en este informe.
+`CHATBOT_VERIFY_ACCESS=1` enables the OBO checks when each user signs in through OIDC. The passwords are retrieved from Vault; they are not included in this report.
 
-| Comprobación | Resultado | Evidencia |
+| Check | Result | Evidence |
 |---|---|---|
-| Retirada Kubernetes | Cero namespaces de la demo y cero PV restantes | [Estado limpio](runs/20261014T162141Z/final-clean-state.json) |
-| Retirada IBM Verify | Eliminados tres clientes de aplicación, un STS, tres grupos y tres usuarios | [Retirada real](runs/20261014T162141Z/final-remove.json) |
-| Preservación | `.env` sin cambios; cliente administrativo, recursos ajenos y perfil Minikube conservados | [Alcance e inventario](runs/20261014T162141Z/resources-after-start.json) |
-| Reconstrucción | Diez IDs Verify nuevos, diez PV nuevos y namespaces con nuevos UID | [Recursos recreados](runs/20261014T162141Z/recreated-resources.json) |
-| Instalación | 21 etapas completadas; Vault inicializado/desellado y MySQL con KMIP | [Arranque limpio](runs/20261014T162141Z/start.json) |
-| Reconciliación OAuth | Arranque idempotente completo, conservando la solicitud guardada | [Segundo arranque](runs/20261014T162141Z/start-reconciled.json) |
-| Estado final | Vault 3/3, MySQL y cuatro servicios de observabilidad disponibles | [Estado local](runs/20261014T162141Z/services-status.txt) · [Vault](runs/20261014T162141Z/vault-pods.json) |
+| Kubernetes teardown | Zero demo namespaces and zero PVs left | [Clean state](runs/20261014T162141Z/final-clean-state.json) |
+| IBM Verify teardown | Three application clients, one STS, three groups and three users deleted | [Real teardown](runs/20261014T162141Z/final-remove.json) |
+| Preservation | `.env` unchanged; administrative client, unrelated resources and Minikube profile kept | [Scope and inventory](runs/20261014T162141Z/resources-after-start.json) |
+| Rebuild | Ten new Verify IDs, ten new PVs and namespaces with new UIDs | [Recreated resources](runs/20261014T162141Z/recreated-resources.json) |
+| Installation | 21 stages completed; Vault initialized/unsealed and MySQL with KMIP | [Clean startup](runs/20261014T162141Z/start.json) |
+| OAuth reconciliation | Full idempotent startup, keeping the saved application | [Second startup](runs/20261014T162141Z/start-reconciled.json) |
+| Final state | Vault 3/3, MySQL and four observability services available | [Local state](runs/20261014T162141Z/services-status.txt) · [Vault](runs/20261014T162141Z/vault-pods.json) |
 
-Antes de iniciar los workflows había **tres tarifas, tres equipos y cero solicitudes**. El inventario se crea también en una instalación vacía. [Conteos iniciales](runs/20261014T162141Z/database-before-workflows.json).
+Before the workflows started there were **three tariffs, three servers and zero applications**. The inventory is also created on an empty installation. [Initial counts](runs/20261014T162141Z/database-before-workflows.json).
 
-## 2. Login y permisos de los tres usuarios
+## 2. Sign-in and permissions of the three users
 
-Los tres usuarios iniciaron sesión realmente en Chrome mediante OIDC de Verify. Sus IDs y grupos son los del despliegue nuevo: [usuarios](runs/20261014T162141Z/users.json).
+The three users really signed in on Chrome through Verify OIDC. Their IDs and groups are those of the new deployment: [users](runs/20261014T162141Z/users.json).
 
-| Perfil | Leer catálogo/inventario y bandeja enmascarada | Guardar solicitud | Revelar DNI/IBAN y perfil | Secreto administrativo |
+| Profile | Read catalog/inventory and masked inbox | Save application | Reveal DNI/IBAN and profile | Administrative secret |
 |---|---|---|---|---|
-| `lumen-reader` | Permitido | Bloqueo UI y Vault RW denegado | Vault Transit denegado | Denegado |
-| `lumen-writer` | Permitido | Permitido: INSERT real | Vault Transit denegado | Denegado |
-| `lumen-supervisor` | Permitido | Bloqueo UI y Vault RW denegado | Permitido: Transit + Transform | Denegado |
+| `lumen-reader` | Allowed | UI block and Vault RW denied | Vault Transit denied | Denied |
+| `lumen-writer` | Allowed | Allowed: real INSERT | Vault Transit denied | Denied |
+| `lumen-supervisor` | Allowed | UI block and Vault RW denied | Allowed: Transit + Transform | Denied |
 
-Se completaron **20 checks OBO**: [lector, 6](runs/20261014T162141Z/obo-readonly.json), [gestor, 8](runs/20261014T162141Z/obo-readwrite.json), [supervisor, 6](runs/20261014T162141Z/obo-supervisor.json). Los permisos de lectura, escritura y revelación se comprobaron por separado; una denegación esperada cuenta como prueba correcta.
+**20 OBO checks** were completed: [reader, 6](runs/20261014T162141Z/obo-readonly.json), [writer, 8](runs/20261014T162141Z/obo-readwrite.json), [supervisor, 6](runs/20261014T162141Z/obo-supervisor.json). Read, write and reveal permissions were checked separately; an expected denial counts as a passing test.
 
-![Login OIDC del nuevo cliente](runs/20261014T162141Z/screenshots/02-oidc-consent.jpg)
-![Lector consulta catálogo e inventario](runs/20261014T162141Z/screenshots/03-reader-agent.jpg)
-![Lector: escritura bloqueada](runs/20261014T162141Z/screenshots/06-reader-local-block.jpg)
-![Gestor: revelación denegada por Vault](runs/20261014T162141Z/screenshots/19-writer-reveal-denied.jpg)
-![Supervisor: SQL RO permitido, RW y administración denegados](runs/20261014T162141Z/screenshots/26-supervisor-limits.jpg)
+![OIDC sign-in for the new client](runs/20261014T162141Z/screenshots/02-oidc-consent.jpg)
+![Reader queries catalog and inventory](runs/20261014T162141Z/screenshots/03-reader-agent.jpg)
+![Reader: write blocked](runs/20261014T162141Z/screenshots/06-reader-local-block.jpg)
+![Writer: reveal denied by Vault](runs/20261014T162141Z/screenshots/19-writer-reveal-denied.jpg)
+![Supervisor: SQL RO allowed, RW and administration denied](runs/20261014T162141Z/screenshots/26-supervisor-limits.jpg)
 
-## 3. Solicitud real y protección de datos
+## 3. Real application and data protection
 
-El gestor preparó **Luz Noche** con el agente y completó los cinco pasos: tarifa, vivienda, titular, pago y revisión. Se guardó una única solicitud ficticia: `8cd2a9fd-190b-4864-afce-1bbc41b6f97f`.
+The writer prepared **Luz Noche** with the agent and completed the five steps: tariff, home, account holder, payment and review. A single fictitious application was saved: `8cd2a9fd-190b-4864-afce-1bbc41b6f97f`.
 
-Se verificaron Tab para aceptar sugerencias, Shift+Tab sin rellenar, conservación de texto manual, rechazo de DNI incorrecto, controles válidos de DNI/IBAN, botón de sugerencia y regeneración al abrir un borrador nuevo. Los datos son sintéticos; el IBAN utiliza el banco `0000` de laboratorio. [Checks de interfaz](runs/20261014T162141Z/form-ui-checks.json).
+The following were verified: Tab to accept suggestions, Shift+Tab without filling in, preservation of manually typed text, rejection of an incorrect DNI, valid DNI/IBAN checks, the suggestion button and regeneration when opening a new draft. The data is synthetic; the IBAN uses the lab bank `0000`. [Interface checks](runs/20261014T162141Z/form-ui-checks.json).
 
-![Solicitud preparada por el agente](runs/20261014T162141Z/screenshots/09-writer-prepare.jpg)
-![Dirección y navegación con Tab](runs/20261014T162141Z/screenshots/11-form-address.jpg)
-![Validación de DNI](runs/20261014T162141Z/screenshots/12-form-invalid-dni.jpg)
-![Revisión antes de guardar](runs/20261014T162141Z/screenshots/17-form-review.jpg)
-![Solicitud persistida](runs/20261014T162141Z/screenshots/18-writer-saved.jpg)
+![Application prepared by the agent](runs/20261014T162141Z/screenshots/09-writer-prepare.jpg)
+![Address and Tab navigation](runs/20261014T162141Z/screenshots/11-form-address.jpg)
+![DNI validation](runs/20261014T162141Z/screenshots/12-form-invalid-dni.jpg)
+![Review before saving](runs/20261014T162141Z/screenshots/17-form-review.jpg)
+![Persisted application](runs/20261014T162141Z/screenshots/18-writer-saved.jpg)
 
-MySQL conserva el perfil cifrado con Transit y tokens opacos de DNI/IBAN. Las cuatro tablas están cifradas en reposo y el plugin KMIP está activo. La lectura del lector y del gestor es enmascarada; el supervisor recuperó los valores originales exactos mediante Vault. Al cerrar el diálogo, los valores revelados desaparecieron del DOM. [Persistencia](runs/20261014T162141Z/protected-storage.json) · [Revelación](runs/20261014T162141Z/reveal-ui-checks.json).
+MySQL keeps the profile encrypted with Transit and opaque DNI/IBAN tokens. The four tables are encrypted at rest and the KMIP plugin is active. Reader and writer reads are masked; the supervisor retrieved the exact original values through Vault. When the dialog closed, the revealed values disappeared from the DOM. [Persistence](runs/20261014T162141Z/protected-storage.json) · [Reveal](runs/20261014T162141Z/reveal-ui-checks.json).
 
-![Lector: bandeja enmascarada](runs/20261014T162141Z/screenshots/21-reader-masked.jpg)
-![Supervisor: recuperación de los datos ficticios](runs/20261014T162141Z/screenshots/27-supervisor-reveal.jpg)
+![Reader: masked inbox](runs/20261014T162141Z/screenshots/21-reader-masked.jpg)
+![Supervisor: retrieval of the fictitious data](runs/20261014T162141Z/screenshots/27-supervisor-reveal.jpg)
 
-El formulario se comprobó a **390 px**, en claro y oscuro, sin desbordamiento horizontal. Estas dos capturas muestran un segundo borrador sin guardar, con sugerencias distintas de la solicitud persistida.
+The form was checked at **390 px**, in light and dark mode, with no horizontal overflow. These two screenshots show a second unsaved draft, with suggestions different from the persisted application.
 
-![Formulario móvil claro](runs/20261014T162141Z/screenshots/15-form-mobile.jpg)
-![Formulario móvil oscuro](runs/20261014T162141Z/screenshots/16-form-mobile-dark.jpg)
+![Mobile form, light](runs/20261014T162141Z/screenshots/15-form-mobile.jpg)
+![Mobile form, dark](runs/20261014T162141Z/screenshots/16-form-mobile-dark.jpg)
 
-## 4. Agentes autónomos y xAI dinámico
+## 4. Autonomous agents and dynamic xAI
 
-El agente registrado de búsqueda obtuvo Tavily desde Vault y ejecutó una búsqueda real. Se verificó que no puede obtener credenciales SQL ni secretos administrativos. La identidad de xAI usa Client Credentials y `xai/creds/lumen`, con una clave dinámica de 300 segundos.
+The registered search agent obtained Tavily from Vault and ran a real search. It was verified that it cannot obtain SQL credentials or administrative secrets. The xAI identity uses Client Credentials and `xai/creds/lumen`, with a 300-second dynamic key.
 
-Se observó emisión inicial, reutilización del mismo lease y sustitución **antes de caducar** por validez restante insuficiente. El plugin declara el lease no renovable: la aplicación solicita uno nuevo, no intenta renovarlo. Las 12 pruebas de xAI incluyen inferencia real, límites de acceso, rechazo de una clave caducada y retirada de su lease. [Ciclo de vida en la aplicación](runs/20261014T162141Z/xai-runtime.json) · [Pruebas dinámicas](runs/20261014T162141Z/xai-dynamic-verification.json).
+Initial issuance, reuse of the same lease and replacement **before expiry** due to insufficient remaining validity were observed. The plugin declares the lease non-renewable: the application requests a new one and does not try to renew it. The 12 xAI tests include real inference, access limits, rejection of an expired key and revocation of its lease. [Lifecycle in the application](runs/20261014T162141Z/xai-runtime.json) · [Dynamic tests](runs/20261014T162141Z/xai-dynamic-verification.json).
 
-![Búsqueda Tavily del agente autónomo](runs/20261014T162141Z/screenshots/07-tavily.jpg)
-![Sustitución de la clave temporal](runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg)
+![Tavily search by the autonomous agent](runs/20261014T162141Z/screenshots/07-tavily.jpg)
+![Replacement of the temporary key](runs/20261014T162141Z/screenshots/08-xai-rotation-trace.jpg)
 
-## 5. Trazas, prompts y audit log
+## 5. Traces, prompts and audit log
 
-Se correlacionaron **20 trazas, 185 spans y 37 operaciones de Vault**. Para cada operación se compararon `traceparent`, request ID, namespace, políticas, cuerpo enviado, JWT y respuesta con las copias raw autenticadas del audit log. Son 74 eventos de petición/respuesta tras deduplicar las copias internas. Todos los checks pasaron. [Informe de correlación](runs/20261014T162141Z/traces.json).
+**20 traces, 185 spans and 37 Vault operations** were correlated. For each operation, `traceparent`, request ID, namespace, policies, sent body, JWT and response were compared with the authenticated raw copies in the audit log. That is 74 request/response events after deduplicating internal copies. All checks passed. [Correlation report](runs/20261014T162141Z/traces.json).
 
-La consulta final del lector produjo dos llamadas al modelo. Se compararon 12 campos de contenido entre el visor local y Tempo: mensajes de entrada/salida, herramientas, argumentos y resultados, parámetros y texto del usuario. El DNI, IBAN, nombre, dirección, email y teléfono completos del formulario no estaban en esos mensajes. Las trazas raw de Vault sí conservan sus intercambios por configuración explícita del laboratorio. [Comprobación de contenido](runs/20261014T162141Z/model-content.json).
+The reader's final query produced two model calls. 12 content fields were compared between the local viewer and Tempo: input/output messages, tools, arguments and results, parameters and user text. The full DNI, IBAN, name, address, email and phone number from the form were not in those messages. Vault raw traces do keep their exchanges because of an explicit lab setting. [Content check](runs/20261014T162141Z/model-content.json).
 
-![Texto de entrada al modelo](runs/20261014T162141Z/screenshots/25-model-input.jpg)
-![JWT OBO: usuario, grupo, actor y autorización de ruta](runs/20261014T162141Z/screenshots/32-obo-jwt-claims.jpg)
-![Revelación: cuatro operaciones de Vault sin denegaciones](runs/20261014T162141Z/screenshots/30-grafana-reveal-audit.jpg)
-![Lector: una operación permitida y dos denegaciones](runs/20261014T162141Z/screenshots/31-grafana-reader-denials.jpg)
+![Model input text](runs/20261014T162141Z/screenshots/25-model-input.jpg)
+![OBO JWT: user, group, actor and path authorization](runs/20261014T162141Z/screenshots/32-obo-jwt-claims.jpg)
+![Reveal: four Vault operations with no denials](runs/20261014T162141Z/screenshots/30-grafana-reveal-audit.jpg)
+![Reader: one allowed operation and two denials](runs/20261014T162141Z/screenshots/31-grafana-reader-denials.jpg)
 
-### Enlaces al despliegue verificado
+### Links to the verified deployment
 
-Los enlaces siguientes incluyen un rango temporal absoluto. Requieren iniciar sesión en Grafana como `lumen-admin` (contraseña en Vault `verify/secrets/chatbot/observability`). Tempo/Loki retienen siete días; otro `remove` elimina ese contenido. Las capturas y los informes permanecen en el workspace.
+The following links include an absolute time range. They require signing in to Grafana as `lumen-admin` (password in Vault at `verify/secrets/chatbot/observability`). Tempo/Loki retain seven days; another `remove` deletes that content. Screenshots and reports remain in the workspace.
 
-| Flujo | Traza Tempo | Audit log correlacionado |
+| Flow | Tempo trace | Correlated audit log |
 |---|---|---|
-| Catálogo e inventario | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b123f1c4eb409325b27b2909f8f05a6f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b123f1c4eb409325b27b2909f8f05a6f&var-audit_mode=raw) |
-| Guardar solicitud | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%228a28f5caadcebb0576c7ef24265d02f7%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=8a28f5caadcebb0576c7ef24265d02f7&var-audit_mode=raw) |
-| Gestor: revelación denegada | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b2640481a5089f9b85b6e0d85e088f02%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b2640481a5089f9b85b6e0d85e088f02&var-audit_mode=raw) |
-| Supervisor: revelar | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b93a149ee494649293b8c1d3a8ff0796%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b93a149ee494649293b8c1d3a8ff0796&var-audit_mode=raw) |
-| Lector: comprobar límites | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2202e4b62df97ae9259edb8135d81e7aa5%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=02e4b62df97ae9259edb8135d81e7aa5&var-audit_mode=raw) |
-| Agente Tavily | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2297cd790adf60665a7f71eae7f2aa045f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=97cd790adf60665a7f71eae7f2aa045f&var-audit_mode=raw) |
-| Rotación xAI | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22af3fb267a674b0c091ec601024af2cb6%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=af3fb267a674b0c091ec601024af2cb6&var-audit_mode=raw) |
-| Consulta enmascarada y prompts | [Abrir traza](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%222fde3c3b0ca8b8f7c1511c7378b0bd8e%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Abrir logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=2fde3c3b0ca8b8f7c1511c7378b0bd8e&var-audit_mode=raw) |
+| Catalog and inventory | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b123f1c4eb409325b27b2909f8f05a6f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b123f1c4eb409325b27b2909f8f05a6f&var-audit_mode=raw) |
+| Save application | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%228a28f5caadcebb0576c7ef24265d02f7%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=8a28f5caadcebb0576c7ef24265d02f7&var-audit_mode=raw) |
+| Writer: reveal denied | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b2640481a5089f9b85b6e0d85e088f02%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b2640481a5089f9b85b6e0d85e088f02&var-audit_mode=raw) |
+| Supervisor: reveal | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22b93a149ee494649293b8c1d3a8ff0796%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=b93a149ee494649293b8c1d3a8ff0796&var-audit_mode=raw) |
+| Reader: check limits | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2202e4b62df97ae9259edb8135d81e7aa5%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=02e4b62df97ae9259edb8135d81e7aa5&var-audit_mode=raw) |
+| Tavily agent | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%2297cd790adf60665a7f71eae7f2aa045f%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=97cd790adf60665a7f71eae7f2aa045f&var-audit_mode=raw) |
+| xAI rotation | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%22af3fb267a674b0c091ec601024af2cb6%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=af3fb267a674b0c091ec601024af2cb6&var-audit_mode=raw) |
+| Masked query and prompts | [Open trace](http://localhost:3000/explore?schemaVersion=1&orgId=1&panes=%7B%22lumen%22%3A%7B%22datasource%22%3A%22lumen-tempo%22%2C%22queries%22%3A%5B%7B%22refId%22%3A%22A%22%2C%22queryType%22%3A%22traceql%22%2C%22query%22%3A%222fde3c3b0ca8b8f7c1511c7378b0bd8e%22%2C%22datasource%22%3A%7B%22type%22%3A%22tempo%22%2C%22uid%22%3A%22lumen-tempo%22%7D%7D%5D%2C%22range%22%3A%7B%22from%22%3A%221791994860000%22%2C%22to%22%3A%221792001936009%22%7D%7D%7D) | [Open logs](http://localhost:3000/d/lumen-iam?from=1791994860000&to=1792001936009&var-trace=2fde3c3b0ca8b8f7c1511c7378b0bd8e&var-audit_mode=raw) |
 
-## 6. Incidencias resueltas durante la ejecución
+## 6. Issues resolved during the run
 
-| Hallazgo | Corrección y comprobación |
+| Finding | Fix and check |
 |---|---|
-| Inventario ausente al instalar desde cero | Tabla cifrada y tres equipos de ejemplo; segunda retirada/instalación y lectura real verificadas |
-| Suspensión de macOS atrasaba el reloj de la VM | Preflight de reloj y sincronización; TLS permanece validado |
-| JWT recién emitidos rechazados por `iat`/`nbf` | `clock_skew_leeway=15` en perfil OAuth, igual que el cliente; tres logins y 20 checks OBO repetidos |
-| Pruebas unitarias mezclaban spans ficticios con la demo | Exportación local temporal y OTLP desactivado durante pytest |
-| Grafana agotaba 768 MiB y el túnel no se recuperaba | 1536 MiB y objetivo Go de 768 MiB; `launchd` reinicia túneles. Terminación deliberada y recuperación verificadas |
+| Inventory missing when installing from scratch | Encrypted table and three sample servers; second teardown/installation and real read verified |
+| macOS sleep set the VM clock back | Clock preflight and sync; TLS remains validated |
+| Freshly issued JWTs rejected because of `iat`/`nbf` | `clock_skew_leeway=15` in the OAuth profile, same as the client; three sign-ins and 20 OBO checks repeated |
+| Unit tests mixed fictitious spans with the demo | Temporary local export and OTLP disabled during pytest |
+| Grafana exhausted 768 MiB and the tunnel did not recover | 1536 MiB and a 768 MiB Go target; `launchd` restarts tunnels. Deliberate termination and recovery verified |
 
-![Dashboard recuperado tras reiniciar el túnel](runs/20261014T162141Z/screenshots/33-grafana-restored.jpg)
+![Dashboard recovered after restarting the tunnel](runs/20261014T162141Z/screenshots/33-grafana-restored.jpg)
 
-[Incidencias](runs/20261014T162141Z/incidents.json) · [Recuperación del túnel](runs/20261014T162141Z/forward-recovery.json). El error intermedio de reloj se documenta; no se incluye como una traza correcta en el informe de 20 trazas.
+[Issues](runs/20261014T162141Z/incidents.json) · [Tunnel recovery](runs/20261014T162141Z/forward-recovery.json). The intermediate clock error is documented; it is not included as a passing trace in the 20-trace report.
 
-## 7. Resultado y material actualizado
+## 7. Result and updated material
 
-- 74 pruebas de aplicación y dos subcasos.
-- 18 comprobaciones de infraestructura y privilegios.
-- 20 checks OBO mediante las sesiones reales de los tres perfiles.
-- 12 pruebas de secretos dinámicos xAI.
-- 20 trazas reales correlacionadas con Vault; formulario, revelación, Tab y móvil comprobados visualmente.
+- 74 application tests and two subcases.
+- 18 infrastructure and privilege checks.
+- 20 OBO checks through the real sessions of the three profiles.
+- 12 xAI dynamic secret tests.
+- 20 real traces correlated with Vault; form, reveal, Tab and mobile checked visually.
 
-[`demo.sh verify`](runs/20261014T162141Z/verify-final.json) pasó tras las correcciones. Se actualizaron el [README principal](../README.md), la [guía de Lumen](../chatbot/README.md), la [guía de observabilidad](../chatbot/OBSERVABILITY.md), la [revisión del workspace](WORKSPACE_REVIEW.md) y los notebooks [6](../6_Lumen_Chatbot_Vault_IAM.ipynb), [7](../7_Lumen_Observability.ipynb) y [8](../8_Lumen_Protected_Applications.ipynb). Los informes antiguos de Okta y del bootstrap Verify están identificados como históricos.
+[`demo.sh verify`](runs/20261014T162141Z/verify-final.json) passed after the fixes. The [main README](../README.md), the [Lumen guide](../chatbot/README.md), the [observability guide](../chatbot/OBSERVABILITY.md), the [workspace review](WORKSPACE_REVIEW.md) and notebooks [6](../6_Lumen_Chatbot_Vault_IAM.ipynb), [7](../7_Lumen_Observability.ipynb) and [8](../8_Lumen_Protected_Applications.ipynb) were updated. The old Okta and Verify bootstrap reports are marked as historical.
 
-Los JSON publicados contienen metadatos y comprobaciones; los tokens, claves y respuestas raw permanecen en los servicios del laboratorio y en el estado privado, no en este informe. El estado se verificó en la fecha indicada; la retención, un reinicio de la sesión de Lumen o una nueva retirada pueden cambiar la disponibilidad de las vistas en vivo.
+The published JSON files contain metadata and checks; tokens, keys and raw responses stay in the lab services and in the private state, not in this report. The state was verified on the date shown; retention, a Lumen session restart or a new teardown can change the availability of the live views.

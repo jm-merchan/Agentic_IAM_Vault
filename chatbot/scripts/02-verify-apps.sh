@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/../../verify/scripts/common.sh"
 target=${1:-all}
-case "$target" in all|oidc|research|sts) ;; *) fail 'Uso: 02-verify-apps.sh [oidc|research|sts|all]';; esac
+case "$target" in all|oidc|research|sts) ;; *) fail 'Usage: 02-verify-apps.sh [oidc|research|sts|all]';; esac
 admin_login
 cp "$VERIFY_DIR/config/oidc-template.json" "$TMP_WORK/template.json"
 for suffix in oidc research; do
@@ -48,17 +48,17 @@ fi
 sts_id=$(jq -er --arg saved "$saved_sts_id" '
   [.clients[]|select(.clientName=="vault-chatbot-sts")|.clientId]|unique |
   if $saved!="" then
-    if index($saved)!=null then $saved else error("STS guardado en Vault no coincide con el inventario de este tenant") end
-  elif length>1 then error("STS duplicado: falta una referencia válida en verify/secrets/chatbot/sts")
+    if index($saved)!=null then $saved else error("STS client saved in Vault does not match this tenant inventory") end
+  elif length>1 then error("Duplicate STS client: missing a valid reference in verify/secrets/chatbot/sts")
   else .[0]//"" end' "$TMP_WORK/sts-list.json")
 if [ "$(jq '[.clients[]|select(.clientName=="vault-chatbot-sts")]|length' "$TMP_WORK/sts-list.json")" -gt 1 ]; then
-  printf 'STS duplicados: se reutiliza %s, ya guardado en Vault. No se elimina ningún cliente.\n' "$sts_id"
+  printf 'Duplicate STS clients: reusing %s, already saved in Vault. No client is deleted.\n' "$sts_id"
 fi
 jq '.clientName="vault-chatbot-sts" | .tokenSettings.introspectMap += [{name:"groups",function:{custom:"requestContext[\"subject_token\"].groups"}}]' "$VERIFY_DIR/config/sts.json" > "$TMP_WORK/sts-payload.json"
 if [ -z "$sts_id" ]; then
   api POST /v1.0/sts/oauth/clients "$TMP_WORK/sts-created.json" --data-binary "@$TMP_WORK/sts-payload.json"
   sts_id=$(awk 'tolower($1)=="location:"{gsub("\r","",$2);n=split($2,a,"/");print a[n]}' "$TMP_WORK/response.headers")
-  [ -n "$sts_id" ] || fail 'STS creado sin Location. Repite el paso para inventariar; no vuelvas a pegar el POST.'
+  [ -n "$sts_id" ] || fail 'STS client created without a Location header. Rerun the step to take inventory; do not paste the POST again.'
 else
   api GET "/v1.0/sts/oauth/clients/$sts_id" "$TMP_WORK/sts-current.json"
   jq -s '.[0]*.[1]' "$TMP_WORK/sts-current.json" "$TMP_WORK/sts-payload.json" > "$TMP_WORK/sts-update.json"

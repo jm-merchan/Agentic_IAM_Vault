@@ -33,4 +33,4 @@ CREATE TABLE IF NOT EXISTS scripting.energy_applications (
   FOREIGN KEY (plan_id) REFERENCES scripting.energy_plans(id)
 ) ENGINE=InnoDB ENCRYPTION='Y';
 SQL
-printf 'verify: Transit + Transform preparados; MySQL energy_applications guarda ciphertext y tokens.\n'
+printf 'verify: Transit + Transform ready; MySQL energy_applications stores ciphertext and tokens.\n'

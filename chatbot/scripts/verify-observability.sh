@@ -7,11 +7,11 @@ OBS_TMP=$(mktemp -d /tmp/lumen-observability-check.XXXXXX)
 trap 'rm -rf "$OBS_TMP"' EXIT
 printf '[]' > "$OBS_TMP/reports"
 if [ "$#" -eq 0 ]; then
-  echo 'Uso: bash chatbot/scripts/verify-observability.sh TRACE_ID [TRACE_ID ...]' >&2
+  echo 'Usage: bash chatbot/scripts/verify-observability.sh TRACE_ID [TRACE_ID ...]' >&2
   exit 2
 fi
 for tid in "$@"; do
-  [[ "$tid" =~ ^[0-9a-f]{32}$ ]] || { echo 'Trace ID inválido' >&2; exit 2; }
+  [[ "$tid" =~ ^[0-9a-f]{32}$ ]] || { echo 'Invalid trace ID' >&2; exit 2; }
   curl -fsS --max-time 15 -H 'Accept: application/json' "http://127.0.0.1:3200/api/traces/$tid" > "$OBS_TMP/tempo"
   curl -fsS --max-time 15 -G http://127.0.0.1:3100/loki/api/v1/query_range \
     --data-urlencode "query={service=\"vault-audit\"} |= \"$tid\"" \
@@ -27,8 +27,8 @@ for tid in "$@"; do
   jq -n --slurpfile spans "$OBS_TMP/spans" --slurpfile audit "$OBS_TMP/audit" \
     -f "$HERE/scripts/verify-vault-raw.jq" > "$OBS_TMP/raw_checks"
   if ! jq -e 'all(.[]; .passed)' "$OBS_TMP/raw_checks" >/dev/null; then
-    printf '%s: no se pudo acreditar la comparación completa de valores raw.\n' "$tid" >&2
-    printf 'Comprueba los filtros de enable-audit.sh; KV personal y contratos tienen auditoría HMAC.\n' >&2
+    printf '%s: could not prove the full comparison of raw values.\n' "$tid" >&2
+    printf 'Check the enable-audit.sh filters; personal KV and contracts use HMAC auditing.\n' >&2
     jq '[.[] | select(.passed|not)]' "$OBS_TMP/raw_checks" >&2
     exit 1
   fi
@@ -51,9 +51,9 @@ for tid in "$@"; do
   }' > "$OBS_TMP/report"
   jq --slurpfile item "$OBS_TMP/report" '.+$item' "$OBS_TMP/reports" > "$OBS_TMP/next"
   mv "$OBS_TMP/next" "$OBS_TMP/reports"
-  printf '%s · spans y pares de auditoría correlacionados\n' "$tid"
+  printf '%s · spans and audit pairs correlated\n' "$tid"
 done
 REPORT_FILE=${LUMEN_OBSERVABILITY_REPORT:-$HERE/docs/observability-verification.json}
 jq -n --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --slurpfile reports "$OBS_TMP/reports" \
   '{checked_at:$date,all_passed:true,traces:$reports[0]}' > "$REPORT_FILE"
-printf 'Informe sin credenciales: %s\n' "$REPORT_FILE"
+printf 'Credential-free report: %s\n' "$REPORT_FILE"

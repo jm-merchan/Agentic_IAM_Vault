@@ -1,6 +1,6 @@
-# Bloquear accesos durante la demostración
+# Blocking access during the demo
 
-Con Vault y Lumen activos, ejecuta desde la raíz del workspace:
+With Vault and Lumen running, run from the workspace root:
 
 ```bash
 ./demo.sh blocks
@@ -14,20 +14,20 @@ Con Vault y Lumen activos, ejecuta desde la raíz del workspace:
 ./demo.sh unblock decrypt
 ```
 
-Los comandos usan la conexión administrativa generada al inicializar Vault. No requieren añadir secretos a `.env`, reiniciar la aplicación ni volver a entrar en Verify. El alcance es Lumen en el namespace `verify`, para todos sus usuarios. `unblock` retira únicamente ese bloqueo adicional: conserva las restricciones de grupos, RAR y políticas de base. Varios bloqueos pueden coexistir.
+The commands use the administrative connection generated when Vault was initialized. They do not require adding secrets to `.env`, restarting the application or signing in to Verify again. The scope is Lumen in the `verify` namespace, for all its users. `unblock` removes only that additional block: group, RAR and base policy restrictions remain. Several blocks can coexist.
 
-| Control | Rutas denegadas en Vault | Efecto visible |
+| Control | Paths denied in Vault | Visible effect |
 |---|---|---|
-| `xai` | `xai/creds/lumen`, `secrets/data/chatbot/xai-access` | Un nuevo mensaje libre recibe un HTTP 403 de Vault antes de invocar el LLM. Los botones que consultan datos directamente siguen funcionando. |
-| `database-read` | `database/creds/chatbot-readonly`, `database/creds/chatbot-readwrite` y `database/creds/chatbot-contract` | Fallan catálogo, inventario, solicitudes y formalización de contratos; se revocan los tres tipos de leases. |
-| `database-write` | `database/creds/chatbot-readwrite` y `database/creds/chatbot-contract` | El gestor puede consultar con RO; guardar borradores o formalizar contratos recibe 403 al pedir la credencial. |
-| `decrypt` | `transit/decrypt/lumen-applications`, `transform/decode/lumen-dni`, `transform/decode/lumen-iban` | El supervisor ve la lista enmascarada, pero no puede revelar los datos. Cifrado y tokenización permanecen disponibles para el gestor. |
+| `xai` | `xai/creds/lumen`, `secrets/data/chatbot/xai-access` | A new free-form message receives an HTTP 403 from Vault before the LLM is invoked. Buttons that query data directly keep working. |
+| `database-read` | `database/creds/chatbot-readonly`, `database/creds/chatbot-readwrite` and `database/creds/chatbot-contract` | Catalog, inventory, applications and contract finalization fail; leases of all three types are revoked. |
+| `database-write` | `database/creds/chatbot-readwrite` and `database/creds/chatbot-contract` | The writer can still query with RO; saving drafts or finalizing contracts gets a 403 when requesting the credential. |
+| `decrypt` | `transit/decrypt/lumen-applications`, `transform/decode/lumen-dni`, `transform/decode/lumen-iban`, `transit/decrypt/lumen-contracts` and `secrets/data/lumen-contracts/*` | The supervisor sees the masked list but cannot reveal the data. Contract PDFs, which contain the DNI and IBAN in clear text, can neither be finalized nor downloaded. Encryption and tokenization remain available to the writer. |
 
-El acceso habitual usa RO para SELECT y RW para guardar borradores. Ambos permiten leer. La contratación añade una credencial diferente, limitada a EXECUTE del procedimiento; los bloqueos de base de datos incluyen también este rol.
+Regular access uses RO for SELECT and RW for saving drafts. Both allow reads. Contracting adds a different credential, limited to EXECUTE on the procedure; the database blocks also include this role.
 
-## Qué cambia realmente en Vault
+## What actually changes in Vault
 
-Hay cuatro políticas independientes: `lumen-block-xai`, `lumen-block-database-read`, `lumen-block-database-write` y `lumen-block-decrypt`. Normalmente contienen solo un comentario. Al bloquear escritura, por ejemplo, el comando guarda en `lumen-block-database-write`:
+There are four independent policies: `lumen-block-xai`, `lumen-block-database-read`, `lumen-block-database-write` and `lumen-block-decrypt`. Normally they contain only a comment. When blocking writes, for example, the command stores in `lumen-block-database-write`:
 
 ```hcl
 path "database/creds/chatbot-readwrite" {
@@ -38,17 +38,17 @@ path "database/creds/chatbot-contract" {
 }
 ```
 
-El `deny` prevalece sobre el permiso de la política de base. RAR debe permitir la ruta, pero nunca puede superar una denegación de la política. No se edita el JWT ni se espera a que caduque: las nuevas peticiones se evalúan contra la política actual de Vault. [Políticas de Vault](https://developer.hashicorp.com/vault/docs/concepts/policies) · [RAR](https://developer.hashicorp.com/vault/ai/iam/concepts/rar/enforcement).
+The `deny` takes precedence over the permission in the base policy. RAR must allow the path, but it can never override a policy denial. The JWT is not edited and there is no waiting for it to expire: new requests are evaluated against the current Vault policy. [Vault policies](https://developer.hashicorp.com/vault/docs/concepts/policies) · [RAR](https://developer.hashicorp.com/vault/ai/iam/concepts/rar/enforcement).
 
-La asociación depende del flujo:
+How the policies are attached depends on the flow:
 
-- **Contratación CIBA:** los tres bloqueos se asignan al token nativo mediante `auth/ciba-contract/role/validator`; este paso no utiliza OBO.
-- **xAI autónomo:** `lumen-block-xai` forma parte de las políticas de la entidad `chatbot-xai`. Es lo que limita Client Credentials.
-- **MySQL y protección de datos OBO:** los tres bloqueos forman parte de `ceiling_policies` de `chatbot-oidc` y de los agentes por tarea. Vault comprueba tanto los permisos del usuario como ese límite del actor. Las políticas límite del registro se aplican a OBO; por sí solas no bloquean el acceso autónomo. [Agent registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry).
+- **CIBA contracting:** all three blocks are assigned to the native token through `auth/ciba-contract/role/validator`; this step does not use OBO.
+- **Autonomous xAI:** `lumen-block-xai` is part of the policies of the `chatbot-xai` entity. This is what limits Client Credentials.
+- **MySQL and OBO data protection:** all three blocks are part of the `ceiling_policies` of `chatbot-oidc` and of the task agents. Vault checks both the user's permissions and that actor limit. The registry ceiling policies apply to OBO; on their own they do not block autonomous access. [Agent registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry).
 
-`start` conserva las políticas de bloqueo existentes. `remove` elimina el Vault de la demo; el siguiente `start` crea las cuatro políticas inactivas. Las verificaciones de funcionamiento normal presuponen que no hay bloqueos: consulta `./demo.sh blocks` antes de ejecutar `verify`.
+`start` keeps existing block policies. `remove` deletes the demo Vault; the next `start` creates the four policies inactive. The normal-operation verifications assume there are no blocks: check `./demo.sh blocks` before running `verify`.
 
-Para inspeccionar la política desde la CLI:
+To inspect the policy from the CLI:
 
 ```bash
 (
@@ -59,11 +59,11 @@ Para inspeccionar la política desde la CLI:
 )
 ```
 
-Si usas `LUMEN_STATE_DIR`, sustituye la ruta del ejemplo. En la UI de Vault selecciona el namespace `verify` y abre Policies → ACL Policies.
+If you use `LUMEN_STATE_DIR`, replace the path in the example. In the Vault UI, select the `verify` namespace and open Policies → ACL Policies.
 
-## RAR y claves xAI en caché
+## RAR and cached xAI keys
 
-Verify recibe `authorization_details` en Client Credentials y devuelve un JWT firmado con estas dos rutas:
+Verify receives `authorization_details` in Client Credentials and returns a signed JWT with these two paths:
 
 ```json
 [
@@ -72,50 +72,50 @@ Verify recibe `authorization_details` en Client Credentials y devuelve un JWT fi
 ]
 ```
 
-Lumen valida la firma, issuer, caducidad, identidad del cliente y coincidencia exacta del RAR. El registro de `chatbot-xai` exige RAR; no hay fallback a un JWT sin esa restricción.
+Lumen validates the signature, issuer, expiry, client identity and exact RAR match. The `chatbot-xai` registration requires RAR; there is no fallback to a JWT without that restriction.
 
-Antes de cada ejecución se lee `chatbot/xai-access` con ese JWT. Este registro contiene únicamente una generación de caché, no una API key. Su ACL permite que Vault deniegue también una ejecución que habría reutilizado una clave vigente. La clave se reutiliza mientras cubra el presupuesto de la ejecución y el margen de caducidad; el bloqueo no exige emitir una clave nueva por cada mensaje.
+Before each run, `chatbot/xai-access` is read with that JWT. This entry contains only a cache generation, not an API key. Its ACL lets Vault also deny a run that would have reused a valid key. The key is reused as long as it covers the run's budget and the expiry margin; blocking does not require issuing a new key for every message.
 
-`block xai` instala primero el deny y revoca de forma síncrona los leases `xai/creds/lumen/`. `unblock xai` cambia la generación antes de retirar el deny. Así, incluso si nadie envía un mensaje durante el bloqueo, una clave revocada no se reutiliza después. Un fallo de revocación devuelve error y deja el deny activo; no se usa `revoke-force`.
+`block xai` first installs the deny and synchronously revokes the `xai/creds/lumen/` leases. `unblock xai` changes the generation before removing the deny. That way, even if nobody sends a message during the block, a revoked key is not reused afterwards. A revocation failure returns an error and leaves the deny active; `revoke-force` is not used.
 
-En Vault 2.1.2 de esta imagen, `/sys/capabilities-self` rechazó los JWT externos durante la comprobación. Por eso esta versión utiliza una lectura KV real para reautorizar la caché, en lugar de presentar una comprobación de capacidades como si hubiera funcionado.
+In the Vault 2.1.2 of this image, `/sys/capabilities-self` rejected external JWTs during testing. That is why this version uses a real KV read to reauthorize the cache, instead of presenting a capabilities check as if it had worked.
 
-## Recorrido en la interfaz
+## Walkthrough in the interface
 
-1. **xAI:** selecciona xAI y escribe una pregunta sobre energía. Ejecuta `block xai` y envía otra: aparece la ruta denegada y HTTP 403. Ejecuta `unblock xai` y repite: se obtiene una clave nueva y vuelve la respuesta.
-2. **Lectura:** entra como lector o gestor. Abre Planes de energía, ejecuta `block database-read` y pulsa otra vez el botón. Tras `unblock database-read`, repite sin cerrar sesión.
-3. **Escritura:** entra como gestor y completa una solicitud ficticia hasta Revisión. Ejecuta `block database-write` y pulsa **Guardar borrador**. La lectura sigue disponible; el INSERT no llega a MySQL. Ejecuta `unblock database-write` y reintenta.
-4. **Descifrado:** entra como supervisor. Abre Solicitudes, ejecuta `block decrypt` y pulsa Revelar datos. La lista permanece enmascarada. Tras `unblock decrypt`, la misma operación vuelve a funcionar.
+1. **xAI:** select xAI and type a question about energy. Run `block xai` and send another one: the denied path and HTTP 403 appear. Run `unblock xai` and repeat: a new key is obtained and the answer comes back.
+2. **Read:** sign in as reader or writer. Open Energy plans, run `block database-read` and click the button again. After `unblock database-read`, repeat without signing out.
+3. **Write:** sign in as writer and fill in a fictitious application up to Review. Run `block database-write` and click **Save draft**. Reads remain available; the INSERT never reaches MySQL. Run `unblock database-write` and retry.
+4. **Decryption:** sign in as supervisor. Open Applications, run `block decrypt` and click Reveal data. The list stays masked. After `unblock decrypt`, the same operation works again.
 
-`Comprobar límites en Vault` hace peticiones reales a las nueve rutas SQL/Transit/Transform. La columna Esperado describe los permisos normales del perfil; un bloqueo administrativo produce una diferencia deliberada entre esa columna y Resultado.
+`Check limits in Vault` makes real requests to the nine SQL/Transit/Transform paths. The Expected column describes the profile's normal permissions; an administrative block produces a deliberate difference between that column and Result.
 
-En cada acción, **Ver última traza → Ver en Grafana** permite seguir el JWT/RAR, la ruta y la respuesta. En un bloqueo xAI no debe aparecer `xai.chat`; al bloquear una lectura SQL no debe aparecer `mysql.query`. En el formulario bloqueado puede aparecer el SELECT previo para comprobar duplicados, pero no el INSERT. Los cambios administrativos quedan también en la auditoría de Vault (`sys/policies/acl/lumen-block-*` y, cuando corresponda, `sys/leases/revoke-prefix/*`).
+For each action, **View latest trace → View in Grafana** lets you follow the JWT/RAR, the path and the response. During an xAI block, `xai.chat` must not appear; when blocking an SQL read, `mysql.query` must not appear. In the blocked form, the earlier SELECT that checks for duplicates may appear, but not the INSERT. The administrative changes are also recorded in the Vault audit log (`sys/policies/acl/lumen-block-*` and, where applicable, `sys/leases/revoke-prefix/*`).
 
-## Límites del bloqueo
+## Block limits
 
-Se bloquean las peticiones posteriores a Vault y se revocan los leases de las rutas SQL/xAI afectadas. Una petición ya en curso, una conexión MySQL ya abierta o información que el navegador ya haya mostrado no se deshacen. El comando no borra el historial del chat ni el texto ya revelado. Para comprobar de nuevo una lectura, usa el botón correspondiente: el modelo puede recordar información recibida antes del bloqueo.
+Subsequent requests to Vault are blocked and the leases of the affected SQL/xAI paths are revoked. A request already in progress, an already open MySQL connection or information the browser has already displayed are not undone. The command does not delete the chat history or text already revealed. To check a read again, use the corresponding button: the model may remember information it received before the block.
 
-El root token administrativo no queda bloqueado por estas políticas de Lumen. La aplicación no recibe ese token ni puede modificar las políticas.
+The administrative root token is not blocked by these Lumen policies. The application does not receive that token and cannot modify the policies.
 
-## Validación
+## Validation
 
-[Prueba real xAI](../chatbot/docs/xai-rar-block-verification.json): JWT sin RAR y con RAR incorrecto denegados; mismo JWT permitido → bloqueado → permitido; token nuevo también denegado durante el bloqueo; lease emitido revocado. Se puede repetir con `bash chatbot/scripts/test-xai-block.sh` después de exportar `VAULT_ENV_FILE` apuntando a la conexión generada. La prueba requiere xAI inicialmente desbloqueado y lo deja desbloqueado.
+[Real xAI test](../chatbot/docs/xai-rar-block-verification.json): JWT without RAR and with an incorrect RAR denied; same JWT allowed → blocked → allowed; a new token also denied during the block; issued lease revoked. It can be repeated with `bash chatbot/scripts/test-xai-block.sh` after exporting `VAULT_ENV_FILE` pointing to the generated connection. The test requires xAI to start unblocked and leaves it unblocked.
 
-El [ensayo de reinstalación del 22/10](runs/20261022T122934Z-full-e2e/README.md)
-y la [revisión integral posterior](runs/20261022T140230Z-workspace-review/README.md)
-registran los resultados con la instalación actual. Comprueba la fecha y el alcance
-de cada informe antes de reutilizar un resultado.
+The [reinstallation run of 10/22](runs/20261022T122934Z-full-e2e/README.md)
+and the [later full review](runs/20261022T140230Z-workspace-review/README.md)
+record the results with the current installation. Check the date and scope
+of each report before reusing a result.
 
-El [ensayo del 15/10](runs/20261015-rar-blocks/summary.json) y su
-[correlación de auditoría](runs/20261015-rar-blocks/observability.json) se conservan
-como histórico. La falta de algunas copias raw de Loki observada allí se corrigió
-en la [reconstrucción posterior de ese día](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría).
-No se presenta como una limitación pendiente ni se usan sus capturas como interfaz actual.
+The [run of 10/15](runs/20261015-rar-blocks/summary.json) and its
+[audit correlation](runs/20261015-rar-blocks/observability.json) are kept
+as history. The missing raw Loki copies observed there were fixed
+in the [later rebuild that same day](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría).
+It is not presented as an outstanding limitation, and its screenshots are not used as the current interface.
 
-La [contratación CIBA](manual/17-contratacion-ciba.md) usa `database/creds/chatbot-contract`. Los bloqueos `database-read` y `database-write` incluyen este rol y revocan sus leases. El rol JWT CIBA también adjunta el bloqueo de descifrado.
+[CIBA contracting](manual/17-contratacion-ciba.md) uses `database/creds/chatbot-contract`. The `database-read` and `database-write` blocks include this role and revoke its leases. The CIBA JWT role also attaches the decryption block.
 
-## Bloqueo comprobado en la interfaz actual
+## Block verified in the current interface
 
-![Supervisor denegado durante el bloqueo de descifrado](screenshots/current/decrypt-blocked.jpg)
+![Supervisor denied during the decryption block](screenshots/current/decrypt-blocked.jpg)
 
-![Misma solicitud recuperada después de retirar el bloqueo](screenshots/current/supervisor-reveal-success.jpg)
+![Same application retrieved after the block is removed](screenshots/current/supervisor-reveal-success.jpg)

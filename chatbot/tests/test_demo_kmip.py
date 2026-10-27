@@ -51,7 +51,7 @@ def test_kmip_missing_config_is_distinct_from_failed_read(tmp_path, status, body
     root = tmp_path / 'workspace'
     scripts = root / 'scripts/demo'
     scripts.mkdir(parents=True)
-    for name in ('common.sh', 'mysql.sh'):
+    for name in ('common.sh', 'env-file.sh', 'mysql.sh'):
         shutil.copy(ROOT / 'scripts/demo' / name, scripts / name)
     with (scripts / 'common.sh').open('a') as common:
         common.write('\n# Port forwarding is outside the KMIP configuration test.\nstart_forward() { :; }\n')

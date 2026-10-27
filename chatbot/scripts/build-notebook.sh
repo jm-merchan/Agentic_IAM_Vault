@@ -11,22 +11,22 @@ add_cell() {
   mv "$BUILD_DIR/next" "$BUILD_DIR/cells.json"
 }
 add_cell markdown <<'MD'
-# Lumen — chatbot con IBM Verify, Vault IAM y Deep Agents
+# Lumen — chatbot with IBM Verify, Vault IAM and Deep Agents
 
-Interfaz Python/NiceGUI y Deep Agents con selección OpenAI/xAI/Claude. Este notebook detalla la rama xAI (`grok-4.3`) y sus claves dinámicas de Vault; el [capítulo 10](docs/manual/10-aplicacion.md) prepara el catálogo conjunto de los tres proveedores. Mantiene OIDC Authorization Code + PKCE, MySQL mediante OBO y búsqueda Tavily con un agente autónomo registrado. **Todo el aprovisionamiento usa Bash, curl, jq y Vault CLI**; la aplicación y sus pruebas usan Python. Este notebook orquesta los archivos versionables de `chatbot/`, que deben acompañarlo.
+Python/NiceGUI interface and Deep Agents with OpenAI/xAI/Claude selection. This notebook details the xAI branch (`grok-4.3`) and its dynamic Vault keys; [chapter 10](docs/manual/10-aplicacion.md) prepares the shared catalog for all three providers. It keeps OIDC Authorization Code + PKCE, MySQL through OBO and Tavily search with a registered autonomous agent. **All provisioning uses Bash, curl, jq and Vault CLI**; the application and its tests use Python. This notebook orchestrates the versioned files in `chatbot/`, which must accompany it.
 
-La demo completa se instala con `./demo.sh`; este notebook es una referencia por etapas. Ejecutar desde la raíz del laboratorio. No copiar contraseñas en celdas. Las salidas del notebook se entregan vacías; los informes `chatbot/docs/*.json` registran las pruebas reales.
+The complete demo is installed with `./demo.sh`; this notebook is a stage-by-stage reference. Run it from the lab root. Do not copy passwords into cells. The notebook is delivered with empty outputs; the `chatbot/docs/*.json` reports record the real tests.
 
-[Documentación y capturas](chatbot/README.md) · [Database Secrets Engine](3_Database_Secret_Engine.ipynb)
+[Documentation and screenshots](chatbot/README.md) · [Database Secrets Engine](3_Database_Secret_Engine.ipynb)
 MD
 add_cell markdown <<'MD'
-## 1. Prerrequisitos
+## 1. Prerequisites
 
-Vault Enterprise con Agentic IAM activo, namespace `verify`, `secrets/verify-admin` importado de `.env`, MySQL/KMIP y contexto Kubernetes `workshop`. `./demo.sh` prepara estos recursos y no depende del notebook 5. La configuración administrativa está en `${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/vault/config.env`; `/tmp/vault/config.env` es la ruta de compatibilidad. Necesarios: Bash, curl, jq, Vault CLI, kubectl, OpenSSL y uv.
+Vault Enterprise with Agentic IAM enabled, `verify` namespace, `secrets/verify-admin` imported from `.env`, MySQL/KMIP and the `workshop` Kubernetes context. `./demo.sh` prepares these resources and does not depend on notebook 5. The administrative configuration is in `${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/vault/config.env`; `/tmp/vault/config.env` is the compatibility path. Required: Bash, curl, jq, Vault CLI, kubectl, OpenSSL and uv.
 
-El cliente administrativo de Verify necesita los permisos existentes y `manageUserStandardGroups`, `manageUsersPwdReset` para crear/activar los usuarios. No son permisos del agente en ejecución.
+The Verify administrative client needs the existing permissions plus `manageUserStandardGroups` and `manageUsersPwdReset` to create/activate the users. These are not permissions of the running agent.
 
-[Bootstrap administrativo histórico](verify/README.md) · [Historial y validación por alcance](docs/manual/VALIDACION.md).
+[Historical administrative bootstrap](verify/README.md) · [History and validation by scope](docs/manual/VALIDACION.md).
 MD
 add_cell code <<'CODE'
 %%bash
@@ -36,9 +36,9 @@ bash verify/scripts/configure-base.sh
 kubectl --context workshop -n mysql get pod mysql-enterprise-0
 CODE
 add_cell markdown <<'MD'
-## 2. Instalar la aplicación
+## 2. Install the application
 
-Entorno Python 3.12 aislado en `/tmp/vault-chatbot-venv`. Se puede recrear si macOS elimina `/tmp`; no modifica el `.venv` de los otros notebooks.
+Isolated Python 3.12 environment in `/tmp/vault-chatbot-venv`. It can be recreated if macOS clears `/tmp`; it does not modify the `.venv` of the other notebooks.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -46,9 +46,9 @@ set -euo pipefail
 bash chatbot/scripts/install.sh
 CODE
 add_cell markdown <<'MD'
-## 3. Roles de MySQL
+## 3. MySQL roles
 
-Esta celda crea/actualiza tres planes ficticios y las tablas `energy_plans`, `service_requests` y `test_encryption` (con tres equipos ficticios si está vacía), cifradas con InnoDB TDE. Monta `database/` en **verify**, crea una conexión con administrador limitado a `scripting` y rota su contraseña. Roles `chatbot-readonly` (SELECT) y `chatbot-readwrite` (SELECT, INSERT, UPDATE, DELETE), TTL 120 s y máximo 300 s. No ejecuta la limpieza del notebook 3.
+This cell creates/updates three fictitious plans and the `energy_plans`, `service_requests` and `test_encryption` tables (with three fictitious devices if empty), encrypted with InnoDB TDE. It mounts `database/` in **verify**, creates a connection with an administrator limited to `scripting` and rotates its password. Roles `chatbot-readonly` (SELECT) and `chatbot-readwrite` (SELECT, INSERT, UPDATE, DELETE), TTL 120 s and maximum 300 s. It does not run the cleanup from notebook 3.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -56,15 +56,15 @@ set -euo pipefail
 bash chatbot/scripts/01-database.sh
 CODE
 add_cell markdown <<'MD'
-## 4. Aplicaciones OIDC, STS, usuarios, agentes y grupos
+## 4. OIDC applications, STS, users, agents and groups
 
-Se utiliza `verify/config/oidc-template.json`, una plantilla sin secretos ni ID de instancia y se crean recursos propios: `vault-chatbot-oidc`, `vault-chatbot-research`, `vault-chatbot-sts`. Sus secretos se guardan en Vault.
+`verify/config/oidc-template.json` is used, a template without secrets or instance ID, and dedicated resources are created: `vault-chatbot-oidc`, `vault-chatbot-research`, `vault-chatbot-sts`. Their secrets are stored in Vault.
 
-`lumen-reader` pertenece a `chatbot-readers`; `lumen-writer`, a `chatbot-writers`; `lumen-supervisor`, a `chatbot-supervisors`. Son usuarios locales Cloud Directory. Sus contraseñas están en `verify/secrets/chatbot/users/reader`, `writer` y `supervisor`. El script activa las cuentas por API sin enviar correos.
+`lumen-reader` belongs to `chatbot-readers`; `lumen-writer`, to `chatbot-writers`; `lumen-supervisor`, to `chatbot-supervisors`. They are local Cloud Directory users. Their passwords are in `verify/secrets/chatbot/users/reader`, `writer` and `supervisor`. The script activates the accounts through the API without sending emails.
 
-También se preparan tres identidades opcionales: Consulta, Creación de solicitudes y Revelado de datos. Se eligen en **Agentes por tarea** y cada cambio comienza una sesión nueva con PKCE. **Modo actual** conserva el flujo previo. El techo del agente nunca amplía los permisos del usuario. [Guía y límites](docs/manual/14-agentes-por-tarea.md).
+Three optional identities are also prepared: Read access, Application creation and Data disclosure. They are chosen in **Task agents**, and each change starts a new session with PKCE. **Current mode** keeps the previous flow. The agent ceiling never extends the user's permissions. [Guide and limits](docs/manual/14-agentes-por-tarea.md).
 
-El último script asigna la aplicación a los tres grupos y sincroniza sus miembros con grupos internos de Vault. Ejecutarlo tras cambiar membresías; reiniciar la aplicación y volver a iniciar sesión. El script 06 prepara Transit, tokenización y la tabla adicional de solicitudes: requiere Transform en la licencia. Ver [notebook 8](8_Lumen_Protected_Applications.ipynb).
+The last script assigns the application to the three groups and synchronizes their members with internal Vault groups. Run it after changing memberships; restart the application and sign in again. Script 06 prepares Transit, tokenization and the additional applications table: it requires Transform in the license. See [notebook 8](8_Lumen_Protected_Applications.ipynb).
 MD
 add_cell code <<'CODE'
 %%bash
@@ -77,20 +77,20 @@ bash chatbot/scripts/configure-task-agents.sh
 bash chatbot/scripts/05-sync-groups.sh
 CODE
 add_cell markdown <<'MD'
-## 5. Conectar el modelo y Tavily
+## 5. Connect the model and Tavily
 
-En Vault, namespace `verify`, KV v2 `secrets`:
+In Vault, namespace `verify`, KV v2 `secrets`:
 
-- `tavily`: campo `TAVILY_API_KEY` válido.
-- `xai_mgmt`: management key utilizada por el plugin del [notebook 4](4_XAI_Secret_Engine.ipynb). El chatbot no puede leerla.
+- `tavily`: valid `TAVILY_API_KEY` field.
+- `xai_mgmt`: management key used by the plugin from [notebook 4](4_XAI_Secret_Engine.ipynb). The chatbot cannot read it.
 
-`./demo.sh` incluye `scripts/demo/xai.sh`: motor `verify/xai`, rol `lumen` con las ACL de chat/modelo como array JSON y caducidad nativa. `configure-xai.sh` crea un cliente Verify exclusivo de Client Credentials con RAR obligatorio y el agente registrado `chatbot-xai`, con permiso para `xai/creds/lumen` y el registro de autorización `secrets/data/chatbot/xai-access`. Su secreto OAuth se guarda en `secrets/chatbot/xai`; `chatbot/model` contiene configuración sin clave de inferencia. La clave estática `secrets/xai` queda fuera del flujo. Cada ejecución reautoriza la caché mediante una lectura real en Vault. `./demo.sh block xai` instala un deny y revoca sus leases; `unblock` restaura el acceso. También existen los controles `database-read`, `database-write` y `decrypt`; véase `docs/ACCESS_BLOCKS.md`.
+`./demo.sh` includes `scripts/demo/xai.sh`: `verify/xai` engine, `lumen` role with the chat/model ACLs as a JSON array and native expiry. `configure-xai.sh` creates a dedicated Verify Client Credentials client with mandatory RAR and the registered agent `chatbot-xai`, with permission for `xai/creds/lumen` and the authorization record `secrets/data/chatbot/xai-access`. Its OAuth secret is stored in `secrets/chatbot/xai`; `chatbot/model` holds configuration without an inference key. The static key `secrets/xai` stays out of the flow. Each run reauthorizes the cache through a real read in Vault. `./demo.sh block xai` installs a deny and revokes its leases; `unblock` restores access. The `database-read`, `database-write` and `decrypt` controls also exist; see `docs/ACCESS_BLOCKS.md`.
 
 ```bash
 bash chatbot/scripts/configure-xai.sh
 ```
 
-La aplicación reutiliza la clave dinámica en memoria mientras queden más de 210 s. Cuando no cubre el presupuesto de ejecución (180 s) y el margen (30 s), solicita otra de 300 s. El plugin no implementa renovación: se obtiene una clave nueva, sin extender artificialmente la vigencia de la anterior. Un lock evita emisiones simultáneas duplicadas. Client Credentials identifica al workload de inferencia; OBO sigue aplicando el permiso humano en MySQL y datos sensibles. El aprovisionamiento conserva el rol existente; crea uno con valores iniciales solo si falta. La clave xAI dinámica se incluye en la respuesta de Vault capturada en modo raw, según la configuración de este laboratorio.
+The application reuses the dynamic key in memory while more than 210 s remain. When it no longer covers the execution budget (180 s) plus the margin (30 s), it requests another 300 s key. The plugin does not implement renewal: a new key is obtained, without artificially extending the validity of the previous one. A lock prevents duplicate concurrent issuance. Client Credentials identifies the inference workload; OBO still applies the human's permission for MySQL and sensitive data. Provisioning preserves the existing role; it creates one with initial values only if it is missing. The dynamic xAI key is included in the Vault response captured in raw mode, per this lab's configuration.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -99,16 +99,16 @@ source verify/scripts/common.sh
 bash chatbot/scripts/configure-xai.sh
 for name in tavily chatbot/xai chatbot/model; do
   if vault kv metadata get -mount=secrets "$name" >/dev/null 2>&1; then
-    printf '%s: existe\n' "$name"
+    printf '%s: exists\n' "$name"
   else
-    printf '%s: pendiente\n' "$name"
+    printf '%s: pending\n' "$name"
   fi
 done
 CODE
 add_cell markdown <<'MD'
-### Verificar inferencia, aislamiento y caducidad
+### Verify inference, isolation and expiry
 
-Esta comprobación crea una clave de prueba de 60 s, invoca Grok, comprueba las denegaciones del agente y del bootstrap y espera a su caducidad. Puede tardar unos dos minutos. Solo imprime resultados, nunca claves ni JWT.
+This check creates a 60 s test key, invokes Grok, checks the agent and bootstrap denials and waits for the key to expire. It may take about two minutes. It prints only results, never keys or JWTs.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -117,19 +117,19 @@ bash chatbot/scripts/verify-xai.sh
 jq '{all_passed,expired_xai_http_status,tests}' chatbot/docs/xai-dynamic-verification.json
 CODE
 add_cell markdown <<'MD'
-## 6. Iniciar Lumen
+## 6. Start Lumen
 
-La siguiente celda permanece ejecutándose. Abrir **http://localhost:8088** en Chrome; usar exactamente `localhost` por el callback OIDC. Elegir Cloud Directory y uno de los usuarios de prueba. La contraseña puede consultarse en la UI de Vault.
+The next cell keeps running. Open **http://localhost:8088** in Chrome; use exactly `localhost` because of the OIDC callback. Choose Cloud Directory and one of the test users. The password can be looked up in the Vault UI.
 
-**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
+**Request console:** at each step of a new trace, **Open request console** shows the real, editable request (URL, method, headers/token and body). It includes the LLM messages, instructions and tools, the Verify/Vault exchanges and a SQL editor for MySQL. **Send actual request** runs the call; you can also copy cURL or export to Postman. Tokens are not renewed and in-memory captures expire after ten minutes. [Usage, effects and limits](chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
 
-**Identidad en Vault:** la comprobación de límites y cada paso de la traza muestran el agente correspondiente, con enlaces al registro, entidad, alias y políticas. Los metadatos se consultan con una credencial separada de sólo lectura y muestran la fecha de consulta. [Detalles y operación](docs/manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault).
+**Identity in Vault:** the limits check and every trace step show the corresponding agent, with links to the registration, entity, alias and policies. The metadata is queried with a separate read-only credential and shows the query date. [Details and operation](docs/manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault).
 
-**Idioma:** Lumen detecta el idioma del navegador y ofrece **EN / ES** arriba a la derecha. La elección guardada prevalece, se conserva al volver a entrar y afecta al chat, formularios, trazas y siguientes respuestas. El historial y los valores capturados permanecen originales. No requiere variables de `.env` ni cambios de identidades. [Uso y mantenimiento](chatbot/README.md#idioma-español-e-inglés).
+**Language:** Lumen detects the browser language and offers **EN / ES** at the top right. A saved choice takes precedence, persists across sign-ins and applies to the chat, forms, traces and subsequent answers. History and captured values remain in their original language. It requires no `.env` variables or identity changes. [Usage and maintenance](chatbot/README.md#idioma-español-e-inglés).
 
-El servidor escucha solo en loopback; abre el port-forward MySQL 13306. Carga las credenciales con un token Vault de bootstrap de cinco minutos y lo revoca inmediatamente. El proceso Python no recibe el token raíz.
+The server listens only on loopback; it opens the MySQL port-forward 13306. It loads credentials with a five-minute Vault bootstrap token and revokes it immediately. The Python process never receives the root token.
 
-`CHATBOT_VERIFY_ACCESS=1` ejecuta pruebas reales OBO al completar cada login y escribe informes sin tokens. Las inserciones de estas pruebas se revierten; las credenciales expiran en 120 s. Quitar la variable para una ejecución normal.
+`CHATBOT_VERIFY_ACCESS=1` runs real OBO tests when each login completes and writes reports without tokens. The inserts made by these tests are rolled back; the credentials expire in 120 s. Remove the variable for a normal run.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -137,37 +137,37 @@ set -euo pipefail
 CHATBOT_VERIFY_ACCESS=1 bash chatbot/scripts/run.sh
 CODE
 add_cell markdown <<'MD'
-## 7. Probar los dos flujos
+## 7. Test both flows
 
-1. Entrar como `lumen-reader`: consultar planes; intentar preparar una solicitud. Vault deniega incluso un token OBO que solicite el rol RW.
-2. Cambiar a `lumen-writer` (gestor): completar cinco pasos, revisar y guardar. Consultar «Solicitudes», siempre enmascaradas. Intentar revelar: Vault devuelve 403. Cambiar a `lumen-supervisor`: puede revelar pero no crear ni obtener SQL RW. Recorrido completo en el notebook 8.
-3. «Una mirada más amplia» usa la identidad autónoma `chatbot-research`: Client Credentials → Agent Registry → secreto Tavily → búsqueda. No usa el token humano para obtener Tavily.
-4. Con modelo configurado: pedir «Consulta las tarifas de electricidad del catálogo de Lumen». El servidor construye la respuesta del catálogo a partir de una lectura OBO actual. Realizar la búsqueda pública en otra consulta para revisar sus fuentes y llamadas Tavily.
-5. Alternar modo claro/oscuro y comprobar móvil. Probar también **EN / ES** siguiendo la [comprobación bilingüe](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües): detección inicial, elección persistente, respuestas en el idioma elegido y conservación del formulario. En inglés, **Applications**, **Continue application** y **Use test data** equivalen a **Solicitudes**, **Continuar solicitud** y **Usar datos de prueba**.
+1. Sign in as `lumen-reader`: browse plans; try to prepare an application. Vault denies even an OBO token that requests the RW role.
+2. Switch to `lumen-writer` (manager): complete five steps, review and save. Check «Applications», always masked. Try to reveal: Vault returns 403. Switch to `lumen-supervisor`: can reveal but cannot create or obtain SQL RW. Full walkthrough in notebook 8.
+3. «A wider perspective» uses the autonomous identity `chatbot-research`: Client Credentials → Agent Registry → Tavily secret → search. It does not use the human token to obtain Tavily.
+4. With a model configured: ask «Show the electricity tariffs in the Lumen catalogue». The server builds the catalog answer from a current OBO read. Run the public search in a separate query to review its sources and Tavily calls.
+5. Toggle light/dark mode and check mobile. Also test **EN / ES** following the [bilingual check](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües): initial detection, persistent choice, answers in the chosen language and form preservation. In Spanish, **Solicitudes**, **Continuar solicitud** and **Usar datos de prueba** are the equivalents of **Applications**, **Continue application** and **Use test data**.
 
-![Catálogo con solo lectura](docs/screenshots/current/reader-openai-catalogue.jpg)
+![Catalog with read-only access](docs/screenshots/current/reader-openai-catalogue.jpg)
 
-[Captura histórica: Modo oscuro](docs/runs/20261014T162141Z/screenshots/16-form-mobile-dark.jpg)
+[Historical screenshot: Dark mode](docs/runs/20261014T162141Z/screenshots/16-form-mobile-dark.jpg)
 
-Las políticas autorizan **roles SQL por base de datos**, no filas. Los borradores originales filtran por `subject_id`; la nueva bandeja de laboratorio es compartida y enmascarada. Los permisos de descifrado/tokenización son independientes de SQL. Vault no transforma automáticamente el claim groups en políticas: el script 05 sincroniza identidades.
+Policies authorize **SQL roles per database**, not rows. The original drafts filter by `subject_id`; the new lab inbox is shared and masked. Decryption/tokenization permissions are independent of SQL. Vault does not automatically turn the groups claim into policies: script 05 synchronizes identities.
 MD
 add_cell code <<'CODE'
 %%bash
 set -euo pipefail
-# Ejecutar con el servidor/port-forward activo en otra celda o terminal.
+# Run with the server/port-forward active in another cell or terminal.
 bash chatbot/scripts/test-infrastructure.sh
 cd chatbot
 /tmp/vault-chatbot-venv/bin/python -m pytest -q tests
 for report in docs/obo-readonly.json docs/obo-readwrite.json docs/obo-supervisor.json; do
-  if [ -f "$report" ]; then jq '{role,all_passed,tests}' "$report"; else echo "Pendiente: $report"; fi
+  if [ -f "$report" ]; then jq '{role,all_passed,tests}' "$report"; else echo "Pending: $report"; fi
 done
 CODE
 add_cell markdown <<'MD'
-## 8. Detener y límites del laboratorio
+## 8. Stopping and lab limits
 
-Interrumpir la celda/terminal del servidor. El port-forward que abrió se cierra y las credenciales dinámicas caducan. Se conservan usuarios, apps, agentes, grupos y datos para repetir la demo. No se incluye una limpieza destructiva automática.
+Interrupt the server cell/terminal. The port-forward it opened is closed and the dynamic credentials expire. Users, apps, agents, groups and data are kept so the demo can be repeated. No automatic destructive cleanup is included.
 
-Sesiones OIDC de 10 minutos, memoria local, un único proceso. Para exponer fuera de localhost hacen falta HTTPS, cookie Secure, almacenamiento compartido de sesiones, límites de uso, gestión de secretos de workload y sincronización continua de grupos. No reutilizar el token de bootstrap como identidad del agente.
+10-minute OIDC sessions, local memory, a single process. Exposing it beyond localhost requires HTTPS, a Secure cookie, shared session storage, rate limits, workload secret management and continuous group synchronization. Do not reuse the bootstrap token as the agent's identity.
 MD
 jq -n --slurpfile cells "$BUILD_DIR/cells.json" '{nbformat:4,nbformat_minor:5,metadata:{kernelspec:{display_name:"Python 3 (IPython Bash magics)",language:"python",name:"python3"},language_info:{name:"python"}},cells:$cells[0]}' > 6_Lumen_Chatbot_Vault_IAM.ipynb
 printf 'Notebook 6 generated.\n'

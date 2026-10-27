@@ -98,6 +98,8 @@ def login(request: Request):
     if old:
         IDENTITY.sessions.pop(old, None)
         LOCKS.pop(old, None)
+    for sid in [sid for sid, lock in LOCKS.items() if sid not in IDENTITY.sessions and not lock.locked()]:
+        LOCKS.pop(sid, None)
     session.language = request_language(request)
     response = RedirectResponse(url, status_code=303)
     response.set_cookie(COOKIE, session.sid, httponly=True, samesite='lax', max_age=600)
@@ -303,7 +305,7 @@ def home(request: Request):
             ensure_session()
             lock = LOCKS.setdefault(session.sid, asyncio.Lock())
             async with lock:
-                with span('lumen.action', **{'user.id': session.subject, 'user.role': role or 'none'}) as current:
+                with span('lumen.action', **{'user.id': session.subject, 'user.role': role or 'none'}):
                     tid = trace_id()
                     session.traces.append(tid)
                     session.traces[:] = session.traces[-50:]
@@ -361,7 +363,7 @@ def home(request: Request):
             ensure_session()
             if SERVICES.role(session) != 'readwrite':
                 raise AccessDenied('Tu grupo solo permite consultar datos.')
-        except AccessDenied as exc:
+        except AccessDenied:
             async def denied():
                 SERVICES.event(session, 'Escritura bloqueada', 'El grupo solo permite lectura. No se envía ninguna petición a Vault.', status='denied')
                 raise AccessDenied('Tu grupo solo permite consultar datos. Esta acción se bloquea en la aplicación antes de llamar a Vault.')
@@ -545,7 +547,6 @@ async def trace_page(tid: str, request: Request):
         ui.label(t('Traza no disponible para esta sesión.'))
         return
     ui.colors(primary='#708558')
-    ui.add_css(STYLE)
     records = sorted(records_for({tid}), key=lambda r: r['start_ns'])
     ui.label(t('Lumen · Traza de ejecución')).classes('text-3xl m-6')
     with ui.row().classes('w-full items-center justify-between px-6 gap-4 mb-4'):
@@ -598,6 +599,6 @@ async def trace_page(tid: str, request: Request):
     ui.link(t('Volver al chat'), '/').classes('m-6')
 
 
-ui.run(host='127.0.0.1', port=8088, title='Lumen · Tu energía, con claridad', favicon=FAVICON,
-       reload=False, show=False, language='es', storage_secret=CONFIG['runtime']['session_secret'],
+ui.run(host='127.0.0.1', port=8088, title='Lumen · Energy, made clear', favicon=FAVICON,
+       reload=False, show=False, language='en-US', storage_secret=CONFIG['runtime']['session_secret'],
        show_welcome_message=False, uvicorn_logging_level='warning')

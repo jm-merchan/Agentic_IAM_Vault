@@ -20,7 +20,7 @@ PLANS = [
 
 
 def setup(role='readwrite'):
-    session = Session('test', subject='user', expires_at=time.time()+600)
+    session = Session('test', subject='user', expires_at=time.time()+600, language='es')
     services = SimpleNamespace(plans=AsyncMock(return_value=PLANS), role=Mock(return_value=role))
     services.prepare_request = Mock(
         side_effect=lambda s, plan, note: Services.prepare_request(services, s, plan, note))
@@ -85,7 +85,7 @@ async def test_unknown_selection_never_guesses_a_plan_id():
 async def test_real_service_retains_catalogue_evidence_only_after_a_successful_read():
     services = object.__new__(Services)
     services.database = AsyncMock(return_value=PLANS)
-    session = Session('test')
+    session = Session('test', language='es')
     assert await services.plans(session) == PLANS
     assert session.catalogue_evidence['plans'] == PLANS
     services.database.side_effect = AccessDenied('blocked')

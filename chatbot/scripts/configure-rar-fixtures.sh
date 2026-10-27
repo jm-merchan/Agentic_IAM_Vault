@@ -7,7 +7,7 @@ if jq -e '.rar_probe | .version==1 and
   (.other.ciphertext|type=="string" and startswith("vault:v")) and
   (.approved.plaintext|type=="string" and length>0) and
   (.other.plaintext|type=="string" and length>0)' "$TMP_WORK/runtime.json" >/dev/null; then
-  echo 'Datos ficticios RAR existentes conservados.'
+  echo 'Existing synthetic RAR data preserved.'
   exit 0
 fi
 printf '{"version":1}' > "$TMP_WORK/rar-probe.json"
@@ -19,4 +19,4 @@ for sample in approved other; do
   mv "$TMP_WORK/next.json" "$TMP_WORK/rar-probe.json"
 done
 jq --slurpfile fixture "$TMP_WORK/rar-probe.json" '.rar_probe=$fixture[0]' "$TMP_WORK/runtime.json" | kv_write chatbot/runtime
-echo 'Dos perfiles ficticios preparados para comparar RAR; políticas y solicitudes conservadas.'
+echo 'Two synthetic profiles prepared to compare RAR; policies and applications preserved.'

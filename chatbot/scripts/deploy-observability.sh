@@ -19,4 +19,4 @@ fi
 kv_read chatbot/observability | jq -jr .password > "$TMP_WORK/password"
 "${K[@]}" -n "$NS" create secret generic grafana-admin --from-file=password="$TMP_WORK/password" --dry-run=client -o json | "${K[@]}" apply -f -
 "${K[@]}" apply -f "$HERE/observability/stack.yaml"
-printf 'Despliegue aplicado. Comprueba: kubectl --context workshop -n %s get pods\n' "$NS"
+printf 'Deployment applied. Check with: kubectl --context workshop -n %s get pods\n' "$NS"

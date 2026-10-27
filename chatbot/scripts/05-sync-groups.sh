@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Reconcile Verify group membership into Vault identity groups. Run after membership changes.
 source "$(dirname "$0")/../../verify/scripts/common.sh"
-case "${1:-}" in ''|--check) ;; *) fail 'Uso: 05-sync-groups.sh [--check]';; esac
+case "${1:-}" in ''|--check) ;; *) fail 'Usage: 05-sync-groups.sh [--check]';; esac
 admin_login
 kv_read chatbot/runtime > "$TMP_WORK/runtime.json" ||
-  fail 'No se pudo leer chatbot/runtime; completa la configuración de sesión del capítulo 04.'
+  fail 'Could not read chatbot/runtime; complete the session setup from chapter 04.'
 jq -e '.session_secret|type=="string" and length>0' "$TMP_WORK/runtime.json" >/dev/null ||
-  fail 'Falta una configuración runtime válida; ejecuta el paso agentes.'
+  fail 'Missing a valid runtime configuration; run the agentes step.'
 kv_read chatbot/oidc > "$TMP_WORK/oidc.json" ||
-  fail 'No se pudo leer chatbot/oidc; completa el paso oidc del capítulo 03.'
+  fail 'Could not read chatbot/oidc; complete the oidc step from chapter 03.'
 app_id=$(jq -er '.application_id|select(type=="string" and length>0)' "$TMP_WORK/oidc.json")
 printf '[]' > "$TMP_WORK/entitlements.json"
 # Resolve every group and member before the first Vault/Verify write. A missing
@@ -20,10 +20,10 @@ for level in readonly readwrite sensitive; do
     sensitive) group=chatbot-supervisors; policy=chatbot-supervisor ;;
   esac
   vault policy read "$policy" >/dev/null ||
-    fail "Falta la política $policy; ejecuta el paso agentes."
+    fail "Missing policy $policy; run the agentes step."
   api GET /v2.0/Groups "$TMP_WORK/list.json" --header 'Accept: application/scim+json' --get --data-urlencode "filter=displayName eq \"$group\""
-  gid=$(jq -er --arg group "$group" '.Resources | if type=="array" and length==1 and .[0].displayName==$group then .[0].id else error("Grupo ausente o duplicado: "+$group+"; ejecuta el paso usuarios") end' "$TMP_WORK/list.json")
-  [[ "$gid" =~ ^[A-Za-z0-9-]+$ ]] || fail "ID de grupo no válido: $group"
+  gid=$(jq -er --arg group "$group" '.Resources | if type=="array" and length==1 and .[0].displayName==$group then .[0].id else error("Missing or duplicate group: "+$group+"; run the usuarios step") end' "$TMP_WORK/list.json")
+  [[ "$gid" =~ ^[A-Za-z0-9-]+$ ]] || fail "Invalid group ID: $group"
   jq --arg gid "$gid" '.+[{assignee:{subjectId:$gid,subjectType:"group"},grantType:"BRT"}]' "$TMP_WORK/entitlements.json" > "$TMP_WORK/next.json"
   mv "$TMP_WORK/next.json" "$TMP_WORK/entitlements.json"
   api GET "/v2.0/Groups/$gid" "$TMP_WORK/group-$level.json" --header 'Accept: application/scim+json'
@@ -37,10 +37,10 @@ for level in readonly readwrite sensitive; do
     jq --arg uid "$uid" '.+[$uid]|unique' "$TMP_WORK/active-$level.json" > "$TMP_WORK/next.json"
     mv "$TMP_WORK/next.json" "$TMP_WORK/active-$level.json"
   done
-  printf 'Comprobado %s: %s usuarios activos; política %s disponible.\n' "$group" "$(jq length "$TMP_WORK/active-$level.json")" "$policy"
+  printf 'Checked %s: %s active users; policy %s available.\n' "$group" "$(jq length "$TMP_WORK/active-$level.json")" "$policy"
 done
 if [ "${1:-}" = --check ]; then
-  echo 'Requisitos de grupos comprobados. No se han modificado entidades, permisos ni runtime.'
+  echo 'Group prerequisites checked. No entities, permissions or runtime were modified.'
   exit 0
 fi
 for level in readonly readwrite sensitive; do
@@ -55,7 +55,7 @@ for level in readonly readwrite sensitive; do
     name="chatbot-human-$uid"
     vault write "identity/entity/name/$name" external_id="$uid" policies='' >/dev/null
     entity=$(vault read -field=id "identity/entity/name/$name")
-    alias=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id] | if length>1 then error("Alias duplicado") else .[0]//empty end')
+    alias=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id] | if length>1 then error("Duplicate alias") else .[0]//empty end')
     if [ -z "$alias" ]; then
       vault write identity/entity-alias name="$name" canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$uid" >/dev/null
     fi

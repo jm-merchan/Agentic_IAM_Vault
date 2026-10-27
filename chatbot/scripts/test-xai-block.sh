@@ -3,7 +3,7 @@
 source "$(dirname "$0")/../../verify/scripts/common.sh"
 ROOT=$(cd "$VERIFY_DIR/.." && pwd)
 policy=$(vault policy read lumen-block-xai)
-[[ "$policy" != *'"deny"'* ]] || fail 'Desbloquea xAI antes de esta prueba.'
+[[ "$policy" != *'"deny"'* ]] || fail 'Unblock xAI before running this test.'
 cleanup() {
   local code=$?
   if [ -f "$TMP_WORK/blocked" ]; then bash "$ROOT/demo.sh" unblock xai >/dev/null || code=1; fi
@@ -24,7 +24,7 @@ record() {
   jq --arg name "$1" --argjson passed "$2" '.+[{test:$name,passed:$passed}]' "$TMP_WORK/checks.json" > "$TMP_WORK/next"
   mv "$TMP_WORK/next" "$TMP_WORK/checks.json"
   printf '%s: %s\n' "$1" "$2"
-  [ "$2" = true ] || fail "Falló: $1"
+  [ "$2" = true ] || fail "Failed: $1"
 }
 mint() {
   local mode=$1

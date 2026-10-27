@@ -4,9 +4,9 @@
 source "$(dirname "$0")/../../verify/scripts/common.sh"
 CHATBOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 for name in ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID ANTHROPIC_WORKSPACE_ID; do
-  [ -n "${!name:-}" ] || fail "Configura $name según docs/manual/08-claude-spiffe.md"
+  [ -n "${!name:-}" ] || fail "Set $name as described in docs/manual/08-claude-spiffe.md"
 done
-: "${NGROK_DOMAIN:?Configura NGROK_DOMAIN}"
+: "${NGROK_DOMAIN:?Set NGROK_DOMAIN}"
 admin_login
 api GET /v1.0/applications "$TMP_WORK/apps.json"
 app_id=$(jq -r '[._embedded.applications[]|select(.name=="vault-chatbot-anthropic")|._links.self.href|split("/")[-1]]|if length>1 then error("Duplicate Anthropic application") else .[0]//empty end' "$TMP_WORK/apps.json")
@@ -37,7 +37,7 @@ vault write identity/entity/name/chatbot-anthropic external_id="$cid" policies=c
 entity=$(vault read -field=id identity/entity/name/chatbot-anthropic)
 alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r '.data.aliases[]?|select(.name=="chatbot-anthropic")|.id')
 if [ -z "$alias_id" ]; then
-  vault read -format=json sys/config/oauth-resource-server/verify | jq '.data|del(.config_id,.profile_name)' | vault write sys/config/oauth-resource-server/verify - >/dev/null
+  vault read -format=json sys/config/oauth-resource-server/verify | jq '.data|del(.config_id,.profile_name,.mount_accessor)' | vault write sys/config/oauth-resource-server/verify - >/dev/null
   vault write identity/entity-alias name=chatbot-anthropic canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$cid" >/dev/null
 fi
 jq -n --arg entity "$entity" '{display_name:"chatbot-anthropic",entity_id:$entity,ceiling_policies:["chatbot-anthropic"],no_default_ceiling_policy:true,optional_authorization_details:false,description:"Lumen workload: Vault SPIFFE JWT-SVID to Claude WIF"}' | vault write agent-registry/register - >/dev/null
@@ -47,5 +47,5 @@ jq -n --arg model "${LUMEN_ANTHROPIC_MODEL:-claude-haiku-5-5}" \
   --arg service_account "$ANTHROPIC_SERVICE_ACCOUNT_ID" --arg workspace "$ANTHROPIC_WORKSPACE_ID" \
   --arg issuer "https://$NGROK_DOMAIN/v1/verify/spiffe" \
   --arg sub "spiffe://${SPIFFE_TRUST_DOMAIN:-lumen.demo}/ns/verify/agent/lumen-anthropic" \
-  '{provider:"anthropic",model:$model,credential_source:"vault_spiffe",credential_path:"spiffe/role/lumen-anthropic/mintjwt",auth_flow:"spiffe_jwt_svid",federation_rule_id:$rule,organization_id:$organization,service_account_id:$service_account,workspace_id:$workspace,issuer:$issuer,spiffe_id:$sub,audience:"https://api.anthropic.com"}' | kv_write chatbot/model
-echo 'Claude configurado: SPIFFE JWT-SVID y token RFC 7523; sin API key estática.'
+  '{provider:"anthropic",model:$model,credential_source:"vault_spiffe",credential_path:"spiffe/role/lumen-anthropic/mintjwt",auth_flow:"spiffe_jwt_svid",federation_rule_id:$rule,organization_id:$organization,service_account_id:$service_account,workspace_id:$workspace,issuer:$issuer,spiffe_id:$sub,audience:"https://api.anthropic.com"}' | model_profile_write
+echo 'Claude configured: SPIFFE JWT-SVID and RFC 7523 token; no static API key.'

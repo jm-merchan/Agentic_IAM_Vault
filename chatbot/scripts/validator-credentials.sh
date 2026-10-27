@@ -6,7 +6,7 @@ load_vault
 export VAULT_NAMESPACE=verify
 validator=$(vault kv get -format=json -mount=secrets chatbot/contracts | jq -er .data.data.validator_username)
 if [ "$validator" != lumen-validator ]; then
-  printf 'Validador: %s\nUsa su inicio de sesión habitual en Verify. No se ha creado ni cambiado su contraseña.\n' "$validator"
+  printf 'Validator: %s\nUse their usual Verify sign-in. Their password was not created or changed.\n' "$validator"
   exit 0
 fi
-vault kv get -format=json -mount=secrets chatbot/users/validator | jq -er '"Usuario: " + .data.data.username + "\nContraseña: " + .data.data.password'
+vault kv get -format=json -mount=secrets chatbot/users/validator | jq -er '"Username: " + .data.data.username + "\nPassword: " + .data.data.password'

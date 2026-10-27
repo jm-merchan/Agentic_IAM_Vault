@@ -1,8 +1,8 @@
-# 06 · xAI mediante el motor de secretos dinámicos
+# 06 · xAI through the dynamic secrets engine
 
-[Índice](README.md) · Requiere [04](04-vault-iam.md) · Continúa con [OpenAI](07-openai-spiffe.md)
+[Index](README.md) · Requires [04](04-vault-iam.md) · Continues with [OpenAI](07-openai-spiffe.md)
 
-## 1. Registrar el plugin y configurar su Management API key
+## 1. Register the plugin and configure its Management API key
 
 
 ```bash
@@ -22,9 +22,9 @@ jq -n '{management_api_key:env.XAI_MANAGEMENT_API_KEY}+
   vault write xai/config -
 ```
 
-Omitir `enable` si `xai/` ya existe; el catálogo de plugins se administra en root, la configuración en `verify`. El binario y su checksum vienen en la imagen Docker Hub, no se compila Go durante este procedimiento.
+Skip `enable` if `xai/` already exists; the plugin catalog is administered in root, the configuration in `verify`. The binary and its checksum come in the Docker Hub image; no Go is compiled during this procedure.
 
-## 2. Definir el rol que emite claves
+## 2. Define the role that issues keys
 
 ```bash
 vault write xai/roles/lumen - <<'JSON'
@@ -38,18 +38,18 @@ JSON
 vault read xai/roles/lumen
 ```
 
-Las ACL son dos elementos del array. No escribir una sola cadena separada por comas. Si ya has ajustado el rol, conservar sus ACL/TTL en vez de sustituirlos por estos valores iniciales.
+The ACLs are two elements of the array. Do not write a single comma-separated string. If you have already adjusted the role, keep its ACLs/TTLs instead of replacing them with these initial values.
 
-## 3. Crear el cliente Verify del agente
+## 3. Create the agent's Verify client
 
-Renovar las cabeceras administrativas según [03, paso 1](03-verify.md). El cliente solo utiliza Client Credentials y exige el tipo RAR configurado:
+Renew the administrative headers as in [03, step 1](03-verify.md). The client only uses Client Credentials and requires the configured RAR type:
 
 ```bash
 PROVIDER=xai
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" \
   "$TENANT/v1.0/applications" > "$MANUAL/apps.json"
 APP_ID=$(jq -r --arg name "vault-chatbot-$PROVIDER" '[._embedded.applications[]|select(.name==$name)|
-  ._links.self.href|split("/")[-1]]|if length>1 then error("Duplicado") else .[0]//empty end' "$MANUAL/apps.json")
+  ._links.self.href|split("/")[-1]]|if length>1 then error("Duplicate") else .[0]//empty end' "$MANUAL/apps.json")
 if [ -z "$APP_ID" ]; then
   jq --arg name "vault-chatbot-$PROVIDER" --argjson ttl 600 '
     .+{name:$name,description:"Lumen model workload"} |
@@ -82,7 +82,7 @@ jq --arg id "$APP_ID" '{application_id:$id,client_id:.providers.oidc.properties.
   vault kv put -mount=secrets "chatbot/$PROVIDER" -
 ```
 
-## 4. Registrar la identidad y su autorización en Vault
+## 4. Register the identity and its authorization in Vault
 
 ```bash
 vault policy write chatbot-xai - <<'HCL'
@@ -108,9 +108,9 @@ jq -n --arg entity "$entity" '{display_name:"chatbot-xai",entity_id:$entity,
 vault read agent-registry/registration/display-name/chatbot-xai
 ```
 
-El agente autónomo se limita con sus **políticas de entidad**. Las ceiling policies limitan delegaciones OBO; por eso `lumen-block-xai` se adjunta también a la entidad. El agente no puede leer `secrets/data/xai_mgmt` ni modificar el motor.
+The autonomous agent is limited by its **entity policies**. Ceiling policies limit OBO delegations; that is why `lumen-block-xai` is also attached to the entity. The agent cannot read `secrets/data/xai_mgmt` or modify the engine.
 
-Crear el marcador de autorización de caché solo si no existe:
+Create the cache authorization marker only if it does not exist:
 
 ```bash
 if ! vault kv metadata get -mount=secrets chatbot/xai-access >/dev/null 2>&1; then
@@ -118,11 +118,11 @@ if ! vault kv metadata get -mount=secrets chatbot/xai-access >/dev/null 2>&1; th
 fi
 ```
 
-Ante un error de lectura distinto de «secreto ausente», resolverlo antes de crear el marcador. La generación cambia al desbloquear xAI para que una app no reutilice una clave revocada.
+If you get a read error other than "secret not found", resolve it before creating the marker. The generation changes when xAI is unblocked so that an app does not reuse a revoked key.
 
-## 5. Obtener un JWT con RAR y emitir una clave como el agente
+## 5. Obtain a JWT with RAR and issue a key as the agent
 
-El token solicita las dos rutas exactas: autorización de la caché y emisión de credenciales.
+The token requests the two exact paths: cache authorization and credential issuance.
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/xai | jq '.data.data' > "$MANUAL/provider-credential.json"
@@ -144,24 +144,24 @@ curl --fail --silent --show-error --header "@$MANUAL/provider.headers" \
 jq '{lease_id,lease_duration,renewable,api_key_id:.data.api_key_id}' "$MANUAL/xai-credential.json"
 ```
 
-**Usar `vault read secrets/data/...` cuando se prueba un JWT con RAR.** `vault kv get` realiza primero una consulta auxiliar a `sys/internal/ui/mounts/secrets`, que no está en el RAR y recibe `RAR_NO_MATCH`. No ampliar el RAR ni las políticas para permitir esa consulta auxiliar: la lectura directa reproduce la llamada de la app.
+**Use `vault read secrets/data/...` when testing a JWT with RAR.** `vault kv get` first makes an auxiliary query to `sys/internal/ui/mounts/secrets`, which is not in the RAR and receives `RAR_NO_MATCH`. Do not widen the RAR or the policies to allow that auxiliary query: the direct read reproduces the app's call.
 
-El subshell evita sustituir el token administrativo de la terminal. Vault valida el JWT y RAR antes de emitir el secreto; no se hace `vault login` ni se cambia el JWT por un token Vault intermedio.
+The subshell avoids replacing the terminal's administrative token. Vault validates the JWT and RAR before issuing the secret; there is no `vault login` and the JWT is not exchanged for an intermediate Vault token.
 
-Prueba opcional de inferencia, que consume cuota xAI:
+Optional inference test, which consumes xAI quota:
 
 ```bash
 jq -jr '"Authorization: Bearer "+.data.api_key+"\nContent-Type: application/json\n"' \
   "$MANUAL/xai-credential.json" > "$MANUAL/xai-api.headers"
 jq -n --arg model "${LUMEN_XAI_MODEL:-grok-4.3}" '{model:$model,
-  messages:[{role:"user",content:"Responde solo: XAI OK"}],max_tokens:30}' > "$MANUAL/xai-request.json"
+  messages:[{role:"user",content:"Reply only: XAI OK"}],max_tokens:30}' > "$MANUAL/xai-request.json"
 curl --fail --silent --show-error --header "@$MANUAL/xai-api.headers" \
   --data-binary "@$MANUAL/xai-request.json" https://api.x.ai/v1/chat/completions \
   > "$MANUAL/xai-response.json"
 jq '.choices[0].message.content' "$MANUAL/xai-response.json"
 vault lease revoke "$(jq -er .lease_id "$MANUAL/xai-credential.json")"
-# La retirada puede tardar unos segundos en propagarse a la API de inferencia.
-# Solo se repite la comprobación GET; no se vuelve a emitir ni revocar la clave.
+# The revocation can take a few seconds to propagate to the inference API.
+# Only the GET check is repeated; the key is not issued or revoked again.
 revoked=false
 for attempt in $(seq 1 16); do
   status=$(curl --silent --show-error --max-time 15 \
@@ -177,11 +177,12 @@ for attempt in $(seq 1 16); do
     *) break;;
   esac
 done
-[ "$revoked" = true ] || { printf 'Revocación no demostrada: HTTP %s\n' "$status" >&2; exit 1; }
-printf 'Clave revocada: HTTP %s, comprobación %s\n' "$status" "$attempt"
+[ "$revoked" = true ] || { printf 'Revocation not demonstrated: HTTP %s\n' "$status" >&2; exit 1; }
+printf 'Key revoked: HTTP %s, check %s\n' "$status" "$attempt"
 ```
 
-## 6. Preparar el perfil xAI para el catálogo
+<a id="6-preparar-el-perfil-xai-para-el-catálogo"></a>
+## 6. Prepare the xAI profile for the catalog
 
 ```bash
 jq -n --arg model "${LUMEN_XAI_MODEL:-grok-4.3}" '{
@@ -190,8 +191,8 @@ jq -n --arg model "${LUMEN_XAI_MODEL:-grok-4.3}" '{
 }' > "$MANUAL/model-xai.json"
 ```
 
-Este paso solo genera el perfil local. El capítulo [10](10-aplicacion.md) publica los tres perfiles en una única escritura a Vault. No contiene una API key de inferencia.
+This step only generates the local profile. Chapter [10](10-aplicacion.md) publishes the three profiles in a single write to Vault. It contains no inference API key.
 
-El plugin actual **no implementa renovación del lease**. Lumen reautoriza cada ejecución contra `chatbot/xai-access`; reutiliza la clave solo con la misma generación y más de 210 segundos restantes. Si no, pide una clave nueva. Cada ejecución dura como máximo 180 segundos y respeta un margen de 30 segundos. La expiración nativa xAI y la revocación del lease cubren la retirada. No ejecutar `vault lease renew` como sustituto de este mecanismo.
+The current plugin **does not implement lease renewal**. Lumen reauthorizes each run against `chatbot/xai-access`; it reuses the key only with the same generation and more than 210 seconds remaining. Otherwise, it requests a new key. Each run lasts at most 180 seconds and respects a 30-second margin. Native xAI expiry and lease revocation cover the removal. Do not run `vault lease renew` as a substitute for this mechanism.
 
-Fuentes: [xai.sh](../../scripts/demo/xai.sh), [configure-xai.sh](../../chatbot/scripts/configure-xai.sh), [services.py](../../chatbot/app/services.py), [bloqueos manuales](12-bloqueos.md).
+Sources: [xai.sh](../../scripts/demo/xai.sh), [configure-xai.sh](../../chatbot/scripts/configure-xai.sh), [services.py](../../chatbot/app/services.py), [manual blocks](12-bloqueos.md).

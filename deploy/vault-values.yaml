@@ -8,7 +8,7 @@ csi:
 server:
   image:
     repository: josemerchan/vault-xai
-    tag: 2.1.2-ent
+    tag: 2.2.0-ent
     pullPolicy: IfNotPresent
   enterpriseLicense:
     secretName: vault-ent-license

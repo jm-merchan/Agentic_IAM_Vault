@@ -1,48 +1,48 @@
-# 17 · Contratar un borrador con CIBA
+# 17 · Contract a draft with CIBA
 
-Las solicitudes guardadas son **borradores**. Writer puede formalizar uno propio
-con **Contratar**, usando Estándar o Creación de solicitudes. Validador confirma
-en IBM Verify; solo después se escribe el estado protegido en MySQL. El Writer
-propietario puede descargar el contrato PDF, también en sesiones posteriores.
+Saved applications are **drafts**. Writer can finalize one of their own
+with **Contratar** (*Finalize contract*), using Estándar or Creación de solicitudes. The Validator confirms
+in IBM Verify; only then is the protected status written to MySQL. The owning
+Writer can download the PDF contract, also in later sessions.
 
-Esta extensión sustituye el experimento de aprobación de PDF para Supervisor.
-Supervisor conserva el revelado habitual mediante OBO. No hay Control Groups.
-El contrato es ficticio: no constituye una contratación comercial ni un cobro.
+This extension replaces the PDF approval experiment for Supervisor.
+Supervisor keeps the usual reveal through OBO. There are no Control Groups.
+The contract is fictitious: it is not a commercial contract or a charge.
 
-## Preparar y habilitar
+## Prepare and enable
 
-Desde la raíz del repositorio, después de agentes, grupos y MySQL, con el
-[runtime Python instalado](10-aplicacion.md#2-instalar-el-runtime):
+From the repository root, after agents, groups and MySQL, with the
+[Python runtime installed](10-aplicacion.md#2-instalar-el-runtime):
 
 ```bash
 bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh
 ```
 
-El envoltorio carga `.env` y exporta la ruta del bootstrap de Vault, también
-desde una terminal nueva. El instalador conserva el Validador seleccionado.
-En este tenant es la cuenta existente `jose.merchan@ibm.com@www.ibm.com`
-(ID `64300857U3`), que recibe la petición por correo. Conserva su contraseña,
-perfil y privilegios administrativos. Para seleccionar otra cuenta existente:
+The wrapper loads `.env` and exports the Vault bootstrap path, also
+from a new terminal. The installer keeps the selected Validator.
+On this tenant it is the existing account `jose.merchan@ibm.com@www.ibm.com`
+(ID `64300857U3`), which receives the request by email. Its password,
+profile and administrative privileges are kept. To select another existing account:
 
 ```bash
 bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh --validator 'usuario@dominio.example'
 ```
 
-Sin selección previa prepara `lumen-validator`, con correo ficticio: **no puede
-recibir un OTP por correo**. Antes de verificar, elige una cuenta real o configura
-su método de autenticación en Verify. El instalador no presupone push al móvil.
-Cambiar de cliente CIBA o Validador deshabilita la función hasta verificarla otra vez.
+Without a previous selection it prepares `lumen-validator`, with a fictitious email: **it cannot
+receive an OTP by email**. Before verifying, choose a real account or configure
+its authentication method in Verify. The installer does not assume mobile push.
+Changing the CIBA client or the Validator disables the feature until it is verified again.
 
-La prueba siguiente inicia sesión como Writer, crea **un borrador ficticio** y
-envía una petición a Validador. Comprueba el texto `Lumen contrato …` antes de
-confirmarlo en Verify. Este script espera la aprobación; no la sustituye:
+The following test signs in as Writer, creates **one fictitious draft** and
+sends a request to the Validator. Check the `Lumen contrato …` text before
+confirming it in Verify. This script waits for the approval; it does not replace it:
 
 ```bash
 bash chatbot/scripts/verify-contracts.sh
 ```
 
-Si termina correctamente escribe `chatbot/docs/contracts-verification.json`
-y `output/pdf/lumen-contrato-verificado.pdf`. Luego:
+If it finishes successfully, it writes `chatbot/docs/contracts-verification.json`
+and `$LUMEN_STATE_DIR/contracts/lumen-contrato-verificado.pdf`. Then:
 
 ```bash
 bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh --enable
@@ -52,134 +52,136 @@ bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh --
 bash scripts/demo/start.sh
 ```
 
-El reinicio termina las sesiones de Lumen. Entra de nuevo. `./demo.sh start`
-y el paso guiado `contratacion` preparan la extensión, conservando la activación
-si el cliente y Validador siguen siendo los verificados. Una instalación nueva
-queda deshabilitada hasta completar la prueba real.
+The restart ends the Lumen sessions. Sign in again. `./demo.sh start`
+and the `contratacion` guided step prepare the extension, keeping it enabled
+if the client and Validator are still the verified ones. A new installation
+stays disabled until the real test is completed.
 
-## Verificación en la interfaz
+## Verification in the interface
 
-1. Entra como **Writer + Estándar** o **Writer + Creación de solicitudes**.
-2. Crea una solicitud con los datos ficticios y pulsa **Guardar borrador**.
-3. Abre **Solicitudes**. Solo tus borradores muestran **Contratar**.
-4. Pulsa **Contratar**. La ventana muestra Validador, la referencia y el mensaje
-   que debe coincidir con Verify. Mientras espera no existe una fila de contrato.
-5. Validador confirma en Verify. Si rechaza o caduca, el borrador se conserva.
-6. Tras el commit aparece **Descargar contrato PDF**. La bandeja muestra
-   `contratada`, la fecha y el botón de descarga.
-7. La ventana muestra un único enlace a la última traza CIBA; al terminar se
-   llama **Ver traza de contratación**. Selecciona CIBA, login de Vault, credencial SQL
-   y `CALL lumen_contracts.formalize` para inspeccionar cada intercambio.
-8. Cierra sesión y vuelve a entrar como el mismo Writer: el PDF sigue disponible.
+1. Sign in as **Writer + Estándar** or **Writer + Creación de solicitudes**.
+2. Create an application with the fictitious data and press **Guardar borrador** (*Save draft*).
+3. Open **Solicitudes** (*Applications*). Only your drafts show **Contratar**.
+4. Press **Contratar**. The window shows the Validator, the reference and the message
+   that must match Verify. While waiting, no contract row exists.
+5. The Validator confirms in Verify. If they reject it or it expires, the draft is kept.
+6. After the commit, **Descargar contrato PDF** (*Download contract PDF*) appears. The inbox shows
+   `contratada`, the date and the download button.
+7. The window shows a single link to the latest CIBA trace; when finished it is
+   called **Ver traza de contratación** (*View contracting trace*). Select CIBA, the Vault login, the SQL credential
+   and `CALL lumen_contracts.formalize` to inspect each exchange.
+8. Sign out and sign in again as the same Writer: the PDF is still available.
 
-Cerrar el diálogo detiene el sondeo. **Ver contratación pendiente** lo reabre.
-Una petición pendiente vive en memoria como máximo diez minutos; un reinicio
-requiere pedir otra. Los contratos confirmados y sus PDFs persisten.
+Closing the dialog stops the polling. **Ver contratación pendiente** (*View pending contract*) reopens it.
+A pending request lives in memory for at most ten minutes; after a restart
+you need to request another one. Confirmed contracts and their PDFs persist.
 
-## Quién autoriza cada paso
+<a id="quién-autoriza-cada-paso"></a>
 
-| Paso | Identidad y credencial | Control |
+## Who authorizes each step
+
+| Step | Identity and credential | Control |
 |---|---|---|
-| Leer/guardar borrador | Usuario Writer + agente, JWT OBO | Vault aplica políticas humanas ∩ techo del agente ∩ RAR. |
-| Solicitar CIBA | Cliente confidencial `vault-chatbot-contract` → Verify | Lumen vincula `auth_req_id` al Writer, agente, borrador y hash de su contenido. |
-| Confirmar | Validador → Verify | El cliente solo admite CIBA; los demás grants, incluido client_credentials, están deshabilitados. |
-| Login en Vault | ID token de Validador → `auth/ciba-contract/login` | Vault valida firma, issuer, audience exclusiva del cliente CIBA y subject exacto de Validador. |
-| Obtener credencial SQL | Token nativo Vault → `database/creds/chatbot-contract` | Política `lumen-contract-confirm`, asignada al token, nunca al grupo/entidad OBO. |
-| Formalizar | Usuario SQL temporal → `CALL lumen_contracts.formalize` | Solo EXECUTE; el procedimiento valida propietario y snapshot, inserta y confirma. |
-| Publicar PDF | Token nativo Vault → KV v2 | Tras commit, PDF bajo `lumen-contracts/<entidad humana Writer>/<contract_id>`. |
-| Descargar | Writer propietario + agente, JWT OBO | Política `lumen-contract-owner` con `{{identity.entity.id}}`, techo del agente y RAR de lectura. |
+| Read/save draft | Writer user + agent, OBO JWT | Vault applies human policies ∩ agent ceiling ∩ RAR. |
+| Request CIBA | Confidential client `vault-chatbot-contract` → Verify | Lumen binds `auth_req_id` to the Writer, agent, draft and the hash of its content. |
+| Confirm | Validator → Verify | The client only allows CIBA; the other grants, including client_credentials, are disabled. |
+| Vault login | Validator's ID token → `auth/ciba-contract/login` | Vault validates the signature, issuer, the audience exclusive to the CIBA client and the Validator's exact subject. |
+| Obtain SQL credential | Native Vault token → `database/creds/chatbot-contract` | `lumen-contract-confirm` policy, assigned to the token, never to the OBO group/entity. |
+| Finalize | Temporary SQL user → `CALL lumen_contracts.formalize` | EXECUTE only; the procedure validates the owner and snapshot, inserts and commits. |
+| Publish PDF | Native Vault token → KV v2 | After the commit, PDF under `lumen-contracts/<Writer human entity>/<contract_id>`. |
+| Download | Owning Writer + agent, OBO JWT | `lumen-contract-owner` policy with `{{identity.entity.id}}`, agent ceiling and read RAR. |
 
-**El login CIBA es autenticación JWT nativa de Vault, no OBO.** La traza lo indica
-expresamente y no le atribuye el agente de la sesión. El cambio no eleva los
-permisos del Writer ni de su agente: una operación separada utiliza la confirmación
-de otra identidad. CIBA autentica y obtiene confirmación; Lumen mantiene el vínculo
-con el borrador. Vault no interpreta el texto del mensaje ni decide qué contrato
-firmar, y MySQL no valida directamente el JWT.
+**The CIBA login is native Vault JWT authentication, not OBO.** The trace states
+this explicitly and does not attribute the session's agent to it. The change does not elevate
+the permissions of the Writer or their agent: a separate operation uses the confirmation
+of another identity. CIBA authenticates and obtains confirmation; Lumen maintains the binding
+to the draft. Vault does not interpret the message text or decide which contract to
+sign, and MySQL does not validate the JWT directly.
 
-## Campo protegido y permisos SQL
+## Protected field and SQL permissions
 
-El campo autoritativo es **`lumen_contracts.contracts.status = 'contratada'`**.
-Se usa una base separada porque el rol Writer existente tiene permisos sobre
-`scripting.*`. No puede escribir en `lumen_contracts`.
+The authoritative field is **`lumen_contracts.contracts.status = 'contratada'`**.
+A separate database is used because the existing Writer role has permissions on
+`scripting.*`. It cannot write to `lumen_contracts`.
 
-La tabla original `scripting.energy_applications` conserva sus datos y su estado
-histórico. La bandeja obtiene el estado visible mediante un LEFT JOIN: sin
-contrato es `borrador`; con contrato muestra el estado protegido. No se convierten
-automáticamente borradores existentes.
+The original `scripting.energy_applications` table keeps its data and its historical
+status. The inbox obtains the visible status through a LEFT JOIN: without a
+contract it is `borrador`; with a contract it shows the protected status. Existing drafts are not
+converted automatically.
 
-El usuario temporal `chatbot-contract` solo recibe EXECUTE del procedimiento.
-Su cuenta definer está bloqueada para login y tiene los permisos de lectura,
-inserción y bloqueo necesarios. El bloqueo FOR UPDATE requiere también UPDATE;
-se limita a las columnas identificadoras de las tablas leídas. Esos permisos
-no se entregan a Writer ni al usuario SQL temporal.
+The temporary `chatbot-contract` user only receives EXECUTE on the procedure.
+Its definer account is locked for login and has the read,
+insert and locking permissions required. The FOR UPDATE lock also requires UPDATE;
+it is limited to the identifying columns of the tables read. Those permissions
+are not given to Writer or to the temporary SQL user.
 
-El procedimiento bloquea el borrador y la tarifa, verifica su hash y propietario,
-y guarda referencia, solicitante, Validador, fecha, tarifa, hashes y PDF cifrado.
-La clave primaria de application_id hace idempotentes los reintentos. Un trigger
-impide actualizar un borrador contratado y la FK impide borrarlo. La credencial
-ordinaria solo puede leer columnas públicas del registro; no su PDF cifrado.
+The procedure locks the draft and the plan, verifies its hash and owner,
+and stores the reference, requester, Validator, date, plan, hashes and encrypted PDF.
+The application_id primary key makes retries idempotent. A trigger
+prevents updating a contracted draft, and the FK prevents deleting it. The ordinary
+credential can only read the record's public columns, not its encrypted PDF.
 
-El PDF usa Transit `lumen-contracts` para su copia cifrada en MySQL. La copia de
-descarga en KV contiene el PDF codificado en base64; KV aporta cifrado en reposo
-y ACL por propietario. Base64 **no es cifrado**. Lumen comprueba su SHA-256 contra
-MySQL al descargar. El logo está arriba a la derecha; razón social, CIF y sede son
-ficticios. El contenido no se envía al LLM.
+The PDF uses Transit `lumen-contracts` for its encrypted copy in MySQL. The
+download copy in KV contains the base64-encoded PDF; KV provides encryption at rest
+and per-owner ACLs. Base64 **is not encryption**. Lumen checks its SHA-256 against
+MySQL on download. The logo is at the top right; the company name, CIF tax ID and headquarters are
+fictitious. The content is not sent to the LLM.
 
-## Límites, errores y recuperación
+## Limits, errors and recovery
 
-- El token Vault dura como máximo 120 s; la credencial SQL, 60 s por defecto y
-  120 s como máximo. Lumen revoca el token y sus leases al acabar.
-- Los bloqueos `database-read`, `database-write` y `decrypt` también limitan
-  la operación CIBA. Los comandos de bloqueo de base de datos también revocan
-  los leases SQL correspondientes. Editar solo una ACL no revoca una credencial
-  SQL ya emitida; esa credencial sigue su lease o la revocación del token.
-- El bloqueo de descifrado impide preparar contratos nuevos, pero no retira PDFs
-  ya publicados en el espacio del Writer ni copias ya descargadas.
-- Sin CIBA, el token de login ordinario falla en el mount JWT y el OBO de Writer
-  falla al pedir el rol SQL de contratación. Las pruebas verifican ambos.
-- CIBA no produce por sí solo un JWT de un uso ni una autorización SQL por fila.
-  La credencial permite ejecutar el procedimiento durante su vida útil; **Lumen**
-  vincula la aprobación al borrador y al snapshot. Un operador con acceso a las
-  credenciales capturadas del laboratorio puede repetir llamadas dentro de ese
-  alcance. Administradores de Vault/MySQL también quedan fuera de esta barrera.
-- Un cambio del borrador durante la espera impide formalizar el snapshot antiguo.
-  El rechazo no crea un contrato.
-- La limpieza periódica respeta una confirmación en curso; la operación comprueba
-  la caducidad antes de formalizar y conserva el snapshot hasta terminar. Una
-  cancelación marca la petición como error y elimina su estado sensible. Si ya
-  había un commit en curso, actualiza la bandeja para conocer el resultado persistido.
-- Si hay commit pero falla la publicación KV, el contrato ya existe. Actualiza
-  la bandeja, intenta descargar y usa **Recuperar PDF con CIBA**. El procedimiento
-  devuelve el contrato original y se publica su PDF original, sin duplicarlo.
-- La descarga se limita al Writer propietario; Reader y Supervisor no reciben
-  acceso a estos PDFs por su rol. Se comprueba que la sesión siga vigente y sea
-  la misma tras esperar el bloqueo y antes de entregar el PDF. Supervisor conserva
-  el revelado de solicitudes.
-- La consola de trazas conserva las peticiones reales cuando la captura está
-  activada. Repetir una credencial revocada o un código consumido devuelve el error
-  real del servicio. No se renueva automáticamente para simular éxito.
+- The Vault token lasts at most 120 s; the SQL credential, 60 s by default and
+  120 s at most. Lumen revokes the token and its leases when finished.
+- The `database-read`, `database-write` and `decrypt` blocks also limit
+  the CIBA operation. The database block commands also revoke
+  the corresponding SQL leases. Editing only an ACL does not revoke an SQL credential
+  that has already been issued; that credential follows its lease or the token's revocation.
+- The decryption block prevents preparing new contracts, but does not withdraw PDFs
+  already published in the Writer's space or copies already downloaded.
+- Without CIBA, the ordinary login token fails on the JWT mount, and the Writer's OBO
+  fails when requesting the contracting SQL role. The tests verify both.
+- CIBA does not by itself produce a single-use JWT or per-row SQL authorization.
+  The credential allows running the procedure during its lifetime; **Lumen**
+  binds the approval to the draft and the snapshot. An operator with access to the
+  lab's captured credentials can repeat calls within that
+  scope. Vault/MySQL administrators are also outside this barrier.
+- A change to the draft during the wait prevents finalizing the old snapshot.
+  A rejection does not create a contract.
+- The periodic cleanup respects a confirmation in progress; the operation checks
+  expiration before finalizing and keeps the snapshot until it finishes. A
+  cancellation marks the request as an error and deletes its sensitive state. If a
+  commit was already in progress, refresh the inbox to learn the persisted result.
+- If the commit succeeds but the KV publication fails, the contract already exists. Refresh
+  the inbox, try to download and use **Recuperar PDF con CIBA** (*Recover PDF with CIBA*). The procedure
+  returns the original contract and its original PDF is published, without duplicating it.
+- Downloading is limited to the owning Writer; Reader and Supervisor do not get
+  access to these PDFs through their role. The session is checked to still be valid and
+  the same after waiting for the lock and before delivering the PDF. Supervisor keeps
+  the reveal of applications.
+- The trace console keeps the real requests when capture is
+  enabled. Repeating a revoked credential or a consumed code returns the service's real
+  error. It is not renewed automatically to simulate success.
 
-Las pruebas reales y su fecha están en
+The real tests and their date are in
 [contracts-verification.json](../../chatbot/docs/contracts-verification.json).
-Son evidencia de esa ejecución, no una garantía sobre cambios posteriores.
+They are evidence of that run, not a guarantee about later changes.
 
-El [ensayo del 22/10/2026](../runs/20261022T122934Z-full-e2e/README.md) incluye
-aprobación real del Validador, nueve comprobaciones correctas, un único commit
-idempotente y dos descargas del backend con el mismo SHA-256. Chrome mostró el
-contrato persistido después de reiniciar y ejecutó su botón PDF; la recepción
-del archivo en el navegador no quedó confirmada por la herramienta.
+The [October 22, 2026 rehearsal](../runs/20261022T122934Z-full-e2e/README.md) includes
+a real approval by the Validator, nine passing checks, a single idempotent
+commit and two backend downloads with the same SHA-256. Chrome showed the
+persisted contract after restarting and ran its PDF button; receipt
+of the file in the browser was not confirmed by the tool.
 
-## Referencias
+## References
 
-- [IBM Verify SaaS: iniciar CIBA](https://docs.verify.ibm.com/verify/v2.0/reference/post_oauth2-ciba).
+- [IBM Verify SaaS: initiate CIBA](https://docs.verify.ibm.com/verify/v2.0/reference/post_oauth2-ciba).
 - [OpenID CIBA Core](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).
-- [Vault: JWT auth y restricciones de claims](https://developer.hashicorp.com/vault/api-docs/auth/jwt).
-- [MySQL: locking reads y privilegios](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
+- [Vault: JWT auth and claim restrictions](https://developer.hashicorp.com/vault/api-docs/auth/jwt).
+- [MySQL: locking reads and privileges](https://dev.mysql.com/doc/refman/8.4/en/innodb-locking-reads.html).
 
-La retirada de la demo incluye sus clientes CIBA y el grupo `chatbot-validators`, identificado por la marca `externalId=lumen-demo:contract-validators`. Conserva la cuenta real elegida como Validador. Solo las cuentas ficticias `lumen-*` con correo `@example.invalid` entran en el inventario de borrado. El antiguo cliente del experimento PDF queda deshabilitado al migrar.
+Removing the demo includes its CIBA clients and the `chatbot-validators` group, identified by the `externalId=lumen-demo:contract-validators` marker. The real account chosen as Validator is kept. Only the fictitious `lumen-*` accounts with an `@example.invalid` email are included in the deletion inventory. The old client from the PDF experiment is disabled during migration.
 
-## Bandeja actual
+## Current inbox
 
-![Contrato ficticio persistido y disponible en otra sesión del Writer](../screenshots/current/contract-persisted.jpg)
+![Fictitious contract persisted and available in another Writer session](../screenshots/current/contract-persisted.jpg)
 
-La [revisión de interfaz del 22/10](../runs/20261022T140230Z-workspace-review/README.md) volvió a comprobar la presencia del contrato aprobado. No volvió a pedir una aprobación CIBA: utiliza la evidencia de la reinstalación de ese mismo día. La herramienta volvió a agotar la espera del evento de descarga; la recepción del archivo en Chrome sigue sin acreditarse.
+The [October 22 interface review](../runs/20261022T140230Z-workspace-review/README.md) checked again that the approved contract was present. It did not request a new CIBA approval: it uses the evidence from that same day's reinstallation. The tool again timed out waiting for the download event; receipt of the file in Chrome remains unconfirmed.

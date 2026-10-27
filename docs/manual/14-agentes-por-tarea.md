@@ -1,237 +1,239 @@
-# 14 · Agentes por tarea, activados desde Lumen
+# 14 · Task agents, activated from Lumen
 
-Esta ampliación añade tres identidades OAuth y sus techos OBO. El modo inicial
-sigue siendo **Modo actual**, con `chatbot-oidc`. No se cambian los clientes
-existentes, las políticas de los usuarios, los proveedores de modelos ni sus
-federaciones SPIFFE.
+This extension adds three OAuth identities and their OBO ceilings. The initial mode
+is still **Modo actual** (*Current mode*), with `chatbot-oidc`. The existing clients,
+the users' policies, the model providers and their SPIFFE federations
+are not changed.
 
-## Uso desde la interfaz
+## Using it from the interface
 
-1. Pulsar **Agentes por tarea**, debajo del selector de proveedor, para abrir el
-   panel lateral de permisos.
-2. Elegir **Consulta**, **Creación de solicitudes** o **Revelado de datos**.
-3. Pulsar **Activar y entrar con Verify** y completar el login.
-4. Ejecutar la operación y consultar su traza. `verify.client_credentials` y
-   `verify.token_exchange` identifican el agente utilizado.
-5. Para volver, seleccionar **Modo actual** y entrar de nuevo.
+1. Press **Agentes por tarea** (*Task agents*), below the provider selector, to open the
+   permissions side panel.
+2. Choose **Consulta** (*Read access*), **Creación de solicitudes** (*Application creation*) or **Revelado de datos** (*Data disclosure*).
+3. Press **Activar y entrar con Verify** (*Activate and sign in with Verify*) and complete the login.
+4. Run the operation and look at its trace. `verify.client_credentials` and
+   `verify.token_exchange` identify the agent used.
+5. To go back, select **Modo actual** and sign in again.
 
-El selector y sus mensajes están disponibles en español e inglés. La elección
-está ligada a la sesión autenticada y se conserva al navegar entre conversación
-y solicitudes. No se elige un agente más potente automáticamente según la ruta.
+The selector and its messages are available in Spanish and English. The choice
+is tied to the authenticated session and is kept when navigating between the conversation
+and applications. A more powerful agent is never chosen automatically based on the path.
 
-### Matriz visual de permisos
+### Visual permission matrix
 
-El botón **Agentes por tarea** abre a la derecha una matriz de usuarios y agentes.
-Empieza cerrado y abrirlo no añade un bloque encima de la conversación. En
-escritorio ancho (más de 1700 px) comparte espacio con el chat. En tablet y móvil
-se superpone; hasta 760 px ocupa el ancho disponible. El panel tiene desplazamiento
-propio y un botón de cierre siempre visible. Se puede cerrar con Escape desde el
-panel y el foco vuelve al botón que lo abrió. El borrador del chat se conserva.
+The **Agentes por tarea** button opens a matrix of users and agents on the right.
+It starts closed, and opening it does not add a block above the conversation. On a
+wide desktop (more than 1700 px) it shares space with the chat. On tablet and mobile
+it overlays the chat; up to 760 px it takes the available width. The panel has its own
+scrolling and an always-visible close button. It can be closed with Escape from the
+panel, and focus returns to the button that opened it. The chat draft is kept.
 
-Resalta el perfil del usuario autenticado, la columna del agente activo y la celda
-**Tu sesión**. El resumen superior muestra sus operaciones esperadas; también
-permanece en el botón de apertura cuando se cierra el panel.
+It highlights the authenticated user's profile, the active agent's column and the
+**Tu sesión** (*Your session*) cell. The summary at the top shows the expected operations; it also
+remains on the open button when the panel is closed.
 
-| Usuario | Estándar | Consulta | Creación | Revelado |
+| User | Estándar (*Standard*) | Consulta | Creación | Revelado |
 |---|---|---|---|---|
-| Reader | Consultar | Consultar | Consultar | Consultar |
-| Writer | Consultar y crear | Consultar | Consultar y crear | Consultar |
-| Supervisor | Consultar y revelar | Consultar | Consultar | Consultar y revelar |
+| Reader | Query | Query | Query | Query |
+| Writer | Query and create | Query | Query and create | Query |
+| Supervisor | Query and reveal | Query | Query | Query and reveal |
 
-Pulsa cualquier celda para comparar: el detalle muestra, para consultar, crear y
-revelar, si lo permite el usuario, el agente o ambos. Por ejemplo, Reader + Revelado
-indica que el usuario limita el revelado; Supervisor + Consulta indica que lo limita
-el agente. Al pulsar una celda, el desplegable **Identidad del agente** selecciona
-el agente de esa columna. La fila elegida sigue siendo una comparación: no cambia
-el usuario autenticado. **Vista previa** no cambia la identidad activa, la sesión
-ni los permisos. **Volver a mi combinación** restaura tanto la celda como el
-desplegable al agente activo. Elegir otra opción del selector también actualiza
-la vista previa para tu perfil; para activarla sigue siendo necesario pulsar
+Press any cell to compare: for query, create and
+reveal, the detail shows whether the user, the agent or both allow it. For example, Reader + Revelado
+indicates that the user limits revealing; Supervisor + Consulta indicates that the
+agent limits it. When you press a cell, the **Identidad del agente** (*Agent identity*) dropdown selects
+that column's agent. The chosen row is still only a comparison: it does not change
+the authenticated user. **Vista previa** (preview) does not change the active identity, the session
+or the permissions. **Volver a mi combinación** (*Back to my combination*) restores both the cell and the
+dropdown to the active agent. Choosing another option in the selector also updates
+the preview for your profile; activating it still requires pressing
 **Activar y entrar con Verify**.
 
-El perfil activo se deriva de los grupos autenticados, no del nombre del usuario.
-Si los grupos combinan escritura y revelado, se añade una fila **Perfil combinado**;
-un grupo desconocido se muestra sin acceso. Sin sesión no se marca ninguna celda
-como activa. La tabla puede desplazarse horizontalmente en pantallas pequeñas y
-sus celdas se pueden activar con el teclado. Está disponible en ES/EN.
+The active profile is derived from the authenticated groups, not from the user name.
+If the groups combine write and reveal, a **Perfil combinado** (*Combined profile*) row is added;
+an unknown group is shown with no access. Without a session, no cell is marked
+as active. The table can scroll horizontally on small screens, and
+its cells can be activated with the keyboard. It is available in ES/EN.
 
-La matriz es explicativa según los perfiles de la demo: no lee en directo las
-políticas de Vault ni ejecuta operaciones. Verify autentica y emite el token OBO;
-**Vault** evalúa usuario ∩ techo del agente ∩ RAR de cada petición. Los bloqueos u
-otros cambios en Vault pueden restringir más. **Comprobar límites en Vault** sigue
-siendo la comprobación de las llamadas reales. Consultar incluye catálogo,
-inventario y solicitudes enmascaradas; revelar recupera los datos protegidos.
+The matrix is explanatory, based on the demo profiles: it does not read the Vault
+policies live or run operations. Verify authenticates and issues the OBO token;
+**Vault** evaluates user ∩ agent ceiling ∩ RAR for each request. Blocks or
+other changes in Vault can restrict further. **Comprobar límites en Vault** (*Check limits in Vault*) remains
+the check of the real calls. Querying includes the catalog,
+inventory and masked applications; revealing retrieves the protected data.
 
-[Panel en escritorio](../screenshots/current/permissions-desktop.jpg)
+[Desktop panel](../screenshots/current/permissions-desktop.jpg)
 · [Tablet](../screenshots/current/permissions-tablet.jpg)
-· [Móvil](../screenshots/current/permissions-mobile.jpg)
-· [Revisión del 22/10](../runs/20261022T140230Z-workspace-review/README.md).
-Las capturas del panel se tomaron sin sesión; comprueban la disposición y la
-selección, no los permisos efectivos de Vault.
+· [Mobile](../screenshots/current/permissions-mobile.jpg)
+· [October 22 review](../runs/20261022T140230Z-workspace-review/README.md).
+The panel screenshots were taken without a session; they check the layout and the
+selection, not the effective Vault permissions.
 
-Comparación capturada en la interfaz actual:
+Comparison captured in the current interface:
 [Reader + Revelado](../screenshots/current/permission-matrix.jpg)
-· [Pruebas anteriores de la matriz](../../chatbot/docs/permission-matrix-verification.json).
-[Tabla y desplegable sincronizados](../screenshots/current/permission-matrix.jpg)
-· [Prueba anterior de selección](../../chatbot/docs/permission-matrix-selector-verification.json).
+· [Earlier matrix tests](../../chatbot/docs/permission-matrix-verification.json).
+[Synchronized table and dropdown](../screenshots/current/permission-matrix.jpg)
+· [Earlier selection test](../../chatbot/docs/permission-matrix-selector-verification.json).
 
-**Cambio visible al activar la ampliación:** cambiar de agente comienza una
-sesión nueva. Se pierde la conversación y el borrador sin guardar de esa sesión;
-las solicitudes ya guardadas permanecen. El selector avisa antes del cambio y
-rechaza cambiar durante una operación. El login nuevo es necesario porque cada
-token humano autoriza únicamente a su cliente mediante `may_act.client_id`.
+**Visible change when activating the extension:** switching agents starts a
+new session. The conversation and the unsaved draft of that session are lost;
+already saved applications remain. The selector warns before the switch and
+refuses to switch during an operation. The new login is required because each
+human token authorizes only its own client through `may_act.client_id`.
 
-## Límites
+## Limits
 
-| Modo | Identidad en Vault | Techo OBO |
+| Mode | Identity in Vault | OBO ceiling |
 |---|---|---|
-| Actual | `chatbot-oidc` | El comportamiento previo: permisos del usuario y RAR |
-| Consulta | `chatbot-task-read` | Credenciales MySQL RO |
-| Creación de solicitudes | `chatbot-task-write` | MySQL RO/RW, Transit encrypt y Transform encode |
-| Revelado de datos | `chatbot-task-reveal` | MySQL RO, Transit decrypt y Transform decode |
+| Current | `chatbot-oidc` | The previous behavior: user permissions and RAR |
+| Consulta (read access) | `chatbot-task-read` | MySQL RO credentials |
+| Creación de solicitudes (application creation) | `chatbot-task-write` | MySQL RO/RW, Transit encrypt and Transform encode |
+| Revelado de datos (data disclosure) | `chatbot-task-reveal` | MySQL RO, Transit decrypt and Transform decode |
 
-Siempre se intersectan **permisos del usuario, techo del agente y RAR exacto**.
-Por ejemplo:
+**User permissions, agent ceiling and exact RAR** are always intersected.
+For example:
 
-- Un escritor con Consulta puede consultar, pero Vault deniega credenciales RW,
-  cifrado, tokenización, descifrado y destokenización.
-- Un lector con Creación sigue sin poder escribir: el agente no amplía su perfil.
-- Un supervisor con Consulta no puede revelar; con Revelado sí puede, conforme a
-  las políticas existentes.
-- Las tres identidades conservan los bloqueos globales del [capítulo 12](12-bloqueos.md).
+- A writer with Consulta can query, but Vault denies RW credentials,
+  encryption, tokenization, decryption and detokenization.
+- A reader with Creación still cannot write: the agent does not extend their profile.
+- A supervisor with Consulta cannot reveal; with Revelado they can, according to
+  the existing policies.
+- The three identities keep the global blocks from [chapter 12](12-bloqueos.md).
 
-Consulta puede leer catálogo, inventario y bandeja enmascarada. Su límite se
-aplica al rol SQL RO existente, no a tablas individuales. La bandeja sigue siendo
-compartida. Esta ampliación no introduce aislamiento por fila ni aprobaciones.
+Consulta can read the catalog, inventory and the masked inbox. Its limit
+applies to the existing SQL RO role, not to individual tables. The inbox is still
+shared. This extension does not introduce row-level isolation or approvals.
 
-Los proveedores OpenAI, xAI y Claude y la búsqueda Tavily mantienen sus identidades
-actuales. Los agentes por tarea controlan las operaciones OBO de negocio; no son
-tres ejecuciones paralelas del modelo.
+The OpenAI, xAI and Claude providers and the Tavily search keep their current
+identities. Task agents control the business OBO operations; they are not
+three parallel runs of the model.
 
-## Instalación y repetición
+## Installation and reruns
 
-`./demo.sh start`, el recorrido guiado y el notebook de Lumen incluyen la
-preparación de estas identidades. Para añadirlas a una instalación existente,
-desde la raíz del repositorio:
+`./demo.sh start`, the guided walkthrough and the Lumen notebook include the
+preparation of these identities. To add them to an existing installation,
+from the repository root:
 
 ```bash
 bash -c 'source scripts/demo/common.sh; load_inputs; bash chatbot/scripts/configure-task-agents.sh'
 ```
 
-El script comprueba primero STS, perfil OAuth y grupos; crea o reconcilia:
+The script first checks the STS, OAuth profile and groups; it creates or reconciles:
 
-- Las apps Verify `vault-chatbot-task-read`, `vault-chatbot-task-write` y
-  `vault-chatbot-task-reveal`, con Authorization Code, PKCE S256 y Client
-  Credentials. No habilita ROPC ni refresh tokens.
-- Sus asignaciones a los tres grupos del laboratorio.
-- Tres políticas, entidades sin permisos autónomos, aliases y registros de
-  agentes con RAR obligatorio y sin techo `default`.
-- `verify/secrets/chatbot/task-agents`, publicado solo cuando están completos los
-  tres perfiles, y su lectura en `chatbot-bootstrap`.
+- The Verify apps `vault-chatbot-task-read`, `vault-chatbot-task-write` and
+  `vault-chatbot-task-reveal`, with Authorization Code, PKCE S256 and Client
+  Credentials. It does not enable ROPC or refresh tokens.
+- Their assignments to the lab's three groups.
+- Three policies, entities without autonomous permissions, aliases and agent
+  registrations with mandatory RAR and no `default` ceiling.
+- `verify/secrets/chatbot/task-agents`, published only when all
+  three profiles are complete, and read access to it in `chatbot-bootstrap`.
 
-Después se carga el código y la configuración en Lumen. Esto reinicia el proceso
-y requiere un nuevo login:
+Then the code and configuration are loaded into Lumen. This restarts the process
+and requires a new login:
 
 ```bash
 bash scripts/demo/start.sh
 ```
 
-Una instalación sin el catálogo opcional sigue usando el modo actual; la
-interfaz indica que la ampliación no está preparada. No se usa el agente original
-como alternativa silenciosa cuando falla un agente por tarea.
+An installation without the optional catalog keeps using the current mode; the
+interface indicates that the extension is not prepared. The original agent is not used
+as a silent fallback when a task agent fails.
 
-La retirada general incluye también las tres apps nuevas en su inventario.
-Consultar siempre `./demo.sh remove --dry-run` antes de eliminar recursos.
+General removal also includes the three new apps in its inventory.
+Always check `./demo.sh remove --dry-run` before deleting resources.
 
-## Verificación real
+## Real verification
 
 ```bash
 bash chatbot/scripts/verify-task-agents.sh
 ```
 
-Usa Authorization Code + PKCE con los usuarios ficticios ya instalados; no
-modifica sus contraseñas ni evita desafíos de autenticación. Comprueba los cuatro
-modos con los tres perfiles de usuario:
+It uses Authorization Code + PKCE with the fictitious users already installed; it does not
+modify their passwords or bypass authentication challenges. It checks the four
+modes with the three user profiles:
 
-- Nueve decisiones reales por combinación en Vault, incluidas denegaciones con
-  un RAR que sí describe la ruta solicitada.
-- Consulta real del catálogo MySQL.
-- Rechazo por Verify si se intenta intercambiar el token humano con otro actor.
-- Revocación de los leases de base de datos emitidos por cada caso.
+- Nine real Vault decisions per combination, including denials with
+  a RAR that does describe the requested path.
+- A real query of the MySQL catalog.
+- Rejection by Verify if someone tries to exchange the human token with another actor.
+- Revocation of the database leases issued for each case.
 
-El [informe](../../chatbot/docs/task-agents-verification.json) no contiene tokens
-ni contraseñas. Los artefactos de login permanecen en el directorio privado de
-estado. Las pruebas de unidad verifican también que el callback usa el audience
-y `may_act` del cliente elegido y que el modo original funciona sin la extensión.
+The [report](../../chatbot/docs/task-agents-verification.json) contains no tokens
+or passwords. The login artifacts remain in the private state
+directory. The unit tests also verify that the callback uses the audience
+and `may_act` of the chosen client and that the original mode works without the extension.
 
-## Resto de ampliaciones
+## Other extensions
 
-| Punto | Estado |
+| Item | Status |
 |---|---|
-| 1. Agentes separados por tarea | Implementado como opción de interfaz |
-| 2. Restricciones RAR por parámetros | [Laboratorio opcional con seis escenarios, comparación real y trazas](15-parametros-rar.md) |
-| 3. Espacios de secretos por usuario | [Laboratorio opcional KV v2, aislamiento por entidad humana y trazas](16-espacios-personales.md) |
-| 4. Aprobación de operaciones sensibles | Pendiente |
-| 5. Bloqueo y revocación por agente | Pendiente; se conservan los bloqueos globales |
-| 6. Comparador visual de autorizaciones | Matriz interactiva de permisos esperados disponible; el botón de comprobar límites prueba el agente activo. Comparación en vivo de todas las combinaciones pendiente |
+| 1. Separate agents per task | Implemented as an interface option |
+| 2. RAR parameter restrictions | [Optional lab with six scenarios, real comparison and traces](15-parametros-rar.md) |
+| 3. Per-user secret spaces | [Optional KV v2 lab, isolation by human entity and traces](16-espacios-personales.md) |
+| 4. Approval of sensitive operations | Pending |
+| 5. Per-agent blocking and revocation | Pending; the global blocks are kept |
+| 6. Visual authorization comparator | Interactive matrix of expected permissions available; the check-limits button tests the active agent. Live comparison of all combinations pending |
 
-Referencias: [Agent Registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry),
-[OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo) y
-[delegación en Verify](https://docs.verify.ibm.com/verify/docs/oauth-20-token-exchange).
+References: [Agent Registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry),
+[OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo) and
+[delegation in Verify](https://docs.verify.ibm.com/verify/docs/oauth-20-token-exchange).
 
-## Identificar al agente y pivotar a Vault
+<a id="identificar-al-agente-y-pivotar-a-vault"></a>
 
-**Comprobar límites en Vault** muestra ahora el agente OBO ligado a la sesión,
-además de las nueve decisiones reales. La ficha consulta Vault en ese momento:
-registro e ID, descripción, propietario, fechas, estado de la entidad, obligación
-de RAR, techo `default`, políticas del techo OBO y políticas directas de la
-entidad. Incluye el ID y fechas de la entidad, sus grupos y los alias con su
-accessor, issuer y perfil OAuth. Las políticas heredadas de grupos, si existen,
-se consultan en Vault; la ficha no calcula permisos efectivos a partir del HCL.
+## Identify the agent and pivot to Vault
 
-Los enlaces abren **Agent Registry**, la **entidad**, cada **alias** y cada
-**política ACL** en el namespace `verify`. En Vault 2.1.2 el panel del agente es
-un diálogo sin URL propia: el enlace al registro abre la tabla, donde se busca
-el nombre mostrado en Lumen. Entidades, alias y políticas sí tienen URL directa.
-Vault utiliza la sesión propia de tu navegador; los enlaces nunca llevan tokens.
+**Comprobar límites en Vault** now shows the OBO agent tied to the session,
+in addition to the nine real decisions. The details card queries Vault at that moment:
+registration and ID, description, owner, dates, entity status, RAR
+requirement, `default` ceiling, OBO ceiling policies and the entity's direct
+policies. It includes the entity's ID and dates, its groups and the aliases with their
+accessor, issuer and OAuth profile. Policies inherited from groups, if any,
+are queried in Vault; the card does not compute effective permissions from the HCL.
 
-En la ventana de la traza, cada llamada muestra **Agente en Vault** y permite
-desplegar **Agente, políticas, entidad y alias**. Las políticas incluyen su HCL.
-La ficha lleva la hora de consulta: es la configuración actual al abrir la
-traza, no una fotografía de las políticas vigentes cuando ocurrió una traza antigua.
-Una consulta fallida de metadatos se señala expresamente y no reemplaza ni altera
-las decisiones HTTP de las pruebas OBO.
+The links open the **Agent Registry**, the **entity**, each **alias** and each
+**ACL policy** in the `verify` namespace. In Vault 2.1.2 the agent panel is
+a dialog without its own URL: the registry link opens the table, where you search for
+the name shown in Lumen. Entities, aliases and policies do have direct URLs.
+Vault uses your browser's own session; the links never carry tokens.
 
-La identidad depende de la llamada:
+In the trace window, each call shows **Agente en Vault** (*Vault agent*) and lets you
+expand **Agente, políticas, entidad y alias** (*Agent, policies, entity and aliases*). The policies include their HCL.
+The card carries the query time: it is the current configuration when the
+trace is opened, not a snapshot of the policies in force when an old trace happened.
+A failed metadata query is flagged explicitly and does not replace or alter
+the HTTP decisions of the OBO tests.
 
-- OBO y operaciones de negocio: `chatbot-oidc` o el `chatbot-task-*` elegido.
-- Credenciales y llamadas al modelo: `chatbot-openai`, `chatbot-anthropic` o `chatbot-xai`.
-- Búsqueda Tavily: `chatbot-research`.
-- MySQL: se muestra el agente que obtuvo la credencial dinámica. MySQL recibe
-  usuario y contraseña, no la entidad de Vault.
-- JWKS público: no se atribuye un agente autenticado a la lectura de claves públicas.
+The identity depends on the call:
 
-### Credencial de inspección
+- OBO and business operations: `chatbot-oidc` or the chosen `chatbot-task-*`.
+- Credentials and model calls: `chatbot-openai`, `chatbot-anthropic` or `chatbot-xai`.
+- Tavily search: `chatbot-research`.
+- MySQL: the agent that obtained the dynamic credential is shown. MySQL receives
+  a username and password, not the Vault entity.
+- Public JWKS: no authenticated agent is attributed to reading public keys.
 
-`chatbot/scripts/run.sh` instala `chatbot-agent-inspector` desde
-`chatbot/policies/agent-inspector.hcl` y obtiene un token periódico de una hora,
-independiente del bootstrap y de los clientes OAuth. Lumen lo renueva cada veinte
-minutos y lo revoca al cerrar normalmente. Sólo permite leer las ocho entidades
-y registros de Lumen por nombre, las políticas enumeradas y el perfil OAuth
-`verify` (esa lectura exige `read` + `sudo` en su ruta exacta). No permite listar entidades, leer secretos, emitir credenciales SQL ni
-modificar agentes o políticas. El token queda en el servidor y no entra en la
-captura sensible, en el diagrama ni en sus enlaces.
+### Inspection credential
 
-El arranque gestionado copia la política junto al runtime. Se aplica con el
-arranque habitual de Lumen; no exige recrear usuarios, agentes ni el cluster.
-`LUMEN_VAULT_UI_URL` permite indicar la dirección de Vault accesible desde el
-navegador (por defecto `https://127.0.0.1:8443`, sin `/ui`). No cambia la dirección
-usada por las llamadas API. La sesión de Lumen se pierde al reiniciar la aplicación.
+`chatbot/scripts/run.sh` installs `chatbot-agent-inspector` from
+`chatbot/policies/agent-inspector.hcl` and obtains a one-hour periodic token,
+independent of the bootstrap token and the OAuth clients. Lumen renews it every twenty
+minutes and revokes it on a normal shutdown. It only allows reading Lumen's eight entities
+and registrations by name, the listed policies and the `verify` OAuth
+profile (that read requires `read` + `sudo` on its exact path). It does not allow listing entities, reading secrets, issuing SQL credentials or
+modifying agents or policies. The token stays on the server and is not included in the
+sensitive capture, the diagram or its links.
 
-### Techo comprobado desde la interfaz
+The managed startup copies the policy alongside the runtime. It is applied with the
+usual Lumen startup; it does not require recreating users, agents or the cluster.
+`LUMEN_VAULT_UI_URL` lets you set the Vault address reachable from the
+browser (by default `https://127.0.0.1:8443`, without `/ui`). It does not change the address
+used by the API calls. The Lumen session is lost when the application restarts.
 
-En la revisión del 22/10, Supervisor entró con **Consulta** desde el selector y
-repitió las nueve llamadas. SQL RO siguió permitido; Transit decrypt y Transform
-decode quedaron denegados, aunque el usuario puede revelar con Estándar.
+### Ceiling checked from the interface
 
-![Supervisor limitado por Consulta](../screenshots/current/supervisor-query-permissions.jpg)
+In the October 22 review, Supervisor signed in with **Consulta** from the selector and
+repeated the nine calls. SQL RO was still allowed; Transit decrypt and Transform
+decode were denied, even though the user can reveal with Estándar.
+
+![Supervisor limited by Consulta](../screenshots/current/supervisor-query-permissions.jpg)

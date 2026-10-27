@@ -1,10 +1,10 @@
-# 09 · Audit log de Vault y trazas en Grafana
+# 09 · Vault audit log and Grafana traces
 
-[Índice](README.md) · Requiere [01](01-vault.md) · Continuar con [Arranque](10-aplicacion.md)
+[Index](README.md) · Requires [01](01-vault.md) · Continue with [Startup](10-aplicacion.md)
 
-## 1. Habilitar auditoría en el namespace root
+## 1. Enable auditing in the root namespace
 
-Puede hacerse después de inicializar Vault, antes de configurar el resto, si se quiere auditar también el aprovisionamiento. No recupera retroactivamente llamadas anteriores.
+This can be done right after initializing Vault, before configuring anything else, if you also want to audit provisioning. It does not retroactively capture earlier calls.
 
 
 ```bash
@@ -20,13 +20,13 @@ vault audit enable -path=lumen-stdout file file_path=stdout log_raw=false hmac_a
 vault write sys/config/auditing/request-headers/traceparent hmac=false
 ```
 
-En un Vault recién inicializado, `vault audit list` en formato tabla devuelve código 2 si no hay dispositivos y detendría una sesión con `set -e`. La variante JSON devuelve `{}` y permite continuar.
+On a freshly initialized Vault, `vault audit list` in table format returns exit code 2 when there are no devices, which would stop a session running with `set -e`. The JSON variant returns `{}` and lets you continue.
 
-Si `lumen-stdout/` ya existe, conservarlo y su salt HMAC; no deshabilitarlo para recrearlo. El dispositivo general protege valores. Los siguientes dispositivos adicionales guardan datos raw exclusivamente en las rutas de la demo, reproduciendo el modo de laboratorio solicitado.
+If `lumen-stdout/` already exists, keep it and its HMAC salt; do not disable it to recreate it. The general device protects values. The additional devices below store raw data exclusively for the demo paths, reproducing the requested lab mode.
 
-## 2. Añadir dispositivos raw filtrados
+## 2. Add filtered raw devices
 
-Estos logs incluyen JWT, credenciales emitidas y respuestas de protección de datos en claro; se almacenan en el laboratorio local junto a las trazas. Es una configuración deliberada de observabilidad, no una propiedad necesaria de Agentic IAM.
+These logs include JWTs, issued credentials and data-protection responses in plaintext; they are stored in the local lab next to the traces. This is a deliberate observability configuration, not a required property of Agentic IAM.
 
 ```bash
 AGENT_FILTER='namespace == "verify/" and operation == "read" and (path == "database/creds/chatbot-readonly" or path == "database/creds/chatbot-readwrite" or path == "secrets/data/tavily" or path == "secrets/data/verify-admin")'
@@ -50,11 +50,11 @@ vault audit enable -path=lumen-spiffe-raw file \
 vault audit list -format=json | jq 'with_entries(.value |= {type,options})'
 ```
 
-Omitir los `enable` de dispositivos ya existentes y comparar sus opciones. Los distintos paths de stdout/stderr permiten identificar dispositivos separados. Un mismo request puede aparecer en HMAC y en raw: contar IDs de petición únicos, no líneas.
+Skip the `enable` commands for devices that already exist and compare their options. The different stdout/stderr paths make it possible to tell the devices apart. The same request can appear in both the HMAC and the raw logs: count unique request IDs, not lines.
 
-## 3. Preparar ConfigMaps y la contraseña Grafana
+## 3. Prepare the ConfigMaps and the Grafana password
 
-[stack.yaml](../../chatbot/observability/stack.yaml) despliega Grafana, Tempo, Loki y Alloy, con volúmenes persistentes y servicios internos. Alloy tiene un Role/RoleBinding en `vault` para leer pods y logs; su ServiceAccount vive en `lumen-observability`.
+[stack.yaml](../../chatbot/observability/stack.yaml) deploys Grafana, Tempo, Loki and Alloy, with persistent volumes and internal services. Alloy has a Role/RoleBinding in `vault` to read pods and logs; its ServiceAccount lives in `lumen-observability`.
 
 ```bash
 export VAULT_NAMESPACE=verify
@@ -67,7 +67,7 @@ for item in 'loki-config:loki.yaml' 'tempo-config:tempo.yaml' 'alloy-config:conf
 done
 ```
 
-Solo si no existe `secrets/chatbot/observability`, generar la credencial:
+Only if `secrets/chatbot/observability` does not exist yet, generate the credential:
 
 ```bash
 openssl rand -hex 24 | tr -d '\n' > "$MANUAL/grafana-password"
@@ -76,7 +76,7 @@ jq -n --rawfile password "$MANUAL/grafana-password" \
   vault kv put -mount=secrets chatbot/observability -
 ```
 
-Leerla desde Vault y usarla como Secret Kubernetes. En una Grafana ya inicializada, cambiar el Secret no rota automáticamente su contraseña persistida; conservar la credencial existente.
+Read it from Vault and use it as a Kubernetes Secret. On a Grafana instance that is already initialized, changing the Secret does not automatically rotate its persisted password; keep the existing credential.
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/observability | \
@@ -90,11 +90,11 @@ for name in grafana tempo loki alloy; do
 done
 ```
 
-Versiones fijadas en el manifiesto: Grafana 13.2.4, Loki 3.7.8, Tempo 2.10.8 y Alloy **v1.21.0-rc.0**. Alloy es una versión candidata elegida por la corrección de pérdida de eventos al intercalar timestamps; no se presenta como una versión estable. [Incidencia y validación de esta demo](../E2E_OPENAI_VERIFICATION.md).
+Versions pinned in the manifest: Grafana 13.2.4, Loki 3.7.8, Tempo 2.10.8 and Alloy **v1.21.0-rc.0**. Alloy is a release candidate, chosen for its fix for lost events when timestamps are interleaved; it is not presented as a stable release. [Issue and validation for this demo](../E2E_OPENAI_VERIFICATION.md).
 
-## 4. Abrir los puertos locales
+## 4. Open the local ports
 
-Cada comando ocupa su propia terminal; mantenerlas abiertas. No duplicar un forward existente:
+Each command needs its own terminal; keep them open. Do not duplicate an existing forward:
 
 ```bash
 kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/grafana 3000:3000
@@ -108,7 +108,7 @@ kubectl --context workshop -n lumen-observability port-forward --address 127.0.0
 kubectl --context workshop -n lumen-observability port-forward --address 127.0.0.1 svc/loki 3100:3100
 ```
 
-Comprobar salud desde la terminal principal:
+Check health from the main terminal:
 
 ```bash
 curl --fail --silent --show-error http://127.0.0.1:3000/api/health
@@ -116,22 +116,22 @@ curl --fail --silent --show-error http://127.0.0.1:3200/ready
 curl --fail --silent --show-error http://127.0.0.1:3100/ready
 ```
 
-## 5. Acceder y correlacionar peticiones
+## 5. Access and correlate requests
 
-Grafana: [dashboard Lumen](http://localhost:3000/d/lumen-iam), usuario `lumen-admin`. En macOS copiar su contraseña sin imprimirla:
+Grafana: [Lumen dashboard](http://localhost:3000/d/lumen-iam), user `lumen-admin`. On macOS, copy its password without printing it:
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/observability | jq -jr .data.data.password | pbcopy
 ```
 
-La app exporta OTLP a `http://127.0.0.1:4318/v1/traces`; Alloy recoge los audit logs de Vault y los manda a Loki. La cabecera W3C `traceparent` une ambos. El detalle `vault.request_id` permite identificar el par request/response; las llamadas hechas con Vault CLI producen audit logs pero **no crean spans de Lumen automáticamente**.
+The app exports OTLP to `http://127.0.0.1:4318/v1/traces`; Alloy collects the Vault audit logs and sends them to Loki. The W3C `traceparent` header links the two. The `vault.request_id` detail identifies the request/response pair; calls made with the Vault CLI produce audit logs but **do not create Lumen spans automatically**.
 
-Después de una acción UI, abrir **Ver última traza → Ver en Grafana** (**View latest trace → View in Grafana** en inglés). El visor de Lumen muestra primero el diagrama de llamadas, con iconos de los servicios, filtro de destino y detalles al seleccionar una flecha. **EN / ES** cambia títulos, explicaciones y paginación; los nombres técnicos y valores capturados se conservan. En laboratorio, **Ver valores sensibles / View sensitive values** abre OAuth/HTTP Basic, SVID, credenciales dinámicas y cuerpos de la operación correspondiente. [Alcance y retención del visor](../../chatbot/OBSERVABILITY.md#valores-de-cada-llamada) · [Comprobar idiomas](10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+After a UI action, open **Ver última traza → Ver en Grafana** (**View latest trace → View in Grafana** in English). The Lumen viewer first shows the call diagram, with service icons, a destination filter and details when you select an arrow. **EN / ES** switches titles, explanations and pagination; technical names and captured values are kept as they are. In the lab, **Ver valores sensibles / View sensitive values** opens the OAuth/HTTP Basic credentials, SVID, dynamic credentials and bodies of the corresponding operation. [Viewer scope and retention](../../chatbot/OBSERVABILITY.md#valores-de-cada-llamada) · [Check languages](10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
-También se puede consultar con el Trace ID real de esa acción:
+You can also query using the real Trace ID of that action:
 
 ```bash
-read -r -p 'Trace ID (32 caracteres hex): ' TRACE_ID
+read -r -p 'Trace ID (32 hex characters): ' TRACE_ID
 [[ "$TRACE_ID" =~ ^[0-9a-f]{32}$ ]]
 curl --fail --silent --show-error "http://127.0.0.1:3200/api/traces/$TRACE_ID" \
   > "$MANUAL/trace.json"
@@ -142,15 +142,17 @@ curl --fail --silent --show-error --get http://127.0.0.1:3100/loki/api/v1/query_
 jq '[.data.result[].values[]]|length' "$MANUAL/audit-trace.json"
 ```
 
-En Loki Explore, usar `{service="vault-audit",audit_mode="raw"}` y filtrar por Trace ID o `request.id`. En Tempo se ven modelo, prompts/respuestas, herramientas, OBO y llamadas Vault. Los JSON completos pueden contener secretos del laboratorio: conservarlos en `$MANUAL`.
+In Loki Explore, use `{service="vault-audit",audit_mode="raw"}` and filter by Trace ID or `request.id`. Tempo shows the model, prompts/responses, tools, OBO and Vault calls. The complete JSON files may contain lab secrets: keep them in `$MANUAL`.
 
-Campos explícitos del SVID en modo raw: `spiffe.jwt_svid`, `spiffe.jwt_svid.decoded`, `openai.exchange.subject_token`. Los JWT de acceso a Vault aparecen en `vault.auth.jwt`; petición y respuesta completas, en `vault.http.request` / `vault.http.response`. El visor también muestra `guardrail.energy_scope`. [Contenido y alcance del traceo](../ENERGY_SCOPE_AND_SVID.md).
+Explicit SVID fields in raw mode: `spiffe.jwt_svid`, `spiffe.jwt_svid.decoded`, `openai.exchange.subject_token`. The Vault access JWTs appear in `vault.auth.jwt`; the complete request and response, in `vault.http.request` / `vault.http.response`. The viewer also shows `guardrail.energy_scope`. [Tracing content and scope](../ENERGY_SCOPE_AND_SVID.md).
 
-Fuentes locales: [enable-audit.sh](../../chatbot/scripts/enable-audit.sh), [config.alloy](../../chatbot/observability/config.alloy), [datasources.yaml](../../chatbot/observability/datasources.yaml), [dashboard.json](../../chatbot/observability/dashboard.json).
+Local sources: [enable-audit.sh](../../chatbot/scripts/enable-audit.sh), [config.alloy](../../chatbot/observability/config.alloy), [datasources.yaml](../../chatbot/observability/datasources.yaml), [dashboard.json](../../chatbot/observability/dashboard.json).
 
-## Actualizar el filtro SPIFFE de una instalación existente
+<a id="actualizar-el-filtro-spiffe-de-una-instalación-existente"></a>
 
-El filtro raw anterior solo incluía OpenAI. Para correlacionar también Claude, actualizar únicamente el dispositivo dedicado a SPIFFE; conservar el audit general activo. No es necesario para cambiar de proveedor desde el banner si el filtro ya incluye ambos roles.
+## Update the SPIFFE filter of an existing installation
+
+The previous raw filter only included OpenAI. To also correlate Claude, update only the device dedicated to SPIFFE; keep the general audit device active. This is not needed to switch providers from the banner if the filter already includes both roles.
 
 ```bash
 source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/manual/session.sh"

@@ -1,38 +1,38 @@
-# 13 · Repetir las guías desde cero por script
+# 13 · Rerun the guides from scratch by script
 
-Para avanzar paso a paso o reanudar una instalación incompleta, utiliza el [recorrido guiado](PASO-A-PASO.md). El ensayo de este capítulo es distinto: su operación `rebuild` retira recursos y reconstruye el laboratorio.
+To proceed step by step or resume an incomplete installation, use the [guided walkthrough](PASO-A-PASO.md). The rehearsal in this chapter is different: its `rebuild` operation removes resources and rebuilds the lab.
 
-[Índice](README.md) · Requiere [00](00-entorno.md) · [Resultado de la validación](VALIDACION.md)
+[Index](README.md) · Requires [00](00-entorno.md) · [Validation results](VALIDACION.md)
 
-Este ensayo ejecuta los bloques Bash de los capítulos 00–10, incluyendo siempre xAI, OpenAI y Claude, en su orden de dependencia. Extrae los comandos directamente del Markdown y registra el hash SHA-256 de cada bloque ejecutado. Los bloques que invocan un archivo ejecutan ese archivo del repositorio; el capítulo 04 utiliza comandos independientes para runtime, grupos y bootstrap. No llama a `demo.sh start`. Vault se configura mediante su CLI; las APIs externas se invocan con curl.
+This rehearsal runs the Bash blocks from chapters 00–10, always including xAI, OpenAI and Claude, in dependency order. It extracts the commands directly from the Markdown and records the SHA-256 hash of each block it runs. Blocks that invoke a file run that file from the repository; chapter 04 uses separate commands for the runtime, groups and bootstrap. It does not call `demo.sh start`. Vault is configured through its CLI; external APIs are called with curl.
 
-## 1. Preparar las entradas
+## 1. Prepare the inputs
 
-Completar `.env` según 00 y arrancar el motor de contenedores. Para repetir con OpenAI deben estar guardados `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID` y `OPENAI_IDENTITY_PROVIDER_ID`, además de la Admin API key y ngrok. Para Claude se conservan los cinco IDs WIF de [08](08-claude-spiffe.md) y se prepara el perfil OAuth administrativo `lumen-admin`. La instalación sincroniza las nuevas claves públicas por la API oficial antes del primer intercambio. Los recursos WIF externos se conservan.
+Complete `.env` as described in 00 and start the container engine. To rerun with OpenAI, `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID` and `OPENAI_IDENTITY_PROVIDER_ID` must be saved, along with the Admin API key and ngrok. For Claude, the five WIF IDs from [08](08-claude-spiffe.md) are kept and the administrative OAuth profile `lumen-admin` is prepared. The installation synchronizes the new public keys through the official API before the first exchange. External WIF resources are kept.
 
-Las cuentas de prueba son usuarios Cloud Directory con contraseña activa, sin MFA exigido por una política adicional. El script se detiene si encuentra MFA, cambio de contraseña o un formulario desconocido. No evita esos controles ni utiliza el grant de contraseña ROPC. Perl analiza HTML recibido por curl; no controla un navegador.
+The test accounts are Cloud Directory users with an active password and no MFA required by an additional policy. The script stops if it encounters MFA, a password change or an unknown form. It does not bypass those controls or use the ROPC password grant. Perl parses the HTML received by curl; it does not drive a browser.
 
-## 2. Retirar y reconstruir
+## 2. Remove and rebuild
 
-### Si el clúster estaba detenido
+### If the cluster was stopped
 
-La retirada necesita consultar Kubernetes y revocar los leases xAI en el Vault
-anterior. Si el Mac o Podman se reiniciaron, recuperar primero ese despliegue.
-Comprobar `podman machine list` y arrancar la VM solo si está detenida:
+Removal needs to query Kubernetes and revoke the xAI leases in the previous
+Vault. If the Mac or Podman restarted, recover that deployment first.
+Check `podman machine list` and start the VM only if it is stopped:
 
 ```bash
 podman machine start podman-machine-default
 ```
 
-Si `minikube status -p workshop` no muestra el API server en ejecución:
+If `minikube status -p workshop` does not show the API server running:
 
 ```bash
 minikube start -p workshop
 ```
 
-Un Vault con Shamir vuelve a quedar sellado al reiniciar sus pods. Desde Bash,
-desellar las tres réplicas con las claves del despliegue existente, sin volver
-a inicializarlo ni regenerar sus certificados:
+A Vault using Shamir seals again when its pods restart. From Bash,
+unseal the three replicas with the existing deployment's keys, without
+reinitializing it or regenerating its certificates:
 
 ```bash
 state="${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}"
@@ -46,71 +46,71 @@ kubectl --context workshop -n vault wait --for=condition=Ready \
   pod/vault-0 pod/vault-1 pod/vault-2 --timeout=120s
 ```
 
-Continuar solo si las tres réplicas están Ready. Si faltan las claves, recuperar
-el bootstrap correspondiente antes de retirar recursos: borrar los volúmenes
-de Vault impediría revocar las claves externas que aún gestionan sus leases.
-La simulación `bash demo.sh remove --dry-run` inventaría recursos, pero no prueba
-que Vault esté desellado ni ejecuta la revocación.
+Continue only if the three replicas are Ready. If the keys are missing, recover
+the corresponding bootstrap before removing resources: deleting the Vault
+volumes would prevent revoking the external keys that its leases still manage.
+The `bash demo.sh remove --dry-run` simulation inventories resources, but it does not prove
+that Vault is unsealed and does not perform the revocation.
 
-### Ejecutar el ciclo
+### Run the cycle
 
-Desde la raíz del workspace:
+From the workspace root:
 
 ```bash
 bash scripts/manual/rehearse.sh rebuild
 ```
 
-El comando inventaría la retirada con `demo.sh remove --dry-run`, detiene los procesos manuales registrados, ejecuta `demo.sh remove`, comprueba que los tres namespaces han desaparecido e instala desde los bloques de las guías. Los procesos de Lumen y los forwards quedan activos para mostrar después la demo.
+The command inventories the removal with `demo.sh remove --dry-run`, stops the registered manual processes, runs `demo.sh remove`, checks that the three namespaces are gone and installs from the guide blocks. The Lumen processes and the forwards stay running so the demo can be shown afterwards.
 
-En macOS, `caffeinate -ims` inhibe la suspensión por inactividad, del disco y del sistema mientras dura el ensayo; la inhibición de suspensión del sistema requiere alimentación de corriente. El paso 01 comprueba el reloj de la VM y sincroniza Podman si quedó atrasado tras una suspensión anterior. Mantén el equipo abierto y conectado durante la ejecución. Una suspensión forzada o cerrar la tapa puede interrumpir la red y dejar caducar credenciales de cinco minutos; ese ensayo se considera fallido, no se oculta como resultado correcto.
+On macOS, `caffeinate -ims` inhibits idle, disk and system sleep for the duration of the rehearsal; inhibiting system sleep requires AC power. Step 01 checks the VM clock and synchronizes Podman if it fell behind after an earlier sleep. Keep the computer open and plugged in during the run. A forced sleep or closing the lid can interrupt the network and let five-minute credentials expire; that rehearsal is considered failed, and it is not hidden as a successful result.
 
-Se eliminan los recursos de Lumen en los namespaces Kubernetes `vault`, `mysql` y `lumen-observability`, sus volúmenes, las apps/STS/usuarios/grupos de Lumen en Verify y el estado operativo retirado por `remove`. Se conservan `.env`, el cliente administrativo y esquema RAR compartido de Verify, el proyecto/cuenta/mapping OpenAI, el perfil Minikube, la caché de imágenes y los recursos ajenos a Lumen. Por tanto, este ensayo reconstruye el laboratorio sobre sus cuentas externas preparadas; no recrea esas cuentas.
+The following are deleted: the Lumen resources in the Kubernetes namespaces `vault`, `mysql` and `lumen-observability`, their volumes, the Lumen apps/STS/users/groups in Verify and the operational state removed by `remove`. The following are kept: `.env`, Verify's administrative client and shared RAR schema, the OpenAI project/account/mapping, the Minikube profile, the image cache and resources unrelated to Lumen. Therefore, this rehearsal rebuilds the lab on top of its prepared external accounts; it does not recreate those accounts.
 
-Se habilita audit inmediatamente después de inicializar Vault. Las tres ramas se configuran siempre. `LUMEN_MODEL_PROVIDER` solo establece el proveedor inicial del banner; no controla qué ramas se instalan o verifican. Antes de retirar recursos se exige que estén presentes las credenciales y los IDs externos de las tres integraciones. Los pasos condicionales de creación del proyecto/cuenta OpenAI se omiten al reutilizar sus IDs.
+Audit is enabled immediately after initializing Vault. All three branches are always configured. `LUMEN_MODEL_PROVIDER` only sets the banner's initial provider; it does not control which branches are installed or verified. Before removing resources, the credentials and external IDs of all three integrations must be present. The conditional steps that create the OpenAI project/account are skipped when their IDs are reused.
 
-`rebuild` e `install` terminan la instalación local, generan `claude-jwks.json` dentro del directorio de ejecución y sincronizan el emisor existente. El resultado se comprueba mediante una lectura posterior de la API. Continuar con las pruebas reales:
+`rebuild` and `install` finish the local installation, generate `claude-jwks.json` inside the run directory and synchronize the existing issuer. The result is checked by a subsequent API read. Continue with the real tests:
 
 ```bash
 bash scripts/manual/rehearse.sh verify
 ```
 
-La ruta del informe pendiente se guarda en `$MANUAL/pending-verification-run`. Al ejecutar `verify` en una terminal nueva se reutiliza esa ruta, se finaliza el resultado del ciclo y solo entonces se retira la marca pendiente. Si la validación falla, la marca se conserva para diagnosticar y reintentar. Para verificar un despliegue distinto, indicar explícitamente `MANUAL_RUN` con un directorio nuevo.
+The path of the pending report is saved in `$MANUAL/pending-verification-run`. When `verify` runs in a new terminal, it reuses that path, finalizes the cycle result and only then removes the pending marker. If validation fails, the marker is kept for diagnosis and retry. To verify a different deployment, set `MANUAL_RUN` explicitly to a new directory.
 
-La instalación y la verificación funcional se ejecutan como fases separadas. La fase `verify` ejecuta los bloques 8–14 de Claude, precedidos por su bloque de entorno, incluida la inferencia y el replay negativo, antes de los recorridos generales.
+Installation and functional verification run as separate phases. The `verify` phase runs Claude's blocks 8–14, preceded by its environment block, including inference and the negative replay, before the general walkthroughs.
 
-Los comandos de port-forward, ngrok, publicación JWKS y Lumen necesitan procesos
-activos. En una terminal normal, mantener abiertas las terminales correspondientes
-o usar el mecanismo de segundo plano del ensayo. `nohup` protege frente a SIGHUP,
-pero no frente a un ejecutor que elimine todo su árbol de procesos al cerrar una
-sesión. Si se usa uno de estos ejecutores, lanzar los mismos comandos en sesiones
-independientes y volver a comprobar `/health`, los puertos y las JWKS públicas
-después de cerrar la terminal de aprovisionamiento.
+The port-forward, ngrok, JWKS publishing and Lumen commands need running
+processes. In a normal terminal, keep the corresponding terminals open
+or use the rehearsal's background mechanism. `nohup` protects against SIGHUP,
+but not against a runner that kills its entire process tree when a
+session closes. If you use one of those runners, launch the same commands in independent
+sessions and check `/health`, the ports and the public JWKS again
+after closing the provisioning terminal.
 
-### Volúmenes `Released` después de reiniciar Minikube
+### `Released` volumes after restarting Minikube
 
-En la reconstrucción del 23/10, los namespaces desaparecieron pero los diez PV
-quedaron en `Released`, con política `Delete`. El provisionador registró
-`identity annotation on PV does not match ours`: su identidad había cambiado
-al reiniciar. Es el comportamiento descrito en la
-[incidencia de Minikube #16140](https://github.com/kubernetes/minikube/issues/16140).
-La retirada espera a que desaparezcan los PV; mientras no ocurra, conserva las
-claves de recuperación y no marca el borrado como completado.
+In the October 23 rebuild, the namespaces disappeared but the ten PVs
+stayed `Released`, with a `Delete` policy. The provisioner logged
+`identity annotation on PV does not match ours`: its identity had changed
+on restart. This is the behavior described in
+[Minikube issue #16140](https://github.com/kubernetes/minikube/issues/16140).
+Removal waits for the PVs to disappear; until that happens, it keeps the
+recovery keys and does not mark the deletion as complete.
 
-Comprobar la causa antes de actuar:
+Check the cause before acting:
 
 ```bash
 kubectl --context workshop get pv
 kubectl --context workshop -n kube-system logs storage-provisioner --tail=100
 ```
 
-Para este caso concreto, en el perfil **workshop de un solo nodo**, se puede
-retirar el directorio hostPath de cada volumen del inventario y después su objeto
-PV. El bloque siguiente exige que los tres namespaces ya no existan, valida todas
-las rutas antes de borrar y solo admite los diez nombres de PVC de esta demo.
-No quitar finalizers ni borrar únicamente el objeto PV: eso podría dejar los
-datos anteriores disponibles para el siguiente despliegue.
+For this specific case, on the **single-node workshop** profile, you can
+remove each inventoried volume's hostPath directory and then its PV
+object. The following block requires that the three namespaces no longer exist, validates all
+paths before deleting and only accepts the ten PVC names of this demo.
+Do not remove finalizers or delete only the PV object: that could leave the
+previous data available to the next deployment.
 
-Desde Bash, con el `remove-plan.json` de la retirada actual:
+From Bash, with the current removal's `remove-plan.json`:
 
 ```bash
 set -euo pipefail
@@ -128,7 +128,7 @@ jq -e --slurpfile plan "$state/remove-plan.json" '
     ([.spec.claimRef.namespace,.spec.claimRef.name]|join("/")|
       test("^(vault/(data|audit)-vault-[012]|mysql/data-mysql-enterprise-0|lumen-observability/(grafana|loki|tempo)-data)$")) and
     .spec.hostPath.path==("/tmp/hostpath-provisioner/"+.spec.claimRef.namespace+"/"+.spec.claimRef.name))
-  then . else error("Inventario no compatible: detener la recuperación") end
+  then . else error("Incompatible inventory: stop the recovery") end
 ' "$state/pv-recovery.json" > "$state/pv-recovery-targets.json"
 jq -r '.[]|[.metadata.name,.metadata.uid,.spec.hostPath.path]|@tsv' \
   "$state/pv-recovery-targets.json" > "$state/pv-recovery-targets.tsv"
@@ -141,47 +141,47 @@ while IFS=$'\t' read -r name uid path; do
 done < "$state/pv-recovery-targets.tsv"
 ```
 
-Si `remove` todavía estaba esperando, continúa al desaparecer el último volumen.
-Si ya agotó su timeout, repetir `bash demo.sh remove` para completar la retirada
-local, comprobar `last-remove.json` y comenzar la instalación. No ejecutar otra
-retirada en paralelo. En este caso se comprobó también la ausencia de cada
-directorio dentro del nodo; la desaparición del namespace por sí sola no basta.
+If `remove` was still waiting, it continues when the last volume disappears.
+If it had already run out of time, repeat `bash demo.sh remove` to complete the local
+removal, check `last-remove.json` and start the installation. Do not run another
+removal in parallel. In this case, the absence of each directory inside the node
+was also checked; the namespace disappearing is not enough on its own.
 
-## 3. Validar los recorridos por script
+## 3. Validate the walkthroughs by script
 
-Después de la sincronización de claves durante la instalación, `verify` ejecuta estas pruebas:
+After the key synchronization during installation, `verify` runs these tests:
 
-- Login de lector, gestor y supervisor mediante Authorization Code + PKCE, con cookies independientes, `state`, nonce y validación de firma/issuer/audiencia/caducidad.
-- Nueve permisos Vault por perfil, catálogo SQL, solicitud con cinco pasos y datos sintéticos, idempotencia, lectura enmascarada y revelado autorizado.
-- Bloqueos Database y decrypt con JWT anteriores y nuevos; retirada del bloqueo y reutilización del JWT todavía válido.
-- Deep Agents con catálogo OBO, búsqueda Tavily y rechazo de preguntas ajenas a energía.
-- Selección por sesión de OpenAI, xAI y Claude sobre un único catálogo: herramientas de catálogo/Tavily, ámbito, modelo de la traza e identidad SPIFFE correspondiente. xAI comprueba además caché reautorizada, reemplazo antes de caducar, bloqueo y revocación.
-- Trazas en Tempo y pares request/response de Vault en Loki correlacionados con cada acción.
+- Reader, writer and supervisor login through Authorization Code + PKCE, with independent cookies, `state`, nonce and signature/issuer/audience/expiration validation.
+- Nine Vault permissions per profile, SQL catalog, five-step application with synthetic data, idempotency, masked read and authorized reveal.
+- Database and decrypt blocks with earlier and new JWTs; removal of the block and reuse of the still-valid JWT.
+- Deep Agents with the OBO catalog, Tavily search and rejection of non-energy questions.
+- Per-session selection of OpenAI, xAI and Claude over a single catalog: catalog/Tavily tools, scope, the trace's model and the corresponding SPIFFE identity. xAI additionally checks the reauthorized cache, replacement before expiration, blocking and revocation.
+- Traces in Tempo and Vault request/response pairs in Loki, correlated with each action.
 
-Las operaciones funcionales usan los servicios reales de la aplicación Python, sin mocks. El aprovisionamiento y los cambios de políticas siguen usando Bash, curl y Vault CLI. Esta prueba no inspecciona visualmente el CSS ni pulsa botones de NiceGUI; esos recorridos visuales se describen en [10](10-aplicacion.md).
+The functional operations use the real services of the Python application, without mocks. Provisioning and policy changes still use Bash, curl and the Vault CLI. This test does not visually inspect the CSS or press NiceGUI buttons; those visual walkthroughs are described in [10](10-aplicacion.md).
 
-Para repetir solo las verificaciones sobre una instalación manual activa:
+To repeat only the verifications on an active manual installation:
 
 ```bash
 bash scripts/manual/rehearse.sh verify
 ```
 
-Cada ejecución guarda una solicitud sintética y emite credenciales temporales. Los bloqueos se retiran al acabar sus pruebas, también si falla una aserción dentro de ellas.
+Each run saves a synthetic application and issues temporary credentials. The blocks are removed when their tests finish, even if an assertion inside them fails.
 
-## 4. Leer las evidencias y detener los procesos
+## 4. Read the evidence and stop the processes
 
-El comando imprime el directorio `docs/runs/<fecha>-manual-script/`. `installation.json` contiene los bloques y sus hashes; `workflows.json`, las aserciones y los IDs de traza. Un ciclo completo añade `before.json`, `after.json`, el inventario de retirada y `result.json`. Este último solo se crea tras terminar ambas fases y exige namespaces con UID nuevos y todas las comprobaciones correctas.
+The command prints the `docs/runs/<date>-manual-script/` directory. `installation.json` contains the blocks and their hashes; `workflows.json`, the assertions and trace IDs. A full cycle adds `before.json`, `after.json`, the removal inventory and `result.json`. The latter is only created after both phases finish, and it requires namespaces with new UIDs and all checks passing.
 
-Los logs detallados, cookies, tokens y contraseñas se guardan en `~/.local/state/lumen-vault-demo/manual/`, con permisos privados. La repetición archiva ese directorio en `manual-archives/` antes de recrearlo; estos archivos privados tampoco deben publicarse. Un fallo detiene la ejecución y deja los logs para diagnóstico: no vuelve a enviar automáticamente POST de creación. El inventario Verify de la retirada permite dos reintentos de GET ante errores transitorios; no repite POST ni DELETE automáticamente. El reloj se comprueba al empezar, antes de configurar cada proveedor de modelos y antes de los workflows.
+Detailed logs, cookies, tokens and passwords are stored in `~/.local/state/lumen-vault-demo/manual/`, with private permissions. The rerun archives that directory in `manual-archives/` before recreating it; these private files must not be published either. A failure stops the run and leaves the logs for diagnosis: it does not automatically resend creation POSTs. The Verify inventory during removal allows two GET retries on transient errors; it does not automatically repeat POST or DELETE. The clock is checked at the start, before configuring each model provider and before the workflows.
 
-Para detener únicamente los procesos iniciados por este ensayo y conservar los recursos:
+To stop only the processes started by this rehearsal and keep the resources:
 
 ```bash
 bash scripts/manual/stop.sh
 ```
 
-Implementación: [runner](../../scripts/manual/rehearse.sh), [instalación de bloques](../../scripts/manual/install.sh), [login OIDC](../../scripts/manual/oidc-login.sh) y [pruebas funcionales](../../scripts/manual/workflows.py).
+Implementation: [runner](../../scripts/manual/rehearse.sh), [block installation](../../scripts/manual/install.sh), [OIDC login](../../scripts/manual/oidc-login.sh) and [functional tests](../../scripts/manual/workflows.py).
 
-## Comprobar las guías sin desplegar
+## Check the guides without deploying
 
-`python3 scripts/manual/validate.py` comprueba los enlaces locales y la sintaxis de todos los bloques Bash y scripts; actualiza `docs/manual/validacion.json`. Las pruebas `cd chatbot && /tmp/vault-chatbot-venv/bin/python -m pytest -q tests/test_manual_configuration.py` ejecutan los bloques de catálogo con un Vault simulado y comprueban la planificación y la reanudación del ensayo. No recrean infraestructura ni emiten credenciales reales. Estos controles no sustituyen el ciclo completo con sus servicios externos.
+`python3 scripts/manual/validate.py` checks the local links and the syntax of all Bash blocks and scripts; it updates `docs/manual/validacion.json`. The tests `cd chatbot && /tmp/vault-chatbot-venv/bin/python -m pytest -q tests/test_manual_configuration.py` run the catalog blocks against a simulated Vault and check the planning and resumption of the rehearsal. They do not recreate infrastructure or issue real credentials. These checks do not replace the full cycle with its external services.

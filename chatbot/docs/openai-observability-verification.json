@@ -1,0 +1,100 @@
+{
+  "checked_at": "2026-10-26T16:04:59Z",
+  "all_passed": true,
+  "traces": [
+    {
+      "trace_id": "97e224f6308f2c3d4cbb6ed5af32afbc",
+      "passed": true,
+      "span_count": 13,
+      "operations": [
+        "lumen.verify.openai_spiffe",
+        "model.credentials",
+        "openai.token_exchange",
+        "model.credentials",
+        "openai.token_exchange",
+        "spiffe.mint_jwt_svid",
+        "verify.client_credentials",
+        "vault.write",
+        "vault.jwks",
+        "spiffe.mint_jwt_svid",
+        "verify.client_credentials",
+        "vault.write",
+        "vault.jwks"
+      ],
+      "raw_capture_checks": [
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        },
+        {
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "http_status": 200,
+          "jwt_bytes": 1356,
+          "jwt_matches_sent_header": true,
+          "jwt_matches_both_audit_events": true,
+          "request_body_matches_audit": true,
+          "vault_response_data_matches_audit": true,
+          "content_complete": true,
+          "passed": true
+        }
+      ],
+      "vault_requests": [
+        {
+          "request_id": "516bd462-0b5c-5dfb-124d-3209e60d6cf1",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "c910e1f9-f546-669a-6e8a-aa3825724c21",
+          "actor": null,
+          "traceparent": "00-97e224f6308f2c3d4cbb6ed5af32afbc-94421025a6d33b7b-01",
+          "audit_mode": "raw"
+        },
+        {
+          "request_id": "78f91f7e-fc69-12bc-ae23-3880018c2e48",
+          "path": "spiffe/.well-known/keys",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": null,
+          "human_or_agent_entity": null,
+          "actor": null,
+          "traceparent": "00-97e224f6308f2c3d4cbb6ed5af32afbc-f6c10695c490ffe6-01",
+          "audit_mode": "hmac"
+        },
+        {
+          "request_id": "87034933-8a76-6830-d5ef-a4fe217096db",
+          "path": "spiffe/.well-known/keys",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": null,
+          "human_or_agent_entity": null,
+          "actor": null,
+          "traceparent": "00-97e224f6308f2c3d4cbb6ed5af32afbc-42f0f6f5d90641b9-01",
+          "audit_mode": "hmac"
+        },
+        {
+          "request_id": "e942f74e-45ab-fdee-c99c-ca71cdc802ea",
+          "path": "spiffe/role/lumen-openai/mintjwt",
+          "namespace": "verify/",
+          "allowed": true,
+          "policies": [
+            "chatbot-openai"
+          ],
+          "human_or_agent_entity": "c910e1f9-f546-669a-6e8a-aa3825724c21",
+          "actor": null,
+          "traceparent": "00-97e224f6308f2c3d4cbb6ed5af32afbc-ac384228728e46e4-01",
+          "audit_mode": "raw"
+        }
+      ]
+    }
+  ]
+}

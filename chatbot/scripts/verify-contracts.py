@@ -6,7 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 import pymysql
 from app.applications import generate_demo_form
-from app.security import AccessDenied,Identity,Session,load_config
+from app.security import Identity,Session,load_config
 from app.services import Services,VaultPermissionDenied,VaultResponseError
 from app.telemetry import span,trace_id
 
@@ -81,7 +81,8 @@ async def main():
     credential=await services.vault_get('database/creds/chatbot-readwrite',token)
     negative_sql('UPDATE energy_applications SET plan_id=plan_id WHERE application_id=%s',(reference,),expected=(1644,))
     checks.append('contracted draft immutable to regular Writer SQL')
-    output=Path(__file__).resolve().parents[2]/'output/pdf/lumen-contrato-verificado.pdf'
+    # The PDF carries the synthetic DNI and IBAN in clear: keep it with the private state.
+    output=Path(os.environ['LUMEN_STATE_DIR'])/'contracts/lumen-contrato-verificado.pdf'
     output.parent.mkdir(parents=True,exist_ok=True);output.write_bytes(document)
     report={'checked_at':datetime.now(timezone.utc).isoformat(),'flow':'contract-ciba','passed':True,
         'client_id':config['contracts']['client_id'],'validator_subject':config['contracts']['validator_subject'],

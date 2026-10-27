@@ -8,7 +8,7 @@ if jq -e '.permission_probe | .version==1 and
   (.dni.value|type=="string" and length>0) and (.dni.token|type=="string" and length>0) and
   (.iban.value|type=="string" and length>0) and (.iban.token|type=="string" and length>0)' \
   "$TMP_WORK/runtime.json" >/dev/null; then
-  echo 'Datos ficticios de comprobación ya preparados.'
+  echo 'Synthetic probe data already prepared.'
   exit 0
 fi
 jq -n '{version:1,profile_plaintext:("lumen-permission-probe"|@base64),
@@ -27,4 +27,4 @@ for field in dni iban; do
 done
 jq --slurpfile probe "$TMP_WORK/probe.json" '.permission_probe=$probe[0]' "$TMP_WORK/runtime.json" |
   kv_write chatbot/runtime
-echo 'Datos ficticios preparados para comprobar Transit/Transform mediante OBO.'
+echo 'Synthetic data prepared to test Transit/Transform through OBO.'

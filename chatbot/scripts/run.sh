@@ -3,7 +3,7 @@ set +x
 set -euo pipefail
 umask 077
 cd "$(dirname "$0")/.."
-source "${VAULT_ENV_FILE:-/tmp/vault/config.env}"
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 export CHATBOT_BOOTSTRAP_TOKEN
 CHATBOT_BOOTSTRAP_TOKEN=$(vault token create -format=json -policy=chatbot-bootstrap -no-default-policy -ttl=5m -explicit-max-ttl=5m -display-name=lumen-bootstrap | jq -er .auth.client_token)

@@ -1,98 +1,99 @@
-# 03 · Aplicaciones, RAR, STS y usuarios en IBM Verify
+# 03 · Applications, RAR, STS and users in IBM Verify
 
-[Índice](README.md) · Requiere [01](01-vault.md) · Siguiente: [Vault IAM](04-vault-iam.md)
+[Index](README.md) · Requires [01](01-vault.md) · Next: [Vault IAM](04-vault-iam.md)
 
-**Para ejecutar y reanudar este capítulo**, utiliza `bash scripts/manual/paso-a-paso.sh desde verify-base`. El [recorrido guiado](PASO-A-PASO.md) separa RAR, OIDC, research, STS y usuarios en pasos ejecutables, carga el entorno y renueva el token en cada uno. Los bloques de abajo quedan como referencia detallada de las operaciones.
+**To run and resume this chapter**, use `bash scripts/manual/paso-a-paso.sh desde verify-base`. The [guided walkthrough](PASO-A-PASO.md) splits RAR, OIDC, research, STS and users into executable steps, loads the environment and renews the token in each one. The blocks below remain as a detailed reference of the operations.
 
-Ejecutar cada bloque por separado en la misma sesión **Bash**, desde la raíz del proyecto. Copiar solo su contenido y esperar a que vuelva el prompt `bash-3.2$` (o equivalente) antes de pegar el siguiente. Los comandos simples ocupan una sola línea, aunque el visor los muestre ajustados al ancho de la ventana.
+Run each block separately in the same **Bash** session, from the project root. Copy only its content and wait for the `bash-3.2$` prompt (or equivalent) to return before pasting the next one. Simple commands take a single line, even if the viewer wraps them to the window width.
 
-Si después de pegar un bloque completo la terminal sigue mostrando `>`, pulsar **Ctrl+C** para cancelar la entrada pendiente y volver a copiar ese bloque. No pegar el siguiente ni intentar cerrar a mano una comilla. Los condicionales `if … fi` y el bucle `for … done` se copian completos; mientras Bash los recibe puede mostrar `>`.
+If after pasting a complete block the terminal still shows `>`, press **Ctrl+C** to cancel the pending input and copy that block again. Do not paste the next one or try to close a quote by hand. The `if … fi` conditionals and the `for … done` loop are copied whole; while Bash receives them it may show `>`.
 
-Si un error termina Bash y reaparece el prompt de zsh (`❯`), ejecutar primero `bash` y después los tres bloques de carga de sesión del paso 1. Restaurar también las variables del paso interrumpido, como `ROLE=reader`. Las variables de la sesión Bash anterior no se recuperan en el shell padre. Recargar la vista de este archivo si todavía muestra comandos simples partidos con `\` al final de línea.
+If an error terminates Bash and the zsh prompt (`❯`) reappears, first run `bash` and then the three session-loading blocks from step 1. Also restore the variables of the interrupted step, such as `ROLE=reader`. Variables from the previous Bash session are not recovered in the parent shell. Reload the view of this file if it still shows simple commands split with `\` at the end of the line.
 
-## 1. Obtener un token administrativo
+<a id="1-obtener-un-token-administrativo"></a>
+## 1. Obtain an administrative token
 
-Cargar la sesión del capítulo 00 desde Bash:
+Load the chapter 00 session from Bash:
 
 ```bash
 source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/manual/session.sh"
 ```
 
-Cargar la conexión a Vault:
+Load the Vault connection:
 
 ```bash
 source "$LUMEN_STATE_DIR/vault/config.env"
 ```
 
-Seleccionar el namespace `verify`:
+Select the `verify` namespace:
 
 ```bash
 export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 ```
 
-Guardar la credencial administrativa en el archivo privado:
+Save the administrative credential to the private file:
 
 ```bash
 vault kv get -format=json -mount=secrets verify-admin | jq '.data.data' > "$MANUAL/verify-admin.json"
 ```
 
-Preparar las cabeceras para solicitar el token:
+Prepare the headers to request the token:
 
 ```bash
 jq -jr '"Authorization: Basic "+((.client_id+":"+.client_secret)|@base64)+ "\nContent-Type: application/x-www-form-urlencoded\n"' "$MANUAL/verify-admin.json" > "$MANUAL/verify-basic.headers"
 ```
 
-Solicitar el token administrativo:
+Request the administrative token:
 
 ```bash
 curl --fail --silent --show-error "$TENANT/oauth2/token" --header "@$MANUAL/verify-basic.headers" --data 'grant_type=client_credentials' > "$MANUAL/verify-admin-token.json"
 ```
 
-Preparar las cabeceras para las siguientes llamadas a Verify:
+Prepare the headers for the following calls to Verify:
 
 ```bash
 jq -jer '"Authorization: Bearer "+.access_token+ "\nContent-Type: application/json\nAccept: application/json\n"' "$MANUAL/verify-admin-token.json" > "$MANUAL/verify.headers"
 ```
 
-Repetir este paso si expira el token de administración. `curl --fail` detiene el bloque cuando recibe un error HTTP; no continuar a partir de un JSON vacío. Las respuestas con secretos se guardan en archivos, sin imprimirlas.
+Repeat this step if the administration token expires. `curl --fail` stops the block when it receives an HTTP error; do not continue from an empty JSON. Responses containing secrets are saved to files, without printing them.
 
-Si un script indica `/tmp/vault/config.env: No such file or directory`, actualizar
-`session.sh` con el bloque de creación de sesión de [00](00-entorno.md#3-crear-una-sesión-de-trabajo-reutilizable)
-y volver a cargarlo. Debe exportar `VAULT_ENV_FILE` hacia
-`$LUMEN_STATE_DIR/vault/config.env`, donde el capítulo 01 guardó la conexión.
-No copiar claves antiguas a `/tmp/vault` ni volver a inicializar Vault.
+If a script reports `/tmp/vault/config.env: No such file or directory`, update
+`session.sh` with the session-creation block from [00](00-entorno.md#3-create-a-reusable-working-session)
+and load it again. It must export `VAULT_ENV_FILE` pointing to
+`$LUMEN_STATE_DIR/vault/config.env`, where chapter 01 saved the connection.
+Do not copy old keys to `/tmp/vault` or initialize Vault again.
 
-## 2. Registrar el tipo RAR `vault:path_access`
+## 2. Register the RAR type `vault:path_access`
 
-[rar-schema.json](../../verify/config/rar-schema.json) exige `type`, `path` y `capabilities`; permite `read/create/update/delete/sudo/list/deny` y las propiedades opcionales `allowed_parameters`, `denied_parameters` y `required_parameters`. Rechaza otras propiedades. Los tokens anteriores sin parámetros siguen siendo válidos. Inspeccionar el inventario primero:
+[rar-schema.json](../../verify/config/rar-schema.json) requires `type`, `path` and `capabilities`; it allows `read/create/update/delete/sudo/list/deny` and the optional properties `allowed_parameters`, `denied_parameters` and `required_parameters`. It rejects other properties. Earlier tokens without parameters remain valid. Inspect the inventory first:
 
-Descargar el inventario de tipos RAR:
+Download the inventory of RAR types:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/auth-detail-types" > "$MANUAL/rar-list.json"
 ```
 
-Mostrar las coincidencias de `vault:path_access`:
+Show the `vault:path_access` matches:
 
 ```bash
 jq '[..|objects|select(.type?=="vault:path_access")|{id,type}]|unique' "$MANUAL/rar-list.json"
 ```
 
-Revisar el esquema local:
+Review the local schema:
 
 ```bash
 cat verify/config/rar-schema.json
 ```
 
-Los siguientes pasos crean el tipo solo cuando el inventario anterior no lo contiene. Si existe, conservan su ID. El reconciliador amplía únicamente el esquema anterior conocido de Lumen con los tres campos opcionales; cualquier otra diferencia se trata como conflicto. Conserva descripción, consentimiento y demás ajustes del tipo existente.
+The following steps create the type only when the previous inventory does not contain it. If it exists, they keep its ID. The reconciler only extends Lumen's known previous schema with the three optional fields; any other difference is treated as a conflict. It keeps the description, consent and other settings of the existing type.
 
-Obtener el ID existente. Si hay más de uno, el comando falla:
+Get the existing ID. If there is more than one, the command fails:
 
 ```bash
-RAR_ID=$(jq -r '[..|objects|select(.type?=="vault:path_access")|.id]|unique| if length>1 then error("RAR duplicado") else .[0]//empty end' "$MANUAL/rar-list.json")
+RAR_ID=$(jq -r '[..|objects|select(.type?=="vault:path_access")|.id]|unique| if length>1 then error("Duplicate RAR") else .[0]//empty end' "$MANUAL/rar-list.json")
 ```
 
-Crear el tipo únicamente si falta. **Copiar este condicional completo, desde `if` hasta `fi`, y esperar a que vuelva el prompt:**
+Create the type only if it is missing. **Copy this whole conditional, from `if` to `fi`, and wait for the prompt to return:**
 
 ```bash
 if [ -z "$RAR_ID" ]; then
@@ -102,82 +103,83 @@ if [ -z "$RAR_ID" ]; then
 fi
 ```
 
-Confirmar que existe exactamente un ID:
+Confirm that exactly one ID exists:
 
 ```bash
-RAR_ID=$(jq -er '[..|objects|select(.type?=="vault:path_access")|.id]|unique| if length==1 then .[0] else error("RAR duplicado o ausente") end' "$MANUAL/rar-list.json")
+RAR_ID=$(jq -er '[..|objects|select(.type?=="vault:path_access")|.id]|unique| if length==1 then .[0] else error("Duplicate or missing RAR") end' "$MANUAL/rar-list.json")
 ```
 
-Reconciliar el esquema conocido y descargar su configuración. El script obtiene un token administrativo nuevo y no modifica clientes OAuth ni políticas de Vault:
+Reconcile the known schema and download its configuration. The script obtains a new administrative token and does not modify OAuth clients or Vault policies:
 
 ```bash
 bash verify/scripts/configure-rar.sh
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/auth-detail-types/$RAR_ID" > "$MANUAL/rar-check.json"
 ```
 
-Comparar el esquema de Verify con el archivo local:
+Compare the Verify schema with the local file:
 
 ```bash
 jq -e --slurpfile schema verify/config/rar-schema.json '(.schema|fromjson)==$schema[0]' "$MANUAL/rar-check.json"
 ```
 
-Resultado esperado: **`true`**. Si devuelve `false` o un error, detenerse y revisar antes de continuar.
+Expected result: **`true`**. If it returns `false` or an error, stop and review before continuing.
 
-## 3. Crear las aplicaciones OIDC y de investigación
+<a id="3-crear-las-aplicaciones-oidc-y-de-investigación"></a>
+## 3. Create the OIDC and research applications
 
-La [plantilla OIDC](../../verify/config/oidc-template.json) es el payload de aplicación de Verify (`templateId=998`). Se usan strings `"true"`/`"false"` en los campos de la API que así lo requieren.
+The [OIDC template](../../verify/config/oidc-template.json) is the Verify application payload (`templateId=998`). The strings `"true"`/`"false"` are used in the API fields that require them.
 
-| App | Grant | Uso |
+| App | Grant | Usage |
 |---|---|---|
-| `vault-chatbot-oidc` | Authorization Code + PKCE y Client Credentials | Login humano y actor OBO |
-| `vault-chatbot-research` | Client Credentials | Agente autónomo que recupera Tavily |
-| `vault-chatbot-xai` / `vault-chatbot-openai` | Client Credentials + RAR | Se crean en sus capítulos |
+| `vault-chatbot-oidc` | Authorization Code + PKCE and Client Credentials | Human login and OBO actor |
+| `vault-chatbot-research` | Client Credentials | Autonomous agent that retrieves Tavily |
+| `vault-chatbot-xai` / `vault-chatbot-openai` | Client Credentials + RAR | Created in their own chapters |
 
-Descargar el inventario de aplicaciones:
+Download the application inventory:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/applications" > "$MANUAL/apps.json"
 ```
 
-Mostrar sus nombres y enlaces:
+Show their names and links:
 
 ```bash
 jq '[._embedded.applications[]|{name,url:._links.self.href}]' "$MANUAL/apps.json"
 ```
 
-Revisar la plantilla local:
+Review the local template:
 
 ```bash
 cat verify/config/oidc-template.json
 ```
 
-Los siguientes pasos configuran una aplicación por pasada: primero `oidc` y después `research`. Se reutiliza una app con el nombre exacto o se crea si está ausente. Primero se obtiene su client ID; después se configura `may_act.client_id` en los tokens humanos. El claim `groups` usa el atributo Verify `sourceId=4` del tenant de referencia; comprobar su correspondencia con grupos si se adapta a otro tenant.
+The following steps configure one application per pass: first `oidc` and then `research`. An app with the exact name is reused, or created if it is absent. First its client ID is obtained; then `may_act.client_id` is configured in the human tokens. The `groups` claim uses the Verify attribute `sourceId=4` of the reference tenant; check that it maps to groups if you adapt this to another tenant.
 
-Seleccionar la aplicación. En la primera pasada se usa `oidc`; para la segunda, ejecutar `suffix=research` antes de repetir estos pasos:
+Select the application. The first pass uses `oidc`; for the second one, run `suffix=research` before repeating these steps:
 
 ```bash
 suffix=${suffix:-oidc}
 ```
 
-Construir el nombre de la aplicación:
+Build the application name:
 
 ```bash
 name="vault-chatbot-$suffix"
 ```
 
-Actualizar el inventario:
+Refresh the inventory:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/applications" > "$MANUAL/apps.json"
 ```
 
-Buscar el ID por nombre exacto. Si hay duplicados, el comando falla:
+Look up the ID by exact name. If there are duplicates, the command fails:
 
 ```bash
-app_id=$(jq -r --arg name "$name" '[._embedded.applications[]|select(.name==$name)| ._links.self.href|split("/")[-1]]| if length>1 then error("Nombre duplicado") else .[0]//empty end' "$MANUAL/apps.json")
+app_id=$(jq -r --arg name "$name" '[._embedded.applications[]|select(.name==$name)| ._links.self.href|split("/")[-1]]| if length>1 then error("Duplicate name") else .[0]//empty end' "$MANUAL/apps.json")
 ```
 
-Crear la aplicación solo si falta. **Copiar este condicional completo, desde `if` hasta `fi`:**
+Create the application only if it is missing. **Copy this whole conditional, from `if` to `fi`:**
 
 ```bash
 if [ -z "$app_id" ]; then
@@ -188,73 +190,73 @@ if [ -z "$app_id" ]; then
 fi
 ```
 
-Descargar la configuración de la aplicación:
+Download the application configuration:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/applications/$app_id" > "$MANUAL/app.json"
 ```
 
-Obtener su client ID:
+Get its client ID:
 
 ```bash
 cid=$(jq -er .providers.oidc.properties.clientId "$MANUAL/app.json")
 ```
 
-Preparar la configuración de OIDC y los claims:
+Prepare the OIDC configuration and the claims:
 
 ```bash
 jq --arg cid "$cid" --arg suffix "$suffix" ' .providers.oidc.applicationUrl="http://localhost:8088" | .providers.oidc.properties.redirectUris=["http://localhost:8088/auth/callback"] | .providers.oidc.properties.grantTypes.ropc="false" | .providers.oidc.properties.grantTypes.authorizationCode=(if $suffix=="oidc" then "true" else "false" end) | .providers.oidc.properties.grantTypes.clientCredentials="true" | .providers.oidc.properties.generateRefreshToken="false" | .providers.oidc.properties.accessTokenExpiry=600 | .providers.oidc.token.accessTokenType="jwt" | .providers.oidc.requirePkceVerification="true" | .providers.oidc.token.attributeMappings=(if $suffix=="oidc" then [ {targetName:"may_act",function:{custom:({client_id:$cid}|tojson)}}, {targetName:"groups",sourceId:"4"}] else [] end) ' "$MANUAL/app.json" > "$MANUAL/update-app.json"
 ```
 
-Aplicar la configuración:
+Apply the configuration:
 
 ```bash
 curl --fail --silent --show-error --request PUT --header "@$MANUAL/verify.headers" --data-binary "@$MANUAL/update-app.json" "$TENANT/v1.0/applications/$app_id" > "$MANUAL/updated.json"
 ```
 
-Descargar la configuración resultante:
+Download the resulting configuration:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/applications/$app_id" > "$MANUAL/app-$suffix.json"
 ```
 
-Guardar el ID y la credencial en Vault:
+Save the ID and the credential in Vault:
 
 ```bash
 jq --arg id "$app_id" '{application_id:$id,client_id:.providers.oidc.properties.clientId, client_secret:.providers.oidc.properties.clientSecret}' "$MANUAL/app-$suffix.json" | vault kv put -mount=secrets "chatbot/$suffix" -
 ```
 
-Repetir la configuración anterior con `suffix=research`. Continuar al paso 4 cuando ambas aplicaciones estén configuradas y sus credenciales guardadas en Vault.
+Repeat the configuration above with `suffix=research`. Continue to step 4 once both applications are configured and their credentials saved in Vault.
 
-## 4. Crear el cliente STS para OBO
+## 4. Create the STS client for OBO
 
-[sts.json](../../verify/config/sts.json) exige actor token, emite JWT RS256 de 600 segundos, no concede entitlements administrativos, y solo acepta `vault:path_access`. El mapping `actor-token.sub` toma el sujeto del actor; añadimos la copia del claim `groups` del usuario.
+[sts.json](../../verify/config/sts.json) requires an actor token, issues 600-second RS256 JWTs, grants no administrative entitlements, and only accepts `vault:path_access`. The `actor-token.sub` mapping takes the actor's subject; we add a copy of the user's `groups` claim.
 
-Descargar el inventario de clientes STS:
+Download the inventory of STS clients:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/sts/oauth/clients" > "$MANUAL/sts-list.json"
 ```
 
-Mostrar sus nombres e IDs:
+Show their names and IDs:
 
 ```bash
 jq '.clients[]|{clientName,clientId}' "$MANUAL/sts-list.json"
 ```
 
-Preparar el payload con el claim `groups`:
+Prepare the payload with the `groups` claim:
 
 ```bash
 jq '.clientName="vault-chatbot-sts" | .tokenSettings.introspectMap += [{name:"groups",function:{custom:"requestContext[\"subject_token\"].groups"}}]' verify/config/sts.json > "$MANUAL/sts-payload.json"
 ```
 
-Revisar el payload:
+Review the payload:
 
 ```bash
 cat "$MANUAL/sts-payload.json"
 ```
 
-Actualizar el inventario y crear el cliente STS únicamente si no existe. **Copiar el bloque completo:** el POST solo se ejecuta cuando la consulta acaba correctamente y no hay ninguna coincidencia. Si el nombre ya existe, se omite la creación.
+Refresh the inventory and create the STS client only if it does not exist. **Copy the whole block:** the POST only runs when the query finishes successfully and there is no match. If the name already exists, creation is skipped.
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/sts/oauth/clients" > "$MANUAL/sts-list.json" &&
@@ -263,85 +265,86 @@ if jq -e '[.clients[]|select(.clientName=="vault-chatbot-sts")]|length==0' "$MAN
 fi
 ```
 
-La creación puede devolver **HTTP 201 con el cuerpo vacío**; en ese caso el ID está en la cabecera `Location` de `sts-response.headers`. Un `sts-created.json` vacío no justifica repetir el POST: comprobar el inventario.
+Creation may return **HTTP 201 with an empty body**; in that case the ID is in the `Location` header of `sts-response.headers`. An empty `sts-created.json` does not justify repeating the POST: check the inventory.
 
-Obtener su ID por inventario y guardar la credencial:
+Get its ID from the inventory and save the credential:
 
-Actualizar el inventario:
+Refresh the inventory:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/sts/oauth/clients" > "$MANUAL/sts-list.json"
 ```
 
-Obtener el ID único de `vault-chatbot-sts`:
+Get the unique ID of `vault-chatbot-sts`:
 
 ```bash
-STS_ID=$(jq -er '[.clients[]|select(.clientName=="vault-chatbot-sts")|.clientId]| if length==0 then error("STS ausente: revisar la creación") elif length>1 then error("STS duplicado: contrastar los IDs con la credencial de Vault") else .[0] end' "$MANUAL/sts-list.json")
+STS_ID=$(jq -er '[.clients[]|select(.clientName=="vault-chatbot-sts")|.clientId]| if length==0 then error("STS missing: review the creation") elif length>1 then error("Duplicate STS: compare the IDs with the Vault credential") else .[0] end' "$MANUAL/sts-list.json")
 ```
 
-Si hay duplicados, mostrar las coincidencias con el comando de inventario anterior. Si Vault ya conserva una credencial válida, obtener el ID que usa con `STS_ID=$(vault kv get -mount=secrets -field=client_id chatbot/sts)` y comprobar que corresponde a una de las coincidencias antes de continuar. Si no hay una credencial previa que identifique el cliente, revisar los duplicados antes de seleccionar uno. No elegir el primero del listado ni repetir el POST. La retirada de un duplicado requiere comprobar antes sus dependencias.
+If there are duplicates, show the matches with the previous inventory command. If Vault already holds a valid credential, get the ID it uses with `STS_ID=$(vault kv get -mount=secrets -field=client_id chatbot/sts)` and check that it corresponds to one of the matches before continuing. If there is no previous credential that identifies the client, review the duplicates before selecting one. Do not pick the first one in the list or repeat the POST. Removing a duplicate requires checking its dependencies first.
 
-Descargar su configuración:
+Download its configuration:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" "$TENANT/v1.0/sts/oauth/clients/$STS_ID" > "$MANUAL/sts.json"
 ```
 
-Guardar la credencial en Vault:
+Save the credential in Vault:
 
 ```bash
 jq --arg id "$STS_ID" '{client_id:$id,client_secret:.clientAuthentication.clientSecret}' "$MANUAL/sts.json" | vault kv put -mount=secrets chatbot/sts -
 ```
 
-Comprobar las restricciones del cliente:
+Check the client restrictions:
 
 ```bash
 jq -e '.enabled and .tokenExchangeSettings.actorTokenRequired and .tokenSettings.accessTokenType=="jwt" and .tokenSettings.restrictEntitlements and (.tokenSettings.entitlements|length==0)' "$MANUAL/sts.json"
 ```
 
-Resultado esperado: **`true`**. Si devuelve `false` o un error, detenerse y revisar antes de continuar.
+Expected result: **`true`**. If it returns `false` or an error, stop and review before continuing.
 
-Para actualizar un STS existente, hacer GET, mezclar ese documento con `sts-payload.json` usando `jq -s '.[0]*.[1]'` y hacer PUT al mismo ID; no recrear su secreto.
+To update an existing STS, do a GET, merge that document with `sts-payload.json` using `jq -s '.[0]*.[1]'` and do a PUT to the same ID; do not recreate its secret.
 
-## 5. Crear los tres usuarios de prueba
+<a id="5-crear-los-tres-usuarios-de-prueba"></a>
+## 5. Create the three test users
 
-Las operaciones SCIM usan **Content-Type y Accept `application/scim+json`**. El `Accept: application/json` de las cabeceras administrativas no basta: Verify devuelve HTTP 406 en el PATCH de activación.
+SCIM operations use **Content-Type and Accept `application/scim+json`**. The `Accept: application/json` of the administrative headers is not enough: Verify returns HTTP 406 on the activation PATCH.
 
-Repetir los pasos 5–6 para `ROLE=reader`, `ROLE=writer` y `ROLE=supervisor`. Los bloques siguientes consultan el usuario antes de crearlo y reutilizan su ID si existe. Si la activación quedó pendiente (`pwdReset=true`), completan el cambio de contraseña; si ya estaba completada, lo omiten.
+Repeat steps 5–6 for `ROLE=reader`, `ROLE=writer` and `ROLE=supervisor`. The following blocks look up the user before creating it and reuse its ID if it exists. If activation was left pending (`pwdReset=true`), they complete the password change; if it was already completed, they skip it.
 
-Seleccionar el rol. En la primera pasada se usa `reader`; para las siguientes, ejecutar `ROLE=writer` o `ROLE=supervisor` antes de repetir los pasos 5–6:
+Select the role. The first pass uses `reader`; for the following ones, run `ROLE=writer` or `ROLE=supervisor` before repeating steps 5–6:
 
 ```bash
 ROLE=${ROLE:-reader}
 ```
 
-Guardar la credencial del usuario en el archivo privado:
+Save the user's credential to the private file:
 
 ```bash
 vault kv get -format=json -mount=secrets "chatbot/users/$ROLE" | jq '.data.data' > "$MANUAL/user-credential.json"
 ```
 
-Generar una contraseña inicial distinta de la definitiva:
+Generate an initial password different from the final one:
 
 ```bash
 { printf 'Lu!9'; openssl rand -hex 18; } > "$MANUAL/initial-password"
 ```
 
-Preparar el payload del usuario con `pwdReset=true`. Así, si el POST se completa
-pero se pierde la respuesta, la siguiente ejecución detecta la activación pendiente
-y aplica la contraseña definitiva de Vault. El PATCH posterior elimina esa marca:
+Prepare the user payload with `pwdReset=true`. That way, if the POST completes
+but the response is lost, the next run detects the pending activation
+and applies the final password from Vault. The later PATCH removes that flag:
 
 ```bash
 jq --arg role "$ROLE" --rawfile initial "$MANUAL/initial-password" '{ schemas:["urn:ietf:params:scim:schemas:core:2.0:User", "urn:ietf:params:scim:schemas:extension:ibm:2.0:User", "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification"], userName:.username,password:($initial|rtrimstr("\n")),active:true, name:{givenName:"Lumen",familyName:$role,formatted:("Lumen "+$role)},displayName:("Lumen "+$role), emails:[{type:"work",value:(.username+"@example.invalid"),primary:true}], "urn:ietf:params:scim:schemas:extension:ibm:2.0:User":{ userCategory:"regular",realm:"cloudIdentityRealm",pwdReset:true}, "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification":{notifyType:"NONE"} }' "$MANUAL/user-credential.json" > "$MANUAL/create-user.json"
 ```
 
-Consultar el usuario y crearlo solo si falta. **Copiar el bloque completo.** `created_user` indica si esta pasada acaba de crearlo:
+Look up the user and create it only if it is missing. **Copy the whole block.** `created_user` indicates whether this pass has just created it:
 
 ```bash
 created_user=false
 username=$(jq -er '.userName|select(type=="string" and length>0)' "$MANUAL/create-user.json") &&
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" --header 'Accept: application/scim+json' --get --data-urlencode "filter=userName eq \"$username\"" "$TENANT/v2.0/Users" > "$MANUAL/users-list.json" &&
-USER_ID=$(jq -r --arg name "$username" '[.Resources[]|select(.userName==$name)]|if length>1 then error("Usuario duplicado") else .[0].id//empty end' "$MANUAL/users-list.json") &&
+USER_ID=$(jq -r --arg name "$username" '[.Resources[]|select(.userName==$name)]|if length>1 then error("Duplicate user") else .[0].id//empty end' "$MANUAL/users-list.json") &&
 if [ -z "$USER_ID" ]; then
   curl --fail --silent --show-error --request POST --header "@$MANUAL/verify.headers" --header 'Content-Type: application/scim+json' --header 'Accept: application/scim+json' --data-binary "@$MANUAL/create-user.json" "$TENANT/v2.0/Users" > "$MANUAL/user.json" && created_user=true
 else
@@ -349,29 +352,29 @@ else
 fi
 ```
 
-Continuar solo si el bloque ha terminado correctamente. Si un POST anterior devolvió **409**, volver a ejecutar este bloque de consulta y reutilización; no repetir el POST aislado. Un `user.json` vacío o conservado de otra pasada no confirma el resultado del intento actual.
+Continue only if the block has finished successfully. If a previous POST returned **409**, run this lookup-and-reuse block again; do not repeat the isolated POST. An empty `user.json`, or one kept from another pass, does not confirm the result of the current attempt.
 
-Obtener su ID, comprobando que la respuesta corresponde a la credencial del usuario actual:
-
-```bash
-USER_ID=$(jq -er --slurpfile credential "$MANUAL/user-credential.json" 'if .userName==$credential[0].username and (.id|type)=="string" and (.id|length)>0 then .id else error("Respuesta de otro usuario o sin ID válido") end' "$MANUAL/user.json")
-```
-
-Guardar el ID junto con la credencial en Vault. El JSON se prepara primero en un archivo privado; `&&` ejecuta la escritura solo si la credencial es válida y corresponde a `ROLE`:
+Get its ID, checking that the response corresponds to the current user's credential:
 
 ```bash
-jq -es --arg id "${USER_ID:?Obtén primero un USER_ID válido}" --arg role "$ROLE" 'if length==1 and .[0].username==("lumen-"+$role) and (.[0].password|type)=="string" then .[0]+{user_id:$id} else error("Credencial ausente o de otro usuario") end' "$MANUAL/user-credential.json" > "$MANUAL/user-credential-with-id.json" && vault kv put -mount=secrets "chatbot/users/$ROLE" - < "$MANUAL/user-credential-with-id.json"
+USER_ID=$(jq -er --slurpfile credential "$MANUAL/user-credential.json" 'if .userName==$credential[0].username and (.id|type)=="string" and (.id|length)>0 then .id else error("Response for another user or without a valid ID") end' "$MANUAL/user.json")
 ```
 
-Verify puede exigir cambiar la contraseña inicial. Instalar la contraseña definitiva de `.env` mediante PATCH con el permiso administrativo `manageUsersPwdReset`. Se usa una inicial distinta para no activar la prohibición de reutilización:
+Save the ID together with the credential in Vault. The JSON is first prepared in a private file; `&&` runs the write only if the credential is valid and corresponds to `ROLE`:
 
-Preparar el cambio de contraseña:
+```bash
+jq -es --arg id "${USER_ID:?Obtain a valid USER_ID first}" --arg role "$ROLE" 'if length==1 and .[0].username==("lumen-"+$role) and (.[0].password|type)=="string" then .[0]+{user_id:$id} else error("Credential missing or for another user") end' "$MANUAL/user-credential.json" > "$MANUAL/user-credential-with-id.json" && vault kv put -mount=secrets "chatbot/users/$ROLE" - < "$MANUAL/user-credential-with-id.json"
+```
+
+Verify may require changing the initial password. Install the final password from `.env` through a PATCH with the administrative permission `manageUsersPwdReset`. A different initial password is used so as not to trigger the reuse prohibition:
+
+Prepare the password change:
 
 ```bash
 jq '{schemas:["urn:ietf:params:scim:api:messages:2.0:PatchOp"],Operations:[ {op:"replace",path:"password",value:.password}, {op:"add",path:"urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification:notifyType",value:"NONE"} ]}' "$MANUAL/user-credential.json" > "$MANUAL/activate-user.json"
 ```
 
-Aplicar el cambio solo al usuario recién creado o cuando Verify indica que la activación está pendiente. **Copiar el condicional completo:**
+Apply the change only to a newly created user or when Verify indicates that activation is pending. **Copy the whole conditional:**
 
 ```bash
 if [ "${created_user:-false}" = true ] || jq -e '.["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"].pwdReset==true' "$MANUAL/user.json" >/dev/null; then
@@ -380,41 +383,41 @@ if [ "${created_user:-false}" = true ] || jq -e '.["urn:ietf:params:scim:schemas
 fi
 ```
 
-Descargar el usuario para comprobar su estado:
+Download the user to check its status:
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" --header 'Accept: application/scim+json' "$TENANT/v2.0/Users/$USER_ID" > "$MANUAL/user-check.json"
 ```
 
-Comprobar que está activo y no requiere cambiar la contraseña:
+Check that it is active and does not require a password change:
 
 ```bash
 jq -e '.active and (.["urn:ietf:params:scim:schemas:extension:ibm:2.0:User"].pwdReset!=true)' "$MANUAL/user-check.json"
 ```
 
-Resultado esperado: **`true`**. Si devuelve `false` o un error, detenerse y revisar antes de continuar.
+Expected result: **`true`**. If it returns `false` or an error, stop and review before continuing.
 
-## 6. Crear el grupo y añadir su usuario
+## 6. Create the group and add its user
 
-Para el mismo `ROLE` y `USER_ID` del paso anterior:
+For the same `ROLE` and `USER_ID` from the previous step:
 
-Construir el nombre del grupo:
+Build the group name:
 
 ```bash
 GROUP="chatbot-${ROLE}s"
 ```
 
-Preparar el grupo con el usuario como miembro:
+Prepare the group with the user as a member:
 
 ```bash
 jq -n --arg group "$GROUP" --arg uid "$USER_ID" '{ schemas:["urn:ietf:params:scim:schemas:core:2.0:Group", "urn:ietf:params:scim:schemas:extension:ibm:2.0:Group", "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification"], displayName:$group,members:[{value:$uid,type:"user"}], "urn:ietf:params:scim:schemas:extension:ibm:2.0:Group":{groupType:"standard"}, "urn:ietf:params:scim:schemas:extension:ibm:2.0:Notification":{notifyType:"NONE"} }' > "$MANUAL/create-group.json"
 ```
 
-Consultar el grupo y crearlo solo si falta. Si existe, añadir el usuario únicamente cuando todavía no es miembro. **Copiar el bloque completo:**
+Look up the group and create it only if it is missing. If it exists, add the user only when it is not a member yet. **Copy the whole block:**
 
 ```bash
 curl --fail --silent --show-error --header "@$MANUAL/verify.headers" --header 'Accept: application/scim+json' --get --data-urlencode "filter=displayName eq \"$GROUP\"" "$TENANT/v2.0/Groups" > "$MANUAL/groups-list.json" &&
-GROUP_ID=$(jq -r --arg name "$GROUP" '[.Resources[]|select(.displayName==$name)]|if length>1 then error("Grupo duplicado") else .[0].id//empty end' "$MANUAL/groups-list.json") &&
+GROUP_ID=$(jq -r --arg name "$GROUP" '[.Resources[]|select(.displayName==$name)]|if length>1 then error("Duplicate group") else .[0].id//empty end' "$MANUAL/groups-list.json") &&
 if [ -z "$GROUP_ID" ]; then
   curl --fail --silent --show-error --request POST --header "@$MANUAL/verify.headers" --header 'Content-Type: application/scim+json' --header 'Accept: application/scim+json' --data-binary "@$MANUAL/create-group.json" "$TENANT/v2.0/Groups" > "$MANUAL/group-$ROLE.json"
 else
@@ -427,25 +430,25 @@ else
 fi
 ```
 
-Mostrar el ID, el nombre y los miembros:
+Show the ID, the name and the members:
 
 ```bash
 jq '{id,displayName,members}' "$MANUAL/group-$ROLE.json"
 ```
 
-El archivo `group-$ROLE.json` conserva el ID y los miembros del grupo creado o reutilizado. **Volver al paso 5 para writer y supervisor**. El capítulo 04 asigna estos tres grupos a la aplicación y a políticas de Vault.
+The `group-$ROLE.json` file keeps the ID and members of the created or reused group. **Go back to step 5 for writer and supervisor**. Chapter 04 assigns these three groups to the application and to Vault policies.
 
-## 7. Guardar el inventario de usuarios en Vault
+## 7. Save the user inventory in Vault
 
-El aprovisionamiento también conserva el inventario no secreto en `chatbot/directory`. Después de crear los tres usuarios y grupos:
+Provisioning also keeps the non-secret inventory in `chatbot/directory`. After creating the three users and groups:
 
-Inicializar el inventario local:
+Initialize the local inventory:
 
 ```bash
 printf '[]' > "$MANUAL/directory.json"
 ```
 
-Añadir los tres usuarios y grupos. **Copiar este bucle completo, desde `for` hasta `done`:**
+Add the three users and groups. **Copy this whole loop, from `for` to `done`:**
 
 ```bash
 for role in reader writer supervisor; do
@@ -455,14 +458,14 @@ for role in reader writer supervisor; do
 done
 ```
 
-Guardar el inventario en Vault:
+Save the inventory in Vault:
 
 ```bash
 jq '{users:.}' "$MANUAL/directory.json" | vault kv put -mount=secrets chatbot/directory -
 ```
 
-Si reutilizaste usuarios/grupos existentes, guardar previamente sus IDs reales en los archivos y secretos de los pasos 5–6; no asumir que coinciden con una instalación anterior. `password_reset_required:false` refleja la comprobación del paso 5, que debe haber pasado para las tres cuentas.
+If you reused existing users/groups, first save their real IDs in the files and secrets of steps 5–6; do not assume they match a previous installation. `password_reset_required:false` reflects the check in step 5, which must have passed for all three accounts.
 
-La aplicación usa **Authorization Code + PKCE**, ROPC desactivado y ningún refresh token; son decisiones de este workspace que difieren de ciertos ejemplos simplificados. [Guía oficial Verify/Vault](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
+The application uses **Authorization Code + PKCE**, ROPC disabled and no refresh token; these are decisions of this workspace that differ from certain simplified examples. [Official Verify/Vault guide](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
 
-Fuentes locales: [configure-base.sh](../../verify/scripts/configure-base.sh), [02-verify-apps.sh](../../chatbot/scripts/02-verify-apps.sh), [03-verify-users.sh](../../chatbot/scripts/03-verify-users.sh).
+Local sources: [configure-base.sh](../../verify/scripts/configure-base.sh), [02-verify-apps.sh](../../chatbot/scripts/02-verify-apps.sh), [03-verify-users.sh](../../chatbot/scripts/03-verify-users.sh).

@@ -16,3 +16,6 @@ __pycache__/
 
 .pytest_cache/
 .nicegui/
+
+# Legacy location of the synthetic contract PDF
+output/

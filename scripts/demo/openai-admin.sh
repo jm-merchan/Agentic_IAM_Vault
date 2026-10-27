@@ -12,7 +12,7 @@ request() {
   # Retry transient failures only for reads; never repeat resource creation.
   local retry=()
   [ "$method" != GET ] || retry=(--retry 3 --retry-delay 2 --retry-max-time 150)
-  code=$(curl -sS --connect-timeout 10 --max-time 45 "${retry[@]}" -X "$method" --header "@$work/headers" \
+  code=$(curl -sS --connect-timeout 10 --max-time 45 ${retry[@]+"${retry[@]}"} -X "$method" --header "@$work/headers" \
     --output "$output" --write-out '%{http_code}' "$@" "https://api.openai.com/v1$path")
   case "$code" in 2??) ;; *) fail "OpenAI Admin API rechazó $method $path (HTTP $code)";; esac
 }

@@ -14,7 +14,7 @@ from app.services import Services
 
 def profiles():
     return {
-        'openai': {'provider': 'openai', 'model': 'gpt-4.1-nano', 'credential_source': 'vault_spiffe',
+        'openai': {'provider': 'openai', 'model': 'gpt-5.6-luna', 'credential_source': 'vault_spiffe',
                    'identity_provider_id': 'idp-openai', 'service_account_id': 'account-openai'},
         'anthropic': {'provider': 'anthropic', 'model': 'claude-haiku-5-5', 'credential_source': 'vault_spiffe',
                       'federation_rule_id': 'rule-claude', 'organization_id': 'org-claude',
@@ -193,6 +193,6 @@ else: raise SystemExit(2)
     catalog=json.loads(target.read_text())
     assert set(catalog['providers']) == {'openai','xai','anthropic'}
     assert catalog['provider'] == ('openai' if default=='auto' else default)
-    assert catalog['providers']['openai']['model'] == 'gpt-4.1-nano'
+    assert catalog['providers']['openai']['model'] == 'gpt-5.6-luna'
     assert catalog['providers']['anthropic']['service_account_id'] == 'claude-account'
     assert 'synthetic-only' not in target.read_text()+result.stdout+result.stderr

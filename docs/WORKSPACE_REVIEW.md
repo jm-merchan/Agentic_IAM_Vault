@@ -1,161 +1,162 @@
-# Revisión del workspace
+# Workspace review
 
-## Validación final del repositorio · 22 de octubre de 2026
+## Final repository validation · October 22, 2026
 
-La [validación final](runs/20261022T161825Z-repo-validation/README.md) incorpora
-la explicación de decisiones de Vault y comprueba la alineación del código,
-notebooks, documentación y runtime. Incluye las correcciones de formato de
-respuesta de Loki y enlaces históricos. Los resultados anteriores conservan
-su fecha y alcance.
+The [final validation](runs/20261022T161825Z-repo-validation/README.md) adds
+the explanation of Vault decisions and checks that the code,
+notebooks, documentation and runtime are aligned. It includes the fixes to the Loki
+response format and to historical links. Earlier results keep
+their date and scope.
 
-## Revisión integral de interfaz, documentación y servicios · 22 de octubre de 2026
+## Full review of interface, documentation and services · October 22, 2026
 
-La [revisión detallada](runs/20261022T140230Z-workspace-review/README.md) sustituye las capturas incrustadas en guías activas y
-cuatro notebooks por imágenes de la interfaz actual. El manifiesto conserva
-página, fecha y hash de cada captura. Los informes antiguos mantienen su fecha y
-sus imágenes como evidencia histórica.
+The [detailed review](runs/20261022T140230Z-workspace-review/README.md) replaces the screenshots embedded in active guides and
+four notebooks with images of the current interface. The manifest keeps the
+page, date and hash of each screenshot. Old reports keep their date and
+their images as historical evidence.
 
-Se corrigieron el enlace a la última traza de Solicitudes, la conservación del paso
-de traza al cambiar ES/EN, los nombres de acciones, falsos rechazos del clasificador y el contador de Grafana que
-fallaba al superar 500 series. Se probaron de nuevo los servicios, las matrices
-de autorización y los recorridos de Chrome. El informe enlazado contiene los
-resultados finales, los intentos fallidos y el alcance exacto de cada prueba.
-Pasaron **532 pruebas Python y 2 subtests**, **12 pruebas JavaScript** y
-**137 comprobaciones reales con 54 trazas**. Se revisaron visualmente **45 capturas**.
-La recepción del PDF por Chrome sigue sin acreditarse; se distingue del éxito
-del endpoint y de la integridad ya comprobada en el backend.
+The following were fixed: the link to the latest trace in Applications, keeping the trace
+step when switching ES/EN, action names, false rejections by the classifier and the Grafana counter that
+failed when it exceeded 500 series. The services, the authorization
+matrices and the Chrome walkthroughs were tested again. The linked report contains the
+final results, the failed attempts and the exact scope of each test.
+**532 Python tests and 2 subtests**, **12 JavaScript tests** and
+**137 real checks with 54 traces** passed. **45 screenshots** were reviewed visually.
+Chrome's receipt of the PDF is still not demonstrated; it is distinguished from the success
+of the endpoint and from the integrity already checked in the backend.
 
-## Reinstalación y correcciones verificadas · 22 de octubre de 2026
+## Reinstallation and verified fixes · October 22, 2026
 
-Después de la revisión local descrita abajo se ejecutaron la retirada y la
-reinstalación solicitadas. [Informe y evidencias](runs/20261022T122934Z-full-e2e/README.md).
-La suite final pasó **513 pruebas Python y 2 subtests**, además de **12 pruebas
-JavaScript** y **137 comprobaciones reales**. Los cambios están publicados en
-el runtime; las matrices de agentes, espacios personales, RAR y CIBA también pasaron.
+After the local review described below, the requested teardown and
+reinstallation were run. [Report and evidence](runs/20261022T122934Z-full-e2e/README.md).
+The final suite passed **513 Python tests and 2 subtests**, plus **12 JavaScript
+tests** and **137 real checks**. The changes are published in
+the runtime; the agent, personal space, RAR and CIBA matrices also passed.
 
-| Hallazgo durante la ejecución real | Corrección y evidencia |
+| Finding during the real run | Fix and evidence |
 |---|---|
-| La API administrativa Claude devolvía 404 pese al login OAuth válido | Preflight de acceso real al emisor/regla y modo explícito `api`/`console`. El segundo exporta solo JWKS públicas y deja la sincronización pendiente; la inferencia real sigue siendo obligatoria. Las claves se actualizaron y compararon en la consola. |
-| Un cliente PDF antiguo y deshabilitado ya no exponía `clientId` | La retirada acepta únicamente el nombre, descripción, plantilla y estados exactos de ese recurso; sigue protegiendo el cliente administrador. El configurador CIBA tolera el campo ausente. Pruebas de aceptación y rechazo de recursos ajenos. |
-| Tres dobles HTTP de prueba carecían del `request` que necesita la captura de trazas | Se usan respuestas `httpx.Response` con petición asociada. Suite completa con ambos modos de captura activados. |
-| El guardrail rechazó la frase técnica del harness que nombraba `buscar_en_web` | Se usa una petición natural de autoconsumo solar y se comprueban por separado ámbito, llamada real y fuentes HTTPS. Se conserva el intento fallido; no se modifica el guardrail. |
-| NiceGUI pasaba el cliente al parámetro keyword-only de `Timer.cancel` al cerrar páginas | Callback explícito sin argumentos. La prueba con un cliente real reprodujo el `TypeError` antes del cambio y pasa después; runtime actualizado. |
+| The Claude administrative API returned 404 despite a valid OAuth sign-in | Preflight of real access to the issuer/rule and an explicit `api`/`console` mode. The latter exports only public JWKS and leaves the sync pending; the real inference is still mandatory. The keys were updated and compared in the console. |
+| An old, disabled PDF client no longer exposed `clientId` | Teardown accepts only the exact name, description, template and states of that resource; it still protects the administrator client. The CIBA configurator tolerates the missing field. Tests for accepting it and rejecting unrelated resources. |
+| Three HTTP test doubles lacked the `request` that trace capture needs | `httpx.Response` responses with an associated request are used. Full suite with both capture modes enabled. |
+| The guardrail rejected the harness's technical phrase that named `buscar_en_web` | A natural request about solar self-consumption is used, and scope, the real call and HTTPS sources are checked separately. The failed attempt is kept; the guardrail is not modified. |
+| NiceGUI passed the client to the keyword-only parameter of `Timer.cancel` when closing pages | Explicit callback with no arguments. The test with a real client reproduced the `TypeError` before the change and passes after it; runtime updated. |
 
-La descarga CIBA del backend produjo dos PDFs iguales y el contrato persistió
-tras reiniciar. La recepción del archivo desde Chrome sigue sin confirmarse:
-el botón generó una traza correcta, pero la automatización agotó la espera del
-evento de descarga. El informe distingue esa limitación de las pruebas del backend.
+The backend CIBA download produced two identical PDFs and the contract persisted
+after a restart. Receipt of the file in Chrome is still not confirmed:
+the button generated a correct trace, but the automation timed out waiting for the
+download event. The report distinguishes that limitation from the backend tests.
 
-## Revisión del 22 de octubre de 2026
+<a id="revisión-del-22-de-octubre-de-2026"></a>
+## Review of October 22, 2026
 
-Revisión local de la aplicación, instaladores y documentación. Se contrastaron los
-flujos de OIDC/OBO, modelos, espacios personales y contratación CIBA con sus
-políticas y pruebas. Los cambios se aplicaron a los archivos del repositorio;
-no se desplegaron ni se modificaron recursos de Verify, Vault o MySQL.
+Local review of the application, installers and documentation. The
+OIDC/OBO, model, personal space and CIBA contracting flows were checked against their
+policies and tests. The changes were applied to the repository files;
+no Verify, Vault or MySQL resources were deployed or modified.
 
-| Incoherencia | Corrección y comprobación |
+| Inconsistency | Fix and check |
 |---|---|
-| `pytest` desde la raíz no encontraba `app` y fallaba durante la colección | `pytest.ini` fija la ruta de la aplicación y el directorio de pruebas. La suite completa se ejecuta desde la raíz. |
-| Una respuesta 429/500/503 al leer el catálogo se interpretaba como ausencia de modelos | El arranque falla con un diagnóstico y revoca el bootstrap. Se mantiene el catálogo opcional únicamente para 403/404. Pruebas HTTP simuladas de los cinco casos. |
-| La limpieza periódica CIBA podía vaciar el snapshot o eliminar una petición durante su formalización | La limpieza respeta el bloqueo de la operación; el sondeo vuelve a comprobar la caducidad al adquirirlo. Pruebas de limpieza concurrente y caducidad durante la espera. |
-| Cancelar una tarea CIBA dejaba la petición en `waiting` con datos sensibles y un intercambio que podía haberse consumido | Tanto el inicio como el sondeo pasan a `error`, limpian el estado y propagan la cancelación. Se comprueban ambas interrupciones. |
-| Una descarga PDF en espera conservaba una referencia a una sesión retirada; también podía entregar el PDF después de caducar | Se comprueba la identidad de la sesión y su vigencia tras la espera y antes de entregar el documento. Pruebas HTTP de retirada y caducidad. |
-| El alta de usuarios utilizaba una contraseña provisional con `pwdReset=false`; perder la respuesta del POST podía dejar una credencial distinta de Vault | Se crea con `pwdReset=true` y se completa el PATCH de activación al reanudar. El simulador reproduce un POST completado con respuesta perdida y verifica las tres contraseñas sin recrear usuarios. Manual y script usan el mismo procedimiento. |
-| El notebook 10 conservaba 11 celdas ejecutadas e impedía completar la suite invocada por `demo.sh` | Se conservaron todos los comandos y metadatos; se limpiaron salidas y contadores tras guardar una copia privada completa. |
-| El instalador anunciaba que faltaba sincronizar las JWKS de Claude después de hacerlo | El mensaje final refleja la sincronización ya completada y pide ejecutar la verificación funcional. |
-| La validación estática no cubría el README principal, `demo.sh`, toda la aplicación ni los notebooks | `scripts/manual/validate.py` incorpora esos archivos y detecta salidas guardadas. Un caso con archivos defectuosos comprueba que los cuatro tipos de problema se detectan. |
-| La documentación mezclaba proveedor inicial con requisitos del arranque, JWT OBO con token nativo CIBA y resultados históricos con estado actual | README principal, chatbot, Verify, Okta e índice/manual actualizados. |
+| `pytest` from the root did not find `app` and failed during collection | `pytest.ini` sets the application path and the tests directory. The full suite runs from the root. |
+| A 429/500/503 response when reading the catalog was interpreted as an absence of models | Startup fails with a diagnosis and revokes the bootstrap. The optional catalog is kept only for 403/404. Simulated HTTP tests of the five cases. |
+| The periodic CIBA cleanup could empty the snapshot or delete a request while it was being finalized | The cleanup respects the operation lock; polling checks expiry again when it acquires it. Tests for concurrent cleanup and expiry during the wait. |
+| Cancelling a CIBA task left the request in `waiting` with sensitive data and an exchange that might have been consumed | Both the start and the polling move to `error`, clear the state and propagate the cancellation. Both interruptions are checked. |
+| A pending PDF download kept a reference to a removed session; it could also deliver the PDF after expiry | The session identity and its validity are checked after the wait and before delivering the document. HTTP tests for removal and expiry. |
+| User creation used a temporary password with `pwdReset=false`; losing the POST response could leave a credential different from Vault's | Users are created with `pwdReset=true` and the activation PATCH is completed on resume. The simulator reproduces a completed POST with a lost response and verifies the three passwords without recreating users. Manual and script use the same procedure. |
+| Notebook 10 kept 11 executed cells and prevented the suite invoked by `demo.sh` from completing | All commands and metadata were kept; outputs and counters were cleared after saving a complete private copy. |
+| The installer announced that the Claude JWKS still had to be synced after it had done so | The final message reflects the completed sync and asks you to run the functional verification. |
+| Static validation did not cover the main README, `demo.sh`, the whole application or the notebooks | `scripts/manual/validate.py` includes those files and detects saved outputs. A case with defective files checks that all four problem types are detected. |
+| The documentation mixed the initial provider with startup requirements, the OBO JWT with the native CIBA token and historical results with the current state | Main README, chatbot, Verify, Okta and index/manual updated. |
 
-Las pruebas de las nuevas incidencias se ejecutaron primero contra el código
-anterior y reprodujeron los fallos de catálogo, concurrencia/cancelación CIBA,
-sesión de descarga y respuesta perdida del alta de usuarios.
+The tests for the new issues were first run against the earlier
+code and reproduced the catalog, CIBA concurrency/cancellation,
+download session and lost user-creation response failures.
 
-La copia del notebook con sus salidas originales está fuera del repositorio, en
+The copy of the notebook with its original outputs is outside the repository, in
 `~/.local/state/lumen-code-review/20261022T122212Z/10_OAuth2c_Verify_Vault.ipynb`,
-con permisos `600`. SHA-256 original:
+with `600` permissions. Original SHA-256:
 `cf2299241cacf147a025278de1e76a7d8d6cd1574d9cd473cdf962c57ff4914b`.
-No se reescribió el historial Git ni se ejecutaron las celdas.
+Git history was not rewritten and the cells were not executed.
 
-### Validación local
+### Local validation
 
-Resultado: **505 pruebas Python y 2 subtests correctos** (168,44 s), **12 pruebas
-JavaScript correctas** y cero errores en la validación estática. El entorno Python
-contiene 124 paquetes compatibles. También se analizaron las siete configuraciones
-YAML sin claves duplicadas y los cinco JSON de configuración/aplicación.
+Result: **505 Python tests and 2 subtests passed** (168.44 s), **12 JavaScript
+tests passed** and zero errors in static validation. The Python environment
+contains 124 compatible packages. The seven YAML configurations were also parsed
+with no duplicate keys, as were the five configuration/application JSON files.
 
-Los comandos reproducibles están en [README](../README.md#revisión-y-pruebas-locales).
-El informe de sintaxis, enlaces y notebooks está en
-[validacion.json](manual/validacion.json). Se comprobó también la compatibilidad
-de las dependencias con `uv pip check` y el Terraform archivado con
-`terraform fmt -check` y `terraform validate`, usando los providers ya instalados
-en `~/.local/share/okta-vault-agentic/data`.
+The reproducible commands are in the [README](../README.md#revisión-y-pruebas-locales).
+The syntax, links and notebooks report is in
+[validacion.json](manual/validacion.json). Dependency compatibility was also checked
+with `uv pip check`, and the archived Terraform with
+`terraform fmt -check` and `terraform validate`, using the providers already installed
+in `~/.local/share/okta-vault-agentic/data`.
 
-Estas comprobaciones no incluyen un despliegue, inferencia, aprobación CIBA real,
-pruebas contra los tenants ni una revisión visual en navegador. Las pruebas UI
-Python utilizan la simulación local de NiceGUI. Los informes históricos siguientes
-conservan sus fechas y alcance; no acreditan estos cambios desplegados.
+These checks do not include a deployment, inference, a real CIBA approval,
+tests against the tenants or a visual review in a browser. The Python UI tests
+use the local NiceGUI simulation. The following historical reports
+keep their dates and scope; they do not demonstrate these changes as deployed.
 
-## Revisión del 14 y 15 de octubre de 2026
+## Review of October 14 and 15, 2026
 
-La ruta activa es **Lumen + IBM Verify + Vault Agentic IAM**, con MySQL/KMIP, Transit/Transform, xAI dinámico, Tavily y observabilidad. Okta y el antiguo ejercicio de pagos no forman parte de la ejecución automática.
+The active path is **Lumen + IBM Verify + Vault Agentic IAM**, with MySQL/KMIP, Transit/Transform, dynamic xAI, Tavily and observability. Okta and the old payments exercise are not part of the automated run.
 
-## Ampliación del 15 de octubre
+## October 15 extension
 
-La rama OpenAI usa SPIFFE JWT-SVID y token exchange, conservando OBO para datos y xAI como alternativa. El [notebook 9](../9_OpenAI_Vault_SPIFFE.ipynb) y el [nuevo informe end-to-end](E2E_OPENAI_VERIFICATION.md) documentan la reconstrucción con 11 recursos Verify retirados, nuevas claves SPIFFE y los tres perfiles.
+The OpenAI branch uses SPIFFE JWT-SVID and token exchange, keeping OBO for data and xAI as an alternative. [Notebook 9](../9_OpenAI_Vault_SPIFFE.ipynb) and the [new end-to-end report](E2E_OPENAI_VERIFICATION.md) document the rebuild with 11 Verify resources removed, new SPIFFE keys and the three profiles.
 
-Se añadieron reintentos solo a consultas GET de la API administrativa OpenAI tras un HTTP 503; las creaciones no se repiten automáticamente. La verificación OpenAI exporta trazas por defecto; los informes de pruebas antiguas se retiran al iniciar una comprobación nueva. `configure-model.sh` dirige OpenAI al flujo SPIFFE y deja de pedir una API key estática. Se corrigieron referencias del README, dispositivos de auditoría del notebook 7 y la pérdida de líneas de Alloy con la versión candidata 1.21.0-rc.0. Las entradas siguientes describen la revisión original del 14/10.
+Retries were added only to GET queries against the OpenAI administrative API after an HTTP 503; creations are not repeated automatically. The OpenAI verification exports traces by default; old test reports are removed when a new check starts. `configure-model.sh` routes OpenAI to the SPIFFE flow and no longer asks for a static API key. README references, notebook 7 audit devices and the loss of Alloy lines were fixed with release candidate 1.21.0-rc.0. The following entries describe the original 10/14 review.
 
-## Incoherencias corregidas (14 de octubre)
+## Inconsistencies fixed (October 14)
 
-| Hallazgo | Corrección |
+| Finding | Fix |
 |---|---|
-| Notebook 1 ejecutaba `minikube delete --all`, borraba `/tmp/vault`, inicializaba sin comprobar estado y mataba el proceso de 8443 | `demo.sh` adopta o crea, comprueba inicialización y puertos, conserva claves; la limpieza destructiva es una operación separada y explícita (`remove`) |
-| Port-forward de Vault en `0.0.0.0` y claves de recuperación dependientes de `/tmp` | Nuevos túneles en `127.0.0.1`; bootstrap persistente en el directorio de estado |
-| Estado Helm `failed` por conflicto SSA en el `caBundle` del injector | Misma versión/configuración con aplicación cliente de Helm 4; revisión 3 quedó `deployed` |
-| El despliegue dependía de una imagen local y del código fuente del plugin | Imagen publicada `josemerchan/vault-xai:2.1.2-ent` (AMD64/ARM64); descarga directa desde Docker Hub, sin compilación local |
-| Una instalación vacía se detenía al leer `kmip/config` antes de crearlo | HTTP 404 inicia la configuración; errores de permisos/servidor detienen el proceso sin modificarla. Seis pruebas de regresión |
-| Se reutilizaban túneles que aún escuchaban pero apuntaban a pods eliminados | `start` renueva los túneles del contexto/namespace/ruta esperados bajo `launchd`; rechaza procesos ajenos. Seis pruebas de regresión |
-| Notebook 1 montaba xAI en raíz, pero Lumen usa `verify/xai` | Catálogo global; montaje/configuración del motor de Lumen en `verify` |
-| Notebook 2 reinstalaba UDF, regeneraba certificados, reiniciaba MySQL y simulaba caída KMIP en el flujo normal | Despliegue idempotente; conserva certificados/datos; prueba de `keyring_okv` activo |
-| Notebook 3 dependía de una app `5_Payments_App.ipynb` inexistente y de contraseñas SQL de ejemplo | Notebook centrado en la configuración Lumen RO/RW; conexión y roles raíz existentes se conservan fuera del flujo |
-| 53 celdas con salidas persistidas en notebooks 2–4, incluidas lecturas de credenciales | Notebooks de referencia regenerados sin salidas; originales conservados de forma privada fuera del workspace |
-| Referencia activa a `secrets/xai` como requisito y confusión entre TTL del rol existente y TTL solicitado | Se elimina el requisito estático; petición explícita de 300 s. Rol existente conservado; 5 min/10 min solo como valores de creación |
-| Revocación xAI por prefijo en una celda normal | Prueba de clave desechable y revocación únicamente de su lease |
-| ID concreto de `vault-authn-entry` dentro de `02-verify-apps.sh` | Plantilla OIDC sin credenciales ni ID de instancia en `verify/config/oidc-template.json` |
-| Configuración Vault base dependía de una sesión humana guardada | `configure-base.sh` configura RAR/perfil sin login humano previo; OBO sigue usando login real al ejecutar la aplicación |
-| Research conservaba Authorization Code y refresh tokens de la plantilla | Cliente de búsqueda limitado a Client Credentials |
-| Notebook Verify podía sobrescribir scripts actuales con copias embebidas antiguas | Usa archivos del workspace y verifica sintaxis; no los vuelve a materializar |
-| Documentación indicaba tres dispositivos de auditoría después de añadir xAI | Cuatro: una salida HMAC y tres raw filtradas |
-| CA por defecto en Python apuntaba a `ca.crt`, distinta del bootstrap | Fallback coherente `vault.ca`; ejecución normal utiliza la ruta explícita del estado |
-| Informe del supervisor podía sobrescribir el del lector por compartir rol SQL RO | Informe separado `obo-supervisor.json` |
-| Transform podía producir copias de auditoría con el mismo ID en dos nodos; la copia interna sin `auth` provocaba falsos fallos | Se selecciona la copia raw autenticada y se mantienen las comparaciones completas de JWT, cuerpo y respuesta; tres pruebas de regresión |
-| `nohup` no mantenía los procesos tras terminar la ejecución automatizada; `launchd` no podía acceder al código en Google Drive | Servicios de usuario con copia de runtime fuera de CloudStorage; no se amplían permisos de macOS |
-| `.gitignore` excluía `.hclic`, pero no `vault.hclic` | Patrón `*.hclic`, `.env`, temporales de importación y clave KMIP excluidos |
-| `.env` conservaba `VAULT_TOKEN`, `VAULT_ADDR` y `VAULT_CACERT` antiguos, aunque no eran requisitos del preflight | Retiradas esas entradas; la carga inicial ignora credenciales Vault heredadas y las etapas posteriores cargan el bootstrap privado generado tras init/unseal |
-| Inventario usado por el agente sin tabla en una instalación vacía | `01-database.sh` crea `test_encryption` cifrada y tres equipos ficticios si está vacía; las dos credenciales SQL prueban su lectura |
-| Suspensión de macOS dejaba la VM atrasada y rompía TLS/JWT | Preflight comprueba reloj de Minikube; se documenta sincronización de la VM y suspensión |
-| JWT recién emitidos rechazados con reloj casi idéntico | Perfil OAuth con `clock_skew_leeway=15`, igual que el cliente; seis checks OBO del supervisor repetidos correctamente |
-| Pruebas unitarias añadían spans ficticios al archivo de la demo | `tests/conftest.py` aísla el exportador local y desactiva OTLP durante pytest |
-| Grafana agotaba 768 MiB y su túnel quedaba detenido | Límite de 1536 MiB, objetivo Go de 768 MiB y recuperación de port-forward por `launchd`; reconexión real verificada |
-| Capturas, Trace IDs y recuentos correspondían a despliegues eliminados | Documentación activa enlazada al run fechado; notebooks sin IDs de ejemplo ejecutables antiguos |
+| Notebook 1 ran `minikube delete --all`, deleted `/tmp/vault`, initialized without checking state and killed the process on 8443 | `demo.sh` adopts or creates, checks initialization and ports, and keeps keys; destructive cleanup is a separate and explicit operation (`remove`) |
+| Vault port-forward on `0.0.0.0` and recovery keys dependent on `/tmp` | New tunnels on `127.0.0.1`; persistent bootstrap in the state directory |
+| Helm status `failed` due to an SSA conflict on the injector `caBundle` | Same version/configuration with Helm 4 client-side apply; revision 3 ended up `deployed` |
+| The deployment depended on a local image and on the plugin source code | Published image `josemerchan/vault-xai:2.1.2-ent` (AMD64/ARM64); pulled directly from Docker Hub, with no local build |
+| An empty installation stopped when reading `kmip/config` before creating it | HTTP 404 starts the configuration; permission/server errors stop the process without modifying it. Six regression tests |
+| Tunnels that were still listening but pointed to deleted pods were reused | `start` renews the tunnels for the expected context/namespace/path under `launchd`; it rejects unrelated processes. Six regression tests |
+| Notebook 1 mounted xAI at the root, but Lumen uses `verify/xai` | Global catalog; Lumen's engine mount/configuration in `verify` |
+| Notebook 2 reinstalled UDFs, regenerated certificates, restarted MySQL and simulated a KMIP outage in the normal flow | Idempotent deployment; keeps certificates/data; check that `keyring_okv` is active |
+| Notebook 3 depended on a nonexistent `5_Payments_App.ipynb` app and on sample SQL passwords | Notebook focused on the Lumen RO/RW configuration; the existing root connection and roles are kept outside the flow |
+| 53 cells with persisted outputs in notebooks 2–4, including credential reads | Reference notebooks regenerated without outputs; originals kept privately outside the workspace |
+| Active reference to `secrets/xai` as a requirement and confusion between the existing role's TTL and the requested TTL | The static requirement is removed; explicit 300 s request. Existing role kept; 5 min/10 min only as creation values |
+| xAI revocation by prefix in a normal cell | Test with a disposable key and revocation of only its lease |
+| Specific `vault-authn-entry` ID inside `02-verify-apps.sh` | OIDC template without credentials or instance ID in `verify/config/oidc-template.json` |
+| Base Vault configuration depended on a saved human session | `configure-base.sh` configures RAR/profile without a prior human sign-in; OBO still uses a real sign-in when running the application |
+| Research kept the template's Authorization Code and refresh tokens | Search client limited to Client Credentials |
+| The Verify notebook could overwrite current scripts with old embedded copies | Uses workspace files and checks syntax; does not materialize them again |
+| Documentation stated three audit devices after xAI was added | Four: one HMAC output and three filtered raw ones |
+| The default CA in Python pointed to `ca.crt`, different from the bootstrap | Consistent `vault.ca` fallback; normal runs use the explicit state path |
+| The supervisor report could overwrite the reader's because they share the SQL RO role | Separate `obo-supervisor.json` report |
+| Transform could produce audit copies with the same ID on two nodes; the internal copy without `auth` caused false failures | The authenticated raw copy is selected and the full JWT, body and response comparisons are kept; three regression tests |
+| `nohup` did not keep processes alive after the automated run ended; `launchd` could not access the code on Google Drive | User services with a runtime copy outside CloudStorage; macOS permissions are not widened |
+| `.gitignore` excluded `.hclic`, but not `vault.hclic` | `*.hclic` pattern; `.env`, import temporaries and the KMIP key excluded |
+| `.env` kept old `VAULT_TOKEN`, `VAULT_ADDR` and `VAULT_CACERT` values, although they were not preflight requirements | Those entries removed; the initial load ignores inherited Vault credentials and later stages load the private bootstrap generated after init/unseal |
+| Inventory used by the agent had no table on an empty installation | `01-database.sh` creates the encrypted `test_encryption` table and three fictitious servers if it is empty; both SQL credentials test reading it |
+| macOS sleep left the VM clock behind and broke TLS/JWT | Preflight checks the Minikube clock; VM clock sync and sleep are documented |
+| Freshly issued JWTs rejected with an almost identical clock | OAuth profile with `clock_skew_leeway=15`, same as the client; six supervisor OBO checks repeated successfully |
+| Unit tests added fictitious spans to the demo file | `tests/conftest.py` isolates the local exporter and disables OTLP during pytest |
+| Grafana exhausted 768 MiB and its tunnel stayed stopped | 1536 MiB limit, 768 MiB Go target and port-forward recovery through `launchd`; real reconnection verified |
+| Screenshots, Trace IDs and counts belonged to removed deployments | Active documentation linked to the dated run; notebooks without old runnable sample IDs |
 
-## Secretos y estado
+## Secrets and state
 
-`.env` conserva únicamente entradas externas y contraseñas iniciales, con modo 600. El bootstrap privado de Vault se genera después de init/unseal. La aplicación no hereda el root token. Se comprobó por hash que `.env` no cambió entre retirada y reconstrucción.
+`.env` keeps only external entries and initial passwords, with mode 600. The private Vault bootstrap is generated after init/unseal. The application does not inherit the root token. A hash check confirmed that `.env` did not change between teardown and rebuild.
 
-La eliminación real se ejecutó dos veces: tres namespaces Kubernetes, diez PV y diez recursos de Lumen en Verify. Se verificó el estado vacío y la conservación del cliente administrativo y recursos ajenos. El perfil Minikube y las cachés permanecen. Alcance: [remove](../README.md#volver-a-empezar-desde-cero).
+The real deletion was run twice: three Kubernetes namespaces, ten PVs and ten Lumen resources in Verify. The empty state and the preservation of the administrative client and unrelated resources were verified. The Minikube profile and caches remain. Scope: [remove](../README.md#volver-a-empezar-desde-cero).
 
-## Validación y límites
+## Validation and limits
 
-La evidencia original se concentra en el [informe del 14/10](E2E_VERIFICATION.md); la del ciclo siguiente está en el [informe OpenAI del 15/10](E2E_OPENAI_VERIFICATION.md). Las comprobaciones posteriores, incluido EN/ES del 20/10, se enlazan en [VALIDACION](manual/VALIDACION.md). Describe los dos ciclos, las incidencias corregidas, el arranque posterior de reconciliación, los logins reales y sus resultados. No equivale a certificar un futuro estado: un nuevo `remove` elimina los datos y las trazas de esta ejecución.
+The original evidence is gathered in the [10/14 report](E2E_VERIFICATION.md); the next cycle's evidence is in the [10/15 OpenAI report](E2E_OPENAI_VERIFICATION.md). Later checks, including the EN/ES check of 10/20, are linked in [VALIDACION](manual/VALIDACION.md). It describes both cycles, the fixed issues, the later reconciliation startup, the real sign-ins and their results. It does not certify a future state: a new `remove` deletes the data and traces of this run.
 
-## Evidencia del recorrido completo
+## Evidence of the full walkthrough
 
-Consultar [resultados y capturas históricos del 14/10](E2E_VERIFICATION.md) y el [directorio inmutable de ejecución](runs/20261014T162141Z/manifest.json). Cada captura e informe bajo `chatbot/docs/` acredita la ejecución fechada que lo generó. Las guías activas distinguen esas evidencias de los procedimientos para comprobar el estado actual.
+See the [historical results and screenshots of 10/14](E2E_VERIFICATION.md) and the [immutable run directory](runs/20261014T162141Z/manifest.json). Each screenshot and report under `chatbot/docs/` demonstrates the dated run that produced it. The active guides distinguish that evidence from the procedures for checking the current state.
 
-## Fuentes de contraste
+## Reference sources
 
-- [IBM Verify para Agentic IAM](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
-- [Registro de agentes](https://developer.hashicorp.com/vault/ai/iam/setup-agent).
-- [OAuth Resource Server y tolerancia de reloj](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server).
-- [Vault en Kubernetes](https://developer.hashicorp.com/vault/docs/deploy/kubernetes/helm/run).
+- [IBM Verify for Agentic IAM](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
+- [Agent registry](https://developer.hashicorp.com/vault/ai/iam/setup-agent).
+- [OAuth Resource Server and clock leeway](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server).
+- [Vault on Kubernetes](https://developer.hashicorp.com/vault/docs/deploy/kubernetes/helm/run).

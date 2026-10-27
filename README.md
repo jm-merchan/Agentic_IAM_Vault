@@ -40,7 +40,8 @@ Podman or Docker must be running, with capacity for a Minikube VM with
 **4 CPUs and 8 GiB of memory**. The demo's Kubernetes context is `workshop`.
 
 Install Bash, Python 3, curl, jq, OpenSSL, Vault CLI, kubectl, **Helm 4**, Minikube,
-uv, ngrok, rsync, lsof, and ripgrep. `plutil` and `launchctl` are included with macOS.
+uv, ngrok, rsync, lsof, and ripgrep (only `remove` uses ripgrep). `plutil` and `launchctl`
+are included with macOS.
 Node.js is only required to run the local JavaScript tests. The `ant` CLI is used
 if you choose to synchronize Claude through its administrative API.
 
@@ -72,17 +73,20 @@ individual commands, follow the [manual](docs/manual/README.md).
 
 ### Prepare `.env`
 
-Create the configuration without overwriting an existing file:
+The configuration lives next to the private local state, outside the workspace,
+because the workspace may be a synced folder. Create it without overwriting an
+existing file:
 
 ```bash
-cp -n .env.example .env
+state="${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}"
+mkdir -p "$state" && chmod 700 "$state"
+cp -n .env.example "$state/.env" && chmod 600 "$state/.env"
 ```
 
-```bash
-chmod 600 .env
-```
+Set `DEMO_ENV_FILE` to use another path. A `.env` left in the workspace root still
+works, but every command prints how to move it.
 
-Open `.env` in your editor and complete the entries in [`.env.example`](.env.example):
+Open that `.env` in your editor and complete the entries in [`.env.example`](.env.example):
 
 - Verify tenant and administrative credentials.
 - xAI, OpenAI, Tavily, and Oracle credentials, and the Vault license.
@@ -92,7 +96,7 @@ Open `.env` in your editor and complete the entries in [`.env.example`](.env.exa
   `MINIKUBE_DRIVER` to `docker`.
 
 The OpenAI/Claude federation IDs are filled in during the next step. `.env` uses
-Bash syntax and is excluded from Git. Do not add `VAULT_TOKEN`, `VAULT_ADDR`, or
+Bash syntax and never enters the workspace or Git. Do not add `VAULT_TOKEN`, `VAULT_ADDR`, or
 `VAULT_CACERT`: the installer generates the Vault bootstrap configuration and
 stores it in the private state directory.
 
@@ -119,7 +123,7 @@ just prepared. With the default state directory, copy them as follows:
 
 ```bash
 (
-  source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/vault/config.env"
+  source "${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env"
   export VAULT_ADDR VAULT_TOKEN VAULT_CACERT
   vault read -namespace=verify -format=json spiffe/.well-known/keys |
     jq -c '.data.keys' | pbcopy
@@ -233,8 +237,9 @@ running services and incur actual provider usage. Human login, authorization
 matrices, CIBA, and visual review have additional tests described in their
 chapters; `verify` does not run all of them.
 
-Launcher reports are stored in `~/.local/state/lumen-vault-demo/reports/`, with the
-latest result in `last-run.json`. The [October 22, 2026 run](docs/runs/20261022T122934Z-full-e2e/README.md)
+The latest launcher result is stored in `~/.local/state/lumen-vault-demo/last-run.json`;
+`start`, `verify`, `prepare-openai`, `block`, `unblock`, and `remove` also keep a copy per
+run in `reports/` inside that directory. The [October 22, 2026 run](docs/runs/20261022T122934Z-full-e2e/README.md)
 documents the reinstallation, results, and browser download step that remained
 unconfirmed. The [validation history](docs/manual/VALIDACION.md) preserves other
 runs with their dates and scope.

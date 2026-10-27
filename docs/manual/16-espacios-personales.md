@@ -1,49 +1,49 @@
-# 16 · Espacios de secretos por usuario
+# 16 · Per-user secret spaces
 
-**Mi espacio de secretos** añade un laboratorio de KV v2 con OBO y aislamiento
-por identidad humana, en el namespace `verify`. Conserva la bandeja compartida,
-MySQL, Transit, Transform y las credenciales de los modelos. Estos valores no
-se envían al LLM.
+**Mi espacio de secretos** (*My secret space*) adds a KV v2 lab with OBO and isolation
+by human identity, in the `verify` namespace. It keeps the shared inbox,
+MySQL, Transit, Transform and the model credentials. These values are not
+sent to the LLM.
 
-## Preparación
+## Preparation
 
-Después de `grupos`, con el [runtime Python instalado](10-aplicacion.md#2-instalar-el-runtime),
-ejecutar desde la raíz del repositorio:
+After the `grupos` step, with the [Python runtime installed](10-aplicacion.md#2-instalar-el-runtime),
+run from the repository root:
 
 ```bash
 bash scripts/manual/paso-a-paso.sh ejecutar espacios-personales
 ```
 
-Carga `.env` y la conexión privada de Vault. Requiere los tres usuarios, sus
-entidades humanas y el agente estándar. Incluye los agentes por tarea que
-existan. `./demo.sh start` incorpora el mismo paso. Para cargar únicamente los
-cambios de aplicación en una instalación existente:
+It loads `.env` and the private Vault connection. It requires the three users, their
+human entities and the standard agent. It includes any task agents that
+exist. `./demo.sh start` includes the same step. To load only the
+application changes on an existing installation:
 
 ```bash
 bash scripts/demo/start.sh
 ```
 
-El reinicio termina las sesiones de Lumen; volver a entrar con Verify.
+The restart ends the Lumen sessions; sign in again with Verify.
 
-El instalador añade:
+The installer adds:
 
-- Política `lumen-personal-user` y grupo interno `lumen-personal-users`, con
-  las tres entidades humanas de la demo.
-- Techos `lumen-personal-read` o `lumen-personal-write` a los registros OBO,
-  conservando sus techos y bloqueos anteriores. No concede estos permisos
-  como políticas autónomas a los agentes.
-- Un secreto ficticio `demo` por usuario, solo si nunca ha existido. Conserva
-  valores, versiones y secretos eliminados al repetir.
-- Catálogo de identidades y políticas en `secrets/chatbot/personal-spaces`.
-  El bootstrap puede leer ese catálogo, pero no los valores personales.
+- The `lumen-personal-user` policy and the `lumen-personal-users` internal group, with
+  the demo's three human entities.
+- `lumen-personal-read` or `lumen-personal-write` ceilings on the OBO registrations,
+  keeping their previous ceilings and blocks. It does not grant these permissions
+  to the agents as autonomous policies.
+- One fictitious `demo` secret per user, only if it has never existed. It keeps
+  values, versions and deleted secrets on reruns.
+- A catalog of identities and policies in `secrets/chatbot/personal-spaces`.
+  The bootstrap token can read that catalog, but not the personal values.
 
-Los reconciliadores de agentes y grupos reaplican la extensión si ya estaba
-instalada. Utiliza el mount KV v2 `secrets` y un prefijo independiente,
-`lumen-personal`; no crea motores ni namespaces por persona.
+The agent and group reconcilers reapply the extension if it was already
+installed. It uses the `secrets` KV v2 mount and a separate prefix,
+`lumen-personal`; it does not create engines or namespaces per person.
 
-## Política y alcance
+## Policy and scope
 
-La misma política central se aplica a los tres usuarios:
+The same central policy applies to all three users:
 
 ```hcl
 path "secrets/data/lumen-personal/{{identity.entity.id}}/*" {
@@ -57,139 +57,139 @@ path "secrets/metadata/lumen-personal/{{identity.entity.id}}" {
 }
 ```
 
-Vault resuelve la plantilla con la entidad **humana** del flujo OBO. La ruta
-real contiene su UUID. Cambiar de agente conserva el mismo espacio.
+Vault resolves the template with the **human** entity of the OBO flow. The actual
+path contains its UUID. Switching agents keeps the same space.
 
-## De dónde sale `identity.entity.id` y cómo llega a la autorización
+## Where `identity.entity.id` comes from and how it reaches authorization
 
-Hay dos identidades distintas: la persona que delega y el agente que actúa.
-El UUID que organiza el espacio personal es el de la **persona en Vault**,
-no el ID de usuario de Verify ni el UUID de la entidad del agente.
+There are two distinct identities: the person who delegates and the agent that acts.
+The UUID that organizes the personal space is that of the **person in Vault**,
+not the Verify user ID or the UUID of the agent's entity.
 
-| Momento | Qué ocurre | Dónde comprobarlo |
+| Stage | What happens | Where to check it |
 |---|---|---|
-| Preparar las identidades | `05-sync-groups.sh` crea `chatbot-human-<ID de Verify>`; Vault asigna su UUID. El alias vincula `issuer` de Verify y `external_id` del usuario con ese UUID en `canonical_id`. | Entidad y alias humanos de Vault; el perfil OAuth `verify` identifica al emisor. |
-| Preparar el espacio | `configure-personal-spaces.py` lee ese UUID y publica el catálogo que usa Lumen. Añade la entidad al grupo `lumen-personal-users`, que asigna `lumen-personal-user`. | Catálogo `secrets/chatbot/personal-spaces`, grupo y política en el namespace `verify`. |
-| Crear el primer secreto | El instalador escribe el dato ficticio `demo` en `secrets/data/lumen-personal/<UUID humano>/demo` con su credencial de aprovisionamiento. Las escrituras posteriores desde la pantalla usan OBO. | Ruta KV v2. El campo `owner` del JSON solo describe el dato; no establece su propietario de seguridad. |
-| Obtener la delegación | Lumen presenta a Verify el token humano, el token del agente y el RAR de la operación. El JWT OBO firmado contiene `sub` humano, `actor-token.sub` del agente y `authorization_details`. | Intercambio OBO y JWT de esta ejecución en la traza. |
-| Acceder a Vault | Lumen envía ese JWT en `X-Vault-Token`. Vault lo valida y usa `user_claim=sub` y `actor_claim=actor-token.sub` del perfil OAuth para resolver ambos alias por separado. El alias humano conduce a su `canonical_id`. | Perfil OAuth `verify`, alias humanos y del agente, petición a Vault. |
-| Decidir | Vault expande la plantilla con el UUID humano y exige **políticas humanas ∩ techo del agente ∩ RAR**. La ruta solicitada no decide quién es el usuario. | Respuesta de Vault y auditoría correlacionada con `request_id`. |
+| Prepare the identities | `05-sync-groups.sh` creates `chatbot-human-<Verify ID>`; Vault assigns its UUID. The alias links Verify's `issuer` and the user's `external_id` to that UUID in `canonical_id`. | Human entity and alias in Vault; the `verify` OAuth profile identifies the issuer. |
+| Prepare the space | `configure-personal-spaces.py` reads that UUID and publishes the catalog Lumen uses. It adds the entity to the `lumen-personal-users` group, which assigns `lumen-personal-user`. | `secrets/chatbot/personal-spaces` catalog, group and policy in the `verify` namespace. |
+| Create the first secret | The installer writes the fictitious `demo` data to `secrets/data/lumen-personal/<human UUID>/demo` with its provisioning credential. Later writes from the screen use OBO. | KV v2 path. The JSON's `owner` field only describes the data; it does not establish its security owner. |
+| Obtain the delegation | Lumen presents Verify with the human token, the agent token and the operation's RAR. The signed OBO JWT contains the human `sub`, the agent's `actor-token.sub` and `authorization_details`. | OBO exchange and JWT of this run in the trace. |
+| Access Vault | Lumen sends that JWT in `X-Vault-Token`. Vault validates it and uses the OAuth profile's `user_claim=sub` and `actor_claim=actor-token.sub` to resolve both aliases separately. The human alias leads to its `canonical_id`. | `verify` OAuth profile, human and agent aliases, request to Vault. |
+| Decide | Vault expands the template with the human UUID and requires **human policies ∩ agent ceiling ∩ RAR**. The requested path does not decide who the user is. | Vault response and audit entries correlated by `request_id`. |
 
-Por ejemplo, con un humano `A` y un agente cuyo techo contiene
-`secrets/data/lumen-personal/*`, la política humana se expande a
-`secrets/data/lumen-personal/A/*`. Pedir `secrets/data/lumen-personal/B/demo`
-en el RAR no cambia `A` por `B`: el alias se resuelve desde la identidad del
-token. En la configuración de esta demo, Vault deniega el acceso ajeno aunque
-Verify haya emitido el JWT OBO con HTTP 200.
+For example, with a human `A` and an agent whose ceiling contains
+`secrets/data/lumen-personal/*`, the human policy expands to
+`secrets/data/lumen-personal/A/*`. Requesting `secrets/data/lumen-personal/B/demo`
+in the RAR does not change `A` into `B`: the alias is resolved from the token's
+identity. In this demo's configuration, Vault denies access to someone else's space even if
+Verify issued the OBO JWT with HTTP 200.
 
-El wildcard del Registry permite que el mismo agente atienda espacios de varias
-personas. Cada llamada sigue limitada por la política de la persona concreta.
-Incluso con ruta propia, el techo de Consulta o Revelado impide escribir.
+The wildcard in the Registry lets the same agent serve the spaces of several
+people. Each call is still limited by the specific person's policy.
+Even on their own path, the Consulta or Revelado ceiling prevents writing.
 
-| Usuario | Estándar | Consulta | Creación | Revelado |
+| User | Estándar | Consulta | Creación | Revelado |
 |---|---|---|---|---|
-| Reader | Leer y guardar propios | Leer propios | Leer y guardar propios | Leer propios |
-| Writer | Leer y guardar propios | Leer propios | Leer y guardar propios | Leer propios |
-| Supervisor | Leer y guardar propios | Leer propios | Leer y guardar propios | Leer propios |
-| Acceso a otro propietario | Denegado | Denegado | Denegado | Denegado |
+| Reader | Read and save own | Read own | Read and save own | Read own |
+| Writer | Read and save own | Read own | Read and save own | Read own |
+| Supervisor | Read and save own | Read own | Read and save own | Read own |
+| Access to another owner | Denied | Denied | Denied | Denied |
 
-Esta matriz corresponde al espacio personal. Reader sigue sin crear solicitudes
-compartidas; Supervisor sigue sujeto a su techo de revelado. Cada propietario
-recibe permiso central sobre sus secretos de prueba y el agente puede reducirlo
-a lectura. No se habilita borrado desde esta pantalla.
+This matrix applies to the personal space. Reader still cannot create shared
+applications; Supervisor is still subject to their reveal ceiling. Each owner
+receives central permission over their test secrets, and the agent can reduce it
+to read-only. Deletion is not enabled from this screen.
 
-## Comprobación desde la interfaz
+## Checking from the interface
 
-1. Entra con **Reader + Estándar** y abre **Mi espacio de secretos** en el menú.
-2. Conserva el nombre `demo` y pulsa **Leer secreto**: HTTP 200 y un valor
-   ficticio cuyo propietario es `lumen-reader`.
-3. Pulsa **Listar mi espacio**: aparecen nombres dentro de tu UUID.
-4. Cambia la nota JSON y pulsa **Guardar versión**. Un nombre nuevo permite
-   crear otro secreto. Para modificar uno existente, léelo antes: la escritura
-   lleva `options.cas`; una versión antigua recibe HTTP 400 sin sobrescribir.
-5. En **Comprobar aislamiento entre usuarios**, selecciona Writer o Supervisor
-   y pulsa **Intentar leer el espacio ajeno**: debe devolver HTTP 403.
-6. Abre **Ver petición y resultado**. Comprueba el usuario OBO, el agente,
-   la ruta ajena en `authorization_details`, los IDs de las entidades y el 403
-   de Vault. Lumen no simula el rechazo ni omite esa ruta del RAR.
-7. Cambia al agente **Consulta** y autentica de nuevo el mismo usuario. Su UUID
-   y valores se conservan. Leer funciona; guardar devuelve HTTP 403 por el techo.
-8. Repite como **Supervisor**: no permite leer los secretos personales de Reader.
+1. Sign in with **Reader + Estándar** and open **Mi espacio de secretos** from the menu.
+2. Keep the name `demo` and press **Leer secreto** (*Read secret*): HTTP 200 and a
+   fictitious value whose owner is `lumen-reader`.
+3. Press **Listar mi espacio** (*List my space*): names within your UUID appear.
+4. Change the JSON note and press **Guardar versión** (*Save version*). A new name lets you
+   create another secret. To modify an existing one, read it first: the write
+   carries `options.cas`; an old version receives HTTP 400 without overwriting.
+5. In **Comprobar aislamiento entre usuarios** (*Check isolation between users*), select Writer or Supervisor
+   and press **Intentar leer el espacio ajeno** (*Attempt to read the other space*): it must return HTTP 403.
+6. Open **Ver petición y resultado** (*View request and result*). Check the OBO user, the agent,
+   the other user's path in `authorization_details`, the entity IDs and Vault's
+   403. Lumen does not simulate the rejection or omit that path from the RAR.
+7. Switch to the **Consulta** agent and authenticate the same user again. Their UUID
+   and values are kept. Reading works; saving returns HTTP 403 because of the ceiling.
+8. Repeat as **Supervisor**: it does not allow reading Reader's personal secrets.
 
-**Por qué Vault permite o deniega** muestra el HCL publicado por el instalador,
-con enlaces a las políticas y entidad actuales en Vault. Las peticiones reales
-son la prueba del acceso efectivo. Los enlaces usan tu sesión de Vault sin
-tokens en la URL.
+**Por qué Vault permite o deniega** (*Why Vault allows or denies*) shows the HCL published by the installer,
+with links to the current policies and entity in Vault. The real requests
+are the proof of effective access. The links use your Vault session without
+tokens in the URL.
 
-En la traza, **Aislamiento del espacio personal** desarrolla este recorrido en
-cuatro pasos y muestra, en español o inglés:
+In the trace, **Aislamiento del espacio personal** (*Personal space isolation*) walks through this flow in
+four steps and shows, in Spanish or English:
 
-- La persona que delega y el propietario de la ruta, con sus UUID separados.
-- `issuer`, `sub / external_id`, `canonical_id` y el cliente del agente registrados.
-- La plantilla humana, su expansión con el UUID del usuario y la ruta solicitada.
-- El resultado del servicio seleccionado. Un HTTP 200 de Verify solo acredita
-  la emisión del token; selecciona la llamada a Vault para ver el acceso.
-- **Por qué hay un wildcard en el Registry**: HCL humano y techo personal del
-  agente conservados en la traza, más tipo, ruta y capacidades del RAR.
-- **Origen de los datos y cómo comprobarlo**: procedencia y puntos de consulta
-  en Vault, junto a enlaces a la documentación oficial.
+- The person who delegates and the owner of the path, with their UUIDs shown separately.
+- `issuer`, `sub / external_id`, `canonical_id` and the registered agent client.
+- The human template, its expansion with the user's UUID and the requested path.
+- The result of the selected service. An HTTP 200 from Verify only proves
+  that the token was issued; select the Vault call to see the access.
+- **Por qué hay un wildcard en el Registry** (*Why the Registry contains a wildcard*): human HCL and the agent's personal
+  ceiling kept in the trace, plus the RAR's type, path and capabilities.
+- **Origen de los datos y cómo comprobarlo** (*Data provenance and how to verify it*): provenance and lookup points
+  in Vault, along with links to the official documentation.
 
-Los nombres, UUID y HCL son snapshots del catálogo aprovisionado que Lumen
-registra al ejecutar la operación. La expansión mostrada es una explicación de
-la regla de la demo, **no una consulta a la ACL efectiva ni una evaluación de
-todas las políticas de Vault**. Cambios posteriores pueden hacer que el catálogo
-no coincida con la configuración actual. La respuesta real de Vault sigue siendo
-la evidencia del acceso observado. Un 403 no identifica por sí solo todas las
-reglas que intervinieron; una ruta ajena permitida se señala para revisar políticas.
+The names, UUIDs and HCL are snapshots of the provisioned catalog that Lumen
+records when running the operation. The expansion shown is an explanation of
+the demo's rule, **not a query of the effective ACL or an evaluation of
+all Vault policies**. Later changes can make the catalog
+diverge from the current configuration. Vault's real response remains
+the evidence of the observed access. A 403 does not by itself identify all the
+rules involved; an allowed path belonging to someone else is flagged for policy review.
 
-Las trazas antiguas conservan sus IDs y muestran «No registrado» cuando falta
-información; no se completan con la configuración actual. Genera una nueva
-operación para obtener los campos nuevos. El panel no muestra tokens ni valores
-de secretos: siguen disponibles en los controles sensibles y la consola de esa
-misma llamada.
+Old traces keep their IDs and show «No registrado» (not recorded) when
+information is missing; they are not filled in with the current configuration. Run a new
+operation to get the new fields. The panel does not show tokens or secret
+values: they remain available in the sensitive controls and the console of that
+same call.
 
-HTTP 404 indica un secreto inexistente; HTTP 400 puede señalar conflicto de
-versión. Ninguno se presenta como prueba de aislamiento. Las capturas sensibles
-y la consola de repetición incluyen token, cuerpo y respuesta reales, con los
-controles y retención existentes del laboratorio.
+HTTP 404 indicates a nonexistent secret; HTTP 400 can indicate a version
+conflict. Neither is presented as proof of isolation. The sensitive captures
+and the replay console include the real token, body and response, with the
+lab's existing controls and retention.
 
-La auditoría general registra estas rutas con HMAC. No se amplían los filtros
-raw especializados de otros motores. La traza de Lumen conserva la captura
-según `LUMEN_TRACE_VAULT_RAW`; su `request_id` permite correlacionar la auditoría.
+The general audit device records these paths with HMAC. The specialized raw filters
+of other engines are not extended. The Lumen trace keeps the capture
+according to `LUMEN_TRACE_VAULT_RAW`; its `request_id` allows correlating the audit.
 
-## Verificación repetible
+## Repeatable verification
 
 ```bash
 bash chatbot/scripts/verify-personal-spaces.sh
 ```
 
-Ejecuta Authorization Code + PKCE para tres usuarios y cuatro agentes. Comprueba
-lectura/listado propios, techos de escritura, lectura posterior, conflicto CAS
-y denegaciones de lectura/listado/escritura entre propietarios. Solo escribe
-valores ficticios en `verification`. Los tokens quedan en el directorio privado
-de estado. El [informe](../../chatbot/docs/personal-spaces-verification.json)
-contiene resultados, rutas y trazas, sin valores secretos.
+It runs Authorization Code + PKCE for three users and four agents. It checks
+reading/listing of own secrets, write ceilings, subsequent reads, CAS conflicts
+and read/list/write denials between owners. It only writes
+fictitious values to `verification`. The tokens stay in the private state
+directory. The [report](../../chatbot/docs/personal-spaces-verification.json)
+contains results, paths and traces, without secret values.
 
-Referencias: [plantillas de políticas](https://developer.hashicorp.com/vault/docs/concepts/policies#templated-policies),
-[OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo) y
-[KV v2 y CAS](https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2).
+References: [policy templates](https://developer.hashicorp.com/vault/docs/concepts/policies#templated-policies),
+[OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo) and
+[KV v2 and CAS](https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2).
 
-## Capturas actuales
+## Current screenshots
 
-La [revisión del 22/10](../runs/20261022T140230Z-workspace-review/README.md) comprobó lectura propia y denegación de acceso cruzado con la interfaz actual.
+The [October 22 review](../runs/20261022T140230Z-workspace-review/README.md) checked own-space reads and denial of cross-user access with the current interface.
 
-![Lectura del secreto ficticio propio](../screenshots/current/personal-space-read.jpg)
+![Reading the user's own fictitious secret](../screenshots/current/personal-space-read.jpg)
 
-![Vault deniega el espacio de otro usuario](../screenshots/current/personal-space-denied.jpg)
+![Vault denies another user's space](../screenshots/current/personal-space-denied.jpg)
 
-### Explicación visual del aislamiento
+### Visual explanation of the isolation
 
-La revisión del 22/10 comprobó el panel actual en español, inglés y a 390 px.
-Supervisor con Consulta leyó su espacio (200) y Vault rechazó el de Reader (403).
-El panel distingue el UUID humano del propietario solicitado y muestra cómo se
-expande la política; la respuesta de Verify no se confunde con permiso de Vault.
+The October 22 review checked the current panel in Spanish, English and at 390 px.
+Supervisor with Consulta read their own space (200) and Vault rejected Reader's (403).
+The panel distinguishes the human UUID from the requested owner and shows how the
+policy expands; Verify's response is not confused with Vault permission.
 
-![Identidad, política y ruta del acceso denegado](../screenshots/current/personal-isolation-trace.jpg)
+![Identity, policy and path of the denied access](../screenshots/current/personal-isolation-trace.jpg)
 
-[Versión en inglés](../screenshots/current/personal-isolation-en.jpg) ·
-[Vista móvil](../screenshots/current/personal-isolation-mobile.jpg).
+[English version](../screenshots/current/personal-isolation-en.jpg) ·
+[Mobile view](../screenshots/current/personal-isolation-mobile.jpg).

@@ -1,10 +1,10 @@
-# 04 · Perfil OAuth, identidades, grupos y agentes en Vault
+# 04 · OAuth profile, identities, groups and agents in Vault
 
-[Índice](README.md) · Requiere [03](03-verify.md) · Siguiente: [Protección](05-proteccion.md)
+[Index](README.md) · Requires [03](03-verify.md) · Next: [Protection](05-proteccion.md)
 
-**Ejecución guiada:** el paso `agentes` del [script paso a paso](PASO-A-PASO.md) comprueba OIDC y research antes de configurar entidades y registros; el siguiente paso `grupos` sincroniza las ACL de usuarios. Para retomar los fallos previos de Verify, empieza con `bash scripts/manual/paso-a-paso.sh desde verify-base`.
+**Guided run:** the `agentes` step of the [step-by-step script](PASO-A-PASO.md) checks OIDC and research before configuring entities and registrations; the following `grupos` step synchronizes the user ACLs. To resume after earlier Verify failures, start with `bash scripts/manual/paso-a-paso.sh desde verify-base`.
 
-## 1. Configurar el perfil OAuth de Verify
+## 1. Configure the Verify OAuth profile
 
 
 ```bash
@@ -23,21 +23,21 @@ jq -n --arg issuer "$TENANT/oauth2" '{
 vault read sys/config/oauth-resource-server/verify
 ```
 
-No se habilita `auth/jwt`: Agentic IAM acepta el JWT OAuth directamente en las operaciones del recurso. El perfil interpreta `sub` como usuario/identidad y `actor-token.sub` como actor en OBO. Se omite `audiences` por la limitación del STS Verify documentada para este flujo; no extrapolar esa decisión a otros emisores. [Referencia de Verify](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
+`auth/jwt` is not enabled: Agentic IAM accepts the OAuth JWT directly in the resource operations. The profile interprets `sub` as the user/identity and `actor-token.sub` as the actor in OBO. `audiences` is omitted because of the Verify STS limitation documented for this flow; do not extrapolate that decision to other issuers. [Verify reference](https://developer.hashicorp.com/vault/ai/iam/providers/verify).
 
-El modo `use_jwks=true` valida firma y claims con las claves públicas obtenidas por Vault. **No hace introspection del token en Verify por cada petición**; JWKS puede estar en caché. El JWT no es de un solo uso. Vault vuelve a aplicar sus políticas y RAR al acceder al recurso. [Modos de validación](https://developer.hashicorp.com/vault/ai/iam/concepts/oauth-profiles#key-validation-modes).
+The `use_jwks=true` mode validates the signature and claims with the public keys obtained by Vault. **It does not introspect the token at Verify on every request**; JWKS may be cached. The JWT is not single-use. Vault applies its policies and RAR again when accessing the resource. [Validation modes](https://developer.hashicorp.com/vault/ai/iam/concepts/oauth-profiles#key-validation-modes).
 
-## 2. Escribir las políticas de aplicación
+## 2. Write the application policies
 
-| Política | Permisos |
+| Policy | Permissions |
 |---|---|
-| `chatbot-reader` | Emitir SQL RO |
-| `chatbot-writer` | SQL RO/RW, Transit encrypt, Transform encode |
-| `chatbot-supervisor` | SQL RO, Transit decrypt, Transform decode |
-| `chatbot-data-ceiling` | Techo del actor OBO: unión de las rutas anteriores |
-| `chatbot-research` | Leer solamente Tavily |
+| `chatbot-reader` | Issue RO SQL |
+| `chatbot-writer` | RO/RW SQL, Transit encrypt, Transform encode |
+| `chatbot-supervisor` | RO SQL, Transit decrypt, Transform decode |
+| `chatbot-data-ceiling` | Ceiling of the OBO actor: union of the paths above |
+| `chatbot-research` | Read Tavily only |
 
-Los grupos son independientes. Un usuario en varios grupos puede acumular permisos; para la demo, cada cuenta pertenece a uno de los tres grupos de Lumen.
+The groups are independent. A user in several groups may accumulate permissions; for the demo, each account belongs to one of the three Lumen groups.
 
 ```bash
 vault policy write chatbot-data-ceiling - <<'HCL'
@@ -83,7 +83,7 @@ path "secrets/data/tavily" { capabilities = ["read"] }
 HCL
 ```
 
-Crear también las políticas vacías donde se activarán los bloqueos. No conceden ningún permiso y no deben vaciarse si ya había un bloqueo activo:
+Also create the empty policies where the blocks will be activated. They grant no permission and must not be emptied if a block was already active:
 
 ```bash
 vault policy list -format=json > "$MANUAL/policies.json"
@@ -94,73 +94,73 @@ for target in xai database-read database-write decrypt; do
 done
 ```
 
-## 3. Crear entidades y aliases para los agentes
+## 3. Create entities and aliases for the agents
 
-El `client_id` de Verify es el `sub` del token Client Credentials. No se crea un usuario humano para cada agente. En OBO se distinguen la entidad humana y la entidad `chatbot-oidc`.
+The Verify `client_id` is the `sub` of the Client Credentials token. No human user is created for each agent. In OBO, the human entity and the `chatbot-oidc` entity are distinguished.
 
-Ejecutar cada bloque por separado, esperando a que vuelva `bash-3.2$`. Si la terminal sigue mostrando `>` después de pegar un bloque completo, pulsar **Ctrl+C** y volver a copiar ese bloque. Si Bash termina y reaparece `❯`, entrar con `bash` y cargar la sesión del paso 1 antes de continuar.
+Run each block separately, waiting for `bash-3.2$` to return. If the terminal still shows `>` after pasting a complete block, press **Ctrl+C** and copy that block again. If Bash exits and `❯` reappears, enter with `bash` and load the session from step 1 before continuing.
 
-Comprobar primero que el capítulo 03 ha guardado las credenciales de **ambas** aplicaciones. Esta comprobación no modifica entidades ni muestra credenciales:
+First check that chapter 03 has saved the credentials of **both** applications. This check does not modify entities or show credentials:
 
 ```bash
 vault kv get -mount=secrets -field=client_id chatbot/oidc >/dev/null && vault kv get -mount=secrets -field=client_id chatbot/research >/dev/null
 ```
 
-Si falta `chatbot/research`, volver a [03, paso 3](03-verify.md#3-crear-las-aplicaciones-oidc-y-de-investigación), seleccionar `suffix=research` y completar su configuración hasta guardar la credencial en Vault. Un archivo local de una ejecución anterior no demuestra que la aplicación siga existiendo.
+If `chatbot/research` is missing, go back to [03, step 3](03-verify.md#3-create-the-oidc-and-research-applications), select `suffix=research` and complete its configuration until the credential is saved in Vault. A local file from a previous run does not prove that the application still exists.
 
-Configurar un agente por pasada. Empezar por `oidc`; al terminar, repetir desde aquí cambiando la línea siguiente por `suffix=research`:
+Configure one agent per pass. Start with `oidc`; when finished, repeat from here changing the following line to `suffix=research`:
 
 ```bash
 suffix=oidc
 ```
 
-Construir el nombre del agente:
+Build the agent name:
 
 ```bash
 name="chatbot-$suffix"
 ```
 
-Obtener su client ID desde Vault:
+Get its client ID from Vault:
 
 ```bash
 cid=$(vault kv get -mount=secrets -field=client_id "chatbot/$suffix")
 ```
 
-Seleccionar su política y el requisito de RAR. **Copiar este bloque completo:**
+Select its policy and the RAR requirement. **Copy this whole block:**
 
 ```bash
 case "$suffix" in
-  oidc) policy=chatbot-data-ceiling; optional=false ;;
-  research) policy=chatbot-research; optional=true ;;
-  *) printf 'El agente debe ser oidc o research\n' >&2; false ;;
+  oidc) policy=chatbot-data-ceiling; optional=false; entity_policies='' ;;
+  research) policy=chatbot-research; optional=true; entity_policies=$policy ;;
+  *) printf 'The agent must be oidc or research\n' >&2; false ;;
 esac
 ```
 
-Crear o actualizar la entidad:
+Create or update the entity. `chatbot-oidc` only acts on behalf of a user: its ceiling limits that person's policies and the entity receives no policies of its own. `chatbot-research` acts autonomously and keeps its own:
 
 ```bash
-vault write "identity/entity/name/$name" external_id="$cid" policies="$policy"
+vault write "identity/entity/name/$name" external_id="$cid" policies="$entity_policies"
 ```
 
-Obtener el ID de la entidad:
+Get the entity ID:
 
 ```bash
 entity=$(vault read -field=id "identity/entity/name/$name")
 ```
 
-Consultar los aliases actuales:
+Query the current aliases:
 
 ```bash
 vault read -format=json "identity/entity/id/$entity" > "$MANUAL/agent-entity.json"
 ```
 
-Buscar el alias por nombre y detenerse si hay duplicados:
+Look up the alias by name and stop if there are duplicates:
 
 ```bash
-alias_id=$(jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id]|if length>1 then error("Alias duplicado") else .[0]//empty end' "$MANUAL/agent-entity.json")
+alias_id=$(jq -r --arg name "$name" '[.data.aliases[]?|select(.name==$name)|.id]|if length>1 then error("Duplicate alias") else .[0]//empty end' "$MANUAL/agent-entity.json")
 ```
 
-Crear el alias solo si falta. **Copiar el condicional completo:**
+Create the alias only if it is missing. **Copy the whole conditional:**
 
 ```bash
 if [ -z "$alias_id" ]; then
@@ -168,62 +168,63 @@ if [ -z "$alias_id" ]; then
 fi
 ```
 
-Preparar el registro con su política techo:
+Prepare the registration with its ceiling policy:
 
 ```bash
 jq -n --arg name "$name" --arg entity "$entity" --arg policy "$policy" --argjson optional "$optional" '{display_name:$name,entity_id:$entity,ceiling_policies:([$policy]+(if $name=="chatbot-oidc" then ["lumen-block-database-read","lumen-block-database-write","lumen-block-decrypt"] else [] end)),no_default_ceiling_policy:true,optional_authorization_details:$optional,description:"Lumen chatbot laboratory"}' > "$MANUAL/agent-registration.json"
 ```
 
-Registrar el agente:
+Register the agent:
 
 ```bash
 vault write agent-registry/register - < "$MANUAL/agent-registration.json"
 ```
 
-Comprobar su registro:
+Check its registration:
 
 ```bash
 vault read "agent-registry/registration/display-name/$name"
 ```
 
-Repetir los pasos de configuración para `suffix=research` antes de pasar a la sección 4.
+Repeat the configuration steps for `suffix=research` before moving on to section 4.
 
-El actor OBO exige RAR y tiene un techo explícito. La excepción `optional_authorization_details=true` se limita al agente Tavily: su acceso autónomo queda limitado por su política de entidad. Los agentes xAI, OpenAI y Claude exigen RAR.
+The OBO actor requires RAR and has an explicit ceiling. The `optional_authorization_details=true` exception is limited to the Tavily agent: its autonomous access is bounded by its entity policy. The xAI, OpenAI and Claude agents require RAR.
 
-## 4. Crear la configuración de sesión
+## 4. Create the session configuration
 
-Ejecutar esta línea desde la raíz del repositorio, en zsh o Bash. Carga su propio entorno, consulta Vault y crea `chatbot/runtime` solo si falta. Si existe, conserva `session_secret` y la configuración actual:
+Run this line from the repository root, in zsh or Bash. It loads its own environment, queries Vault and creates `chatbot/runtime` only if it is missing. If it exists, it keeps `session_secret` and the current configuration:
 
 ```bash
 bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-runtime.sh
 ```
 
-## 5. Sincronizar grupos de Verify a Vault y dar acceso a la app
+## 5. Synchronize Verify groups to Vault and grant access to the app
 
-Ejecutar únicamente la línea siguiente desde la raíz del repositorio. El script carga `.env` y la conexión privada de Vault, establece el namespace `verify` y obtiene un token administrativo nuevo. No depende de `MANUAL`, `TENANT` ni `VAULT_ADDR` definidos en tu terminal. Si sigues en un prompt `>` por un pegado anterior, pulsa **Ctrl+C** antes de ejecutar la línea.
+Run only the following line from the repository root. The script loads `.env` and the private Vault connection, sets the `verify` namespace and obtains a new administrative token. It does not depend on `MANUAL`, `TENANT` or `VAULT_ADDR` defined in your terminal. If you are still at a `>` prompt from an earlier paste, press **Ctrl+C** before running the line.
 
-Primero consulta los tres grupos, sus usuarios y las políticas requeridas. Si falta un grupo, se detiene antes de modificar identidades o permisos. Después sincroniza entidades/aliases por **ID de usuario** y grupos **internal** de Vault, y concede a esos grupos acceso a la aplicación OIDC.
+First it queries the three groups, their users and the required policies. If a group is missing, it stops before modifying identities or permissions. Then it synchronizes entities/aliases by **user ID** and Vault **internal** groups, and grants those groups access to the OIDC application.
 
 ```bash
 bash scripts/manual/paso-a-paso.sh ejecutar grupos
 ```
 
-Puedes comprobar los requisitos sin aplicar cambios con `bash scripts/manual/guided-run.sh bash chatbot/scripts/05-sync-groups.sh --check`.
+You can check the requirements without applying changes with `bash scripts/manual/guided-run.sh bash chatbot/scripts/05-sync-groups.sh --check`.
 
-Tras cambios de membresía, repetir la sincronización, reiniciar Lumen para cargar los IDs/nombres y obtener una sesión OIDC nueva. El JWT ya emitido conserva sus claims, pero la membresía de Vault y las políticas se evalúan con el estado del servidor.
+After membership changes, repeat the synchronization, restart Lumen to load the IDs/names and obtain a new OIDC session. The JWT already issued keeps its claims, but Vault membership and policies are evaluated with the server's state.
 
-## 6. Política bootstrap y comprobaciones
+<a id="6-política-bootstrap-y-comprobaciones"></a>
+## 6. Bootstrap policy and checks
 
-Cada línea carga su propio entorno. La política se aplica desde [bootstrap.hcl](../../chatbot/policies/bootstrap.hcl), el mismo archivo que utiliza el despliegue.
+Each line loads its own environment. The policy is applied from [bootstrap.hcl](../../chatbot/policies/bootstrap.hcl), the same file the deployment uses.
 
 ```bash
 bash scripts/manual/guided-run.sh bash scripts/manual/iam.sh bootstrap
 ```
 
-La app no usa root. Este bootstrap lee las credenciales OAuth de los tres agentes de modelo y su configuración; no lee `verify-admin`, Tavily, claves xAI, datos SQL ni datos protegidos. Se revoca a sí mismo tras cargarlos.
+The app does not use root. This bootstrap reads the OAuth credentials of the three model agents and their configuration; it does not read `verify-admin`, Tavily, xAI keys, SQL data or protected data. It revokes itself after loading them.
 
 ```bash
 bash scripts/manual/guided-run.sh bash scripts/manual/iam.sh check
 ```
 
-Fuentes locales: [04-vault-agents.sh](../../chatbot/scripts/04-vault-agents.sh), [05-sync-groups.sh](../../chatbot/scripts/05-sync-groups.sh). La prueba con JWT delegado está en [11](11-obo.md).
+Local sources: [04-vault-agents.sh](../../chatbot/scripts/04-vault-agents.sh), [05-sync-groups.sh](../../chatbot/scripts/05-sync-groups.sh). The test with a delegated JWT is in [11](11-obo.md).

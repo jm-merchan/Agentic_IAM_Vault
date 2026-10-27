@@ -12,33 +12,33 @@ cell() {
   mv "$build/next" "$build/cells.json"
 }
 cell markdown <<'MD'
-# OpenAI — Vault SPIFFE JWT-SVID y Workload Identity Federation
+# OpenAI — Vault SPIFFE JWT-SVID and Workload Identity Federation
 
-Referencia por etapas de la integración de Lumen con OpenAI. Usa **Bash, curl, jq y Vault CLI** para el aprovisionamiento; la aplicación y sus pruebas utilizan Python. Las celdas llaman a los mismos scripts de `demo.sh`; no es necesario ejecutarlas para arrancar la demo.
+Stage-by-stage reference for Lumen's OpenAI integration. It uses **Bash, curl, jq and Vault CLI** for provisioning; the application and its tests use Python. The cells call the same scripts as `demo.sh`; you do not need to run them to start the demo.
 
-**Flujo:** Verify Client Credentials + RAR → Vault `verify/spiffe` → JWT-SVID → OpenAI token exchange → inferencia. El acceso a MySQL, Transit y Transform conserva el OBO del usuario. Vault emite la identidad SPIFFE; este laboratorio no instala SPIRE ni implementa su atestación de nodos/procesos.
+**Flow:** Verify Client Credentials + RAR → Vault `verify/spiffe` → JWT-SVID → OpenAI token exchange → inference. Access to MySQL, Transit and Transform keeps the user's OBO. Vault issues the SPIFFE identity; this lab does not install SPIRE or implement its node/process attestation.
 
-[Configuración y capturas](docs/OPENAI_SPIFFE.md) · [Prueba de retirada/reinstalación](docs/E2E_OPENAI_VERIFICATION.md) · [README y prerrequisitos comunes](README.md).
+[Configuration and screenshots](docs/OPENAI_SPIFFE.md) · [Removal/reinstallation test](docs/E2E_OPENAI_VERIFICATION.md) · [README and common prerequisites](README.md).
 
-Ejecutar desde la raíz del workspace con un kernel IPython que admita `%%bash`. Se entrega sin salidas ni credenciales.
+Run from the workspace root with an IPython kernel that supports `%%bash`. Delivered without outputs or credentials.
 MD
 cell markdown <<'MD'
-## 1. Prerrequisitos y `.env`
+## 1. Prerequisites and `.env`
 
-Completa primero los prerrequisitos del README: macOS/launchd, Podman o Docker activo, Minikube, kubectl, Helm 4, Vault CLI, jq, uv, licencia Vault con SPIFFE/Agentic IAM/Transform y las integraciones Verify, Tavily y Oracle/MySQL. Para OpenAI añade ngrok, un dominio de tu cuenta y una organización con acceso/cuota para el modelo.
+First complete the README prerequisites: macOS/launchd, Podman or Docker running, Minikube, kubectl, Helm 4, Vault CLI, jq, uv, a Vault license with SPIFFE/Agentic IAM/Transform and the Verify, Tavily and Oracle/MySQL integrations. For OpenAI, add ngrok, a domain from your account and an organization with access/quota for the model.
 
-| Entrada en `.env` | Uso |
+| `.env` entry | Use |
 |---|---|
-| `OPENAI_ADMIN_API_KEY` | Aprovisionar proyecto/cuenta; se guarda también en `verify/secrets/openai-admin` |
-| `LUMEN_MODEL_PROVIDER=auto` | Selección inicial OpenAI; el banner permite cambiar entre los tres perfiles cargados |
-| `LUMEN_OPENAI_MODEL=gpt-4.1-nano` | Modelo de inferencia |
-| `NGROK_DOMAIN=nondemanding-indistinguishably-claude.ngrok-free.dev` | Host HTTPS público del issuer, sin protocolo ni ruta |
-| `NGROK_AUTHTOKEN` | Opcional si ngrok ya está autenticado en esta máquina |
-| `SPIFFE_TRUST_DOMAIN=lumen.demo` | Dominio de confianza del SPIFFE ID |
-| `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID` | Los escribe `prepare-openai` |
-| `OPENAI_IDENTITY_PROVIDER_ID` | ID del proveedor creado una vez en la UI OpenAI |
+| `OPENAI_ADMIN_API_KEY` | Provision the project/account; also stored in `verify/secrets/openai-admin` |
+| `LUMEN_MODEL_PROVIDER=auto` | Initial OpenAI selection; the banner lets you switch among the three loaded profiles |
+| `LUMEN_OPENAI_MODEL=gpt-5.6-luna` | Inference model |
+| `NGROK_DOMAIN=nondemanding-indistinguishably-claude.ngrok-free.dev` | Public HTTPS host of the issuer, without protocol or path |
+| `NGROK_AUTHTOKEN` | Optional if ngrok is already authenticated on this machine |
+| `SPIFFE_TRUST_DOMAIN=lumen.demo` | Trust domain of the SPIFFE ID |
+| `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID` | Written by `prepare-openai` |
+| `OPENAI_IDENTITY_PROVIDER_ID` | ID of the provider created once in the OpenAI UI |
 
-En OpenAI **Organization → Admin keys**, crear una clave **Restricted → Organization Administration: Write**, con las demás categorías en **None**. Guardarla directamente en `.env`, nunca en una celda. `.env` tiene permisos `600` y no se versiona. No rellenar un root token de Vault: el lanzador lo genera tras inicializarlo.
+In OpenAI **Organization → Admin keys**, create a **Restricted → Organization Administration: Write** key, with all other categories set to **None**. Save it directly in `.env`, never in a cell. `.env` has `600` permissions and is not versioned. Do not fill in a Vault root token: the launcher generates it after initializing Vault.
 MD
 cell code <<'CODE'
 %%bash
@@ -49,19 +49,19 @@ export LUMEN_PROVIDER_OVERRIDE=openai LUMEN_PREPARE_OPENAI=1
 bash scripts/demo/check.sh
 CODE
 cell markdown <<'MD'
-## 2. Preparar Vault, issuer público y cuenta OpenAI
+## 2. Prepare Vault, the public issuer and the OpenAI account
 
-Esta celda también funciona antes de que Vault exista. Crea/inicializa Vault si falta, el namespace `verify`, el motor SPIFFE y los documentos públicos. La API administrativa crea o reutiliza `lumen-vault-demo` y `lumen-chatbot`; revoca la API key estática generada como efecto secundario al crear la cuenta. Conserva los IDs en `.env`.
+This cell also works before Vault exists. It creates/initializes Vault if missing, the `verify` namespace, the SPIFFE engine and the public documents. The administrative API creates or reuses `lumen-vault-demo` and `lumen-chatbot`; it revokes the static API key generated as a side effect of creating the account. The IDs are kept in `.env`.
 
-| Script | Configuración |
+| Script | Configuration |
 |---|---|
-| `scripts/demo/vault.sh` | Minikube, Vault TLS/Raft, init y unseal |
-| `scripts/demo/bootstrap.sh` | Namespace y secretos estáticos de integración |
-| `scripts/demo/spiffe.sh` | Motor, issuer, RS256, rol y TTL |
-| `scripts/demo/ngrok.sh` | Publicación de discovery/JWKS y comprobación de rutas privadas |
-| `scripts/demo/openai-admin.sh` | Proyecto/cuenta de servicio y revocación de la nueva clave estática |
+| `scripts/demo/vault.sh` | Minikube, Vault TLS/Raft, init and unseal |
+| `scripts/demo/bootstrap.sh` | Namespace and static integration secrets |
+| `scripts/demo/spiffe.sh` | Engine, issuer, RS256, role and TTL |
+| `scripts/demo/ngrok.sh` | Publishing of discovery/JWKS and check of private paths |
+| `scripts/demo/openai-admin.sh` | Project/service account and revocation of the new static key |
 
-El comando no crea la confianza WIF mediante endpoints privados del dashboard: esa parte se configura una vez en la UI oficial.
+The command does not create the WIF trust through private dashboard endpoints: that part is configured once in the official UI.
 MD
 cell code <<'CODE'
 %%bash
@@ -69,11 +69,11 @@ set -euo pipefail
 ./demo.sh prepare-openai
 CODE
 cell markdown <<'MD'
-## 3. Inspeccionar la configuración SPIFFE
+## 3. Inspect the SPIFFE configuration
 
-Motor `verify/spiffe`; rol `lumen-openai`; subject exacto `spiffe://lumen.demo/ns/verify/agent/lumen-openai`; audiencia `https://api.openai.com/v1`; TTL **300 segundos**. `jwt_oidc_compatibility_mode=true` añade los claims necesarios para la validación de OpenAI. `use_jti_claim=true` permite correlacionar emisiones; no convierte el JWT en un token de un solo uso.
+Engine `verify/spiffe`; role `lumen-openai`; exact subject `spiffe://lumen.demo/ns/verify/agent/lumen-openai`; audience `https://api.openai.com/v1`; TTL **300 seconds**. `jwt_oidc_compatibility_mode=true` adds the claims OpenAI needs for validation. `use_jti_claim=true` makes it possible to correlate issuances; it does not turn the JWT into a single-use token.
 
-El issuer es `https://<NGROK_DOMAIN>/v1/verify/spiffe`. Su URL y el trust domain SPIFFE son conceptos distintos. La clave de firma privada permanece en Vault.
+The issuer is `https://<NGROK_DOMAIN>/v1/verify/spiffe`. Its URL and the SPIFFE trust domain are different concepts. The private signing key stays in Vault.
 MD
 cell code <<'CODE'
 %%bash
@@ -86,11 +86,11 @@ vault read -format=json spiffe/config | jq '.data'
 vault read -format=json spiffe/role/lumen-openai | jq '.data'
 CODE
 cell markdown <<'MD'
-## 4. Discovery/JWKS por ngrok
+## 4. Discovery/JWKS through ngrok
 
-El servidor de archivos de ngrok publica solo documentos públicos de Vault. Un publicador Bash los actualiza cada 30 s y retira las copias si Vault deja de responder. No reenvía las peticiones externas a la API administrativa de Vault. Este diseño funciona con el dominio gratuito utilizado en el laboratorio, sin acciones de Traffic Policy de pago.
+The ngrok file server publishes only public Vault documents. A Bash publisher refreshes them every 30 s and withdraws the copies if Vault stops responding. It does not forward external requests to the Vault administrative API. This design works with the free domain used in the lab, without paid Traffic Policy actions.
 
-El arranque comprueba discovery, JWKS y HTTP 404 en rutas de secretos/administración. `stop` detiene el túnel y el publicador. Las cachés externas pueden conservar documentos públicos durante su TTL.
+Startup checks discovery, JWKS and HTTP 404 on secret/administration paths. `stop` stops the tunnel and the publisher. External caches may keep public documents for their TTL.
 MD
 cell code <<'CODE'
 %%bash
@@ -106,21 +106,21 @@ for path in /v1/sys/health /ui/ /v1/verify/spiffe/config /v1/verify/secrets/data
 done
 CODE
 cell markdown <<'MD'
-## 5. Crear el proveedor y mapping en OpenAI — una vez
+## 5. Create the provider and mapping in OpenAI — once
 
-En [Organization → Security → Workload Identity Provider](https://platform.openai.com/settings/organization/security/workload-identity-provider):
+In [Organization → Security → Workload Identity Provider](https://platform.openai.com/settings/organization/security/workload-identity-provider):
 
-1. Crear `lumen-vault-spiffe`, tipo **OIDC**.
-2. Issuer: el valor que imprime la celda siguiente. Audience: `https://api.openai.com/v1`.
-3. Usar discovery normal: desmarcar custom discovery y uploaded JWKS. No añadir transformaciones CEL.
-4. Crear mapping `lumen-chatbot`, **Key `sub`**, valor exacto del SPIFFE ID siguiente, sin wildcard.
-5. Seleccionar el proyecto y la cuenta ya creados; desmarcar crear una nueva cuenta.
-6. **Restricted → List models: Read; Model capabilities: Request**. Las demás categorías quedan en None. Corresponden a `api.model.read` y `api.model.request`; la UI muestra también el recuento de sus permisos internos.
-7. Guardar el ID `idp_...` en `.env` como `OPENAI_IDENTITY_PROVIDER_ID`.
+1. Create `lumen-vault-spiffe`, type **OIDC**.
+2. Issuer: the value printed by the next cell. Audience: `https://api.openai.com/v1`.
+3. Use normal discovery: uncheck custom discovery and uploaded JWKS. Do not add CEL transformations.
+4. Create the mapping `lumen-chatbot`, **Key `sub`**, exact value of the SPIFFE ID below, without wildcard.
+5. Select the project and account already created; uncheck creating a new account.
+6. **Restricted → List models: Read; Model capabilities: Request**. All other categories stay at None. They correspond to `api.model.read` and `api.model.request`; the UI also shows the count of their internal permissions.
+7. Save the `idp_...` ID in `.env` as `OPENAI_IDENTITY_PROVIDER_ID`.
 
-Si la confianza ya existe, comprobarla y reutilizarla. `remove` conserva estos recursos externos y sus IDs. Al recrear Vault, cambia el `kid`; el mismo issuer publica el nuevo JWKS.
+If the trust already exists, check it and reuse it. `remove` keeps these external resources and their IDs. When Vault is recreated, the `kid` changes; the same issuer publishes the new JWKS.
 
-[Captura histórica: Proveedor y mapping configurados](docs/runs/20261015-openai-spiffe/screenshots/openai-mapping-created.jpg)
+[Historical screenshot: Provider and mapping configured](docs/runs/20261015-openai-spiffe/screenshots/openai-mapping-created.jpg)
 MD
 cell code <<'CODE'
 %%bash
@@ -130,11 +130,11 @@ load_inputs
 jq -n '{issuer:("https://"+env.NGROK_DOMAIN+"/v1/verify/spiffe"),audience:"https://api.openai.com/v1",subject:("spiffe://"+(env.SPIFFE_TRUST_DOMAIN//"lumen.demo")+"/ns/verify/agent/lumen-openai"),project_id:env.OPENAI_PROJECT_ID,service_account_id:env.OPENAI_SERVICE_ACCOUNT_ID,identity_provider_id:env.OPENAI_IDENTITY_PROVIDER_ID}'
 CODE
 cell markdown <<'MD'
-## 6. Arranque completo con OpenAI
+## 6. Full startup with OpenAI
 
-Con los prerrequisitos externos completos, esta es la única orden necesaria. Configura MySQL/KMIP, Verify, tres perfiles, OBO, Transit/Transform, la identidad autónoma `chatbot-openai`, el banner y observabilidad. Reinicia Lumen para cargar el proveedor; conserva los datos y bloqueos ya existentes.
+Once the external prerequisites are complete, this is the only command needed. It configures MySQL/KMIP, Verify, three profiles, OBO, Transit/Transform, the autonomous identity `chatbot-openai`, the banner and observability. It restarts Lumen to load the provider; existing data and blocks are kept.
 
-`chatbot/scripts/configure-openai.sh` configura la identidad del workload: Verify Client Credentials + RAR obligatorio y la política Vault que solo permite `update` sobre `spiffe/role/lumen-openai/mintjwt`, con la audiencia OpenAI obligatoria. La aplicación no recibe la Admin key. Su token bootstrap carga solo configuración/credenciales OAuth de ejecución y se revoca.
+`chatbot/scripts/configure-openai.sh` configures the workload identity: Verify Client Credentials + mandatory RAR and the Vault policy that only allows `update` on `spiffe/role/lumen-openai/mintjwt`, with the OpenAI audience required. The application does not receive the Admin key. Its bootstrap token loads only runtime configuration/OAuth credentials and is revoked.
 MD
 cell code <<'CODE'
 %%bash
@@ -153,22 +153,22 @@ vault kv get -format=json -mount=secrets chatbot/model | jq '.data.data|{provide
 curl -fsS http://localhost:8088/health | jq .
 CODE
 cell markdown <<'MD'
-## 7. Intercambio y vigencia
+## 7. Exchange and validity
 
-Por ejecución, [`app/spiffe.py`](chatbot/app/spiffe.py) realiza:
+On each run, [`app/spiffe.py`](chatbot/app/spiffe.py) performs:
 
-1. Verify `POST /oauth2/token`, Client Credentials con RAR exacto para `mintjwt`.
-2. Vault `POST /v1/spiffe/role/lumen-openai/mintjwt`, namespace `verify`, body `{"audience":"https://api.openai.com/v1"}`. Obtiene `.data.token`.
-3. Valida firma RS256, issuer, audiencia, subject y caducidad con JWKS público de Vault.
-4. OpenAI `POST https://auth.openai.com/oauth/token`: grant `urn:ietf:params:oauth:grant-type:token-exchange`, subject type `urn:ietf:params:oauth:token-type:jwt`, JWT-SVID, provider ID y service account ID. No se envía la Admin key.
-5. Usa el access token temporal como Bearer para la inferencia.
+1. Verify `POST /oauth2/token`, Client Credentials with exact RAR for `mintjwt`.
+2. Vault `POST /v1/spiffe/role/lumen-openai/mintjwt`, namespace `verify`, body `{"audience":"https://api.openai.com/v1"}`. It obtains `.data.token`.
+3. Validates the RS256 signature, issuer, audience, subject and expiry with Vault's public JWKS.
+4. OpenAI `POST https://auth.openai.com/oauth/token`: grant `urn:ietf:params:oauth:grant-type:token-exchange`, subject type `urn:ietf:params:oauth:token-type:jwt`, JWT-SVID, provider ID and service account ID. The Admin key is not sent.
+5. Uses the temporary access token as Bearer for inference.
 
-Cada ejecución que llama al modelo obtiene identidad y token nuevos; una continuación breve rechazada localmente por el control de ámbito no necesita llamar al modelo. OpenAI no devuelve refresh token; su access token no sobrevive al JWT-SVID. Se requieren más de 210 s restantes antes de empezar; ejecución máxima 180 s y margen 30 s. La siguiente consulta repite el intercambio. No hay fallback estático. La credencial SQL tiene su propio TTL de 120 s y flujo OBO.
+Each run that calls the model obtains a new identity and token; a short follow-up rejected locally by the scope control does not need to call the model. OpenAI does not return a refresh token; its access token does not outlive the JWT-SVID. More than 210 s must remain before starting; maximum execution 180 s and margin 30 s. The next query repeats the exchange. There is no static fallback. The SQL credential has its own 120 s TTL and OBO flow.
 MD
 cell markdown <<'MD'
-## 8. Verificación automática
+## 8. Automated verification
 
-Ejecutar cuando `start` haya terminado. Comprueba el runtime, las pruebas de aplicación, MySQL/privilegios/Tavily y el intercambio SPIFFE con inferencia real. La comprobación de OpenAI pide otra credencial y verifica que cambia. Genera un informe sin tokens ni claves.
+Run once `start` has finished. It checks the runtime, the application tests, MySQL/privileges/Tavily and the SPIFFE exchange with real inference. The OpenAI check requests another credential and verifies that it changes. It generates a report without tokens or keys.
 MD
 cell code <<'CODE'
 %%bash
@@ -177,33 +177,33 @@ set -euo pipefail
 jq . chatbot/docs/openai-spiffe-verification.json
 CODE
 cell markdown <<'MD'
-## 9. Recorrido de casos de uso
+## 9. Use case walkthrough
 
-Lumen toma el idioma inicial del navegador y ofrece **EN / ES** arriba a la derecha. La elección guardada tiene prioridad y se aplica a la interfaz y siguientes respuestas de OpenAI, xAI o Claude. **Continue application**, **Save draft** y **View latest trace** corresponden a **Continuar solicitud**, **Guardar borrador** y **Ver última traza**. El cambio conserva conversación y formulario, y no modifica la federación ni los permisos. [Comprobaciones bilingües](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+Lumen takes the initial language from the browser and offers **EN / ES** at the top right. A saved choice takes precedence and applies to the interface and to subsequent OpenAI, xAI or Claude answers. **Continuar solicitud**, **Guardar borrador** and **Ver última traza** are the Spanish equivalents of **Continue application**, **Save draft** and **View latest trace**. Switching keeps the conversation and the form, and does not change the federation or the permissions. [Bilingual checks](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
-Abrir **http://localhost:8088**, login Verify **Cloud Directory**. Consultar las credenciales en Vault `verify/secrets/chatbot/users/{reader,writer,supervisor}` fuera del notebook.
+Open **http://localhost:8088**, Verify login **Cloud Directory**. Look up the credentials in Vault `verify/secrets/chatbot/users/{reader,writer,supervisor}` outside the notebook.
 
-| Perfil/flujo | Comprobación |
+| Profile/flow | Check |
 |---|---|
-| Lector | Preguntar por catálogo/inventario; los datos se consultan con SQL RO. Para catálogo, el servidor construye la respuesta tras una lectura OBO actual. Crear/revelar debe denegarse |
-| Gestor | Preparar solicitud con el agente, completar cinco pasos con valores ficticios sugeridos y guardar. La fila contiene ciphertext/tokens; revelar se deniega |
-| Supervisor | Consultar la fila enmascarada y revelar vía Transit + Transform. Crear/SQL RW sigue denegado |
-| Todos | «Comprobar límites en Vault» valida nueve rutas reales y sus denegaciones esperadas |
-| Tavily | «Una mirada más amplia»: agente registrado independiente → Vault → búsqueda pública |
-| Bloqueos | `./demo.sh block database-read`, `database-write` o `decrypt`; repetir la acción y restaurar con `unblock` |
+| Reader | Ask about the catalog/inventory; the data is queried with SQL RO. For the catalog, the server builds the answer after a current OBO read. Creating/revealing must be denied |
+| Writer | Prepare an application with the agent, complete five steps with the suggested fictitious values and save. The row contains ciphertext/tokens; revealing is denied |
+| Supervisor | View the masked row and reveal it via Transit + Transform. Creating/SQL RW remains denied |
+| All | «Check limits in Vault» validates nine real paths and their expected denials |
+| Tavily | «A wider perspective»: independent registered agent → Vault → public search |
+| Blocks | `./demo.sh block database-read`, `database-write` or `decrypt`; repeat the action and restore with `unblock` |
 
-`block xai` controla únicamente el Secret Engine xAI; no bloquea OpenAI. Los bloqueos de datos son compartidos. El banner muestra el proveedor y el modelo elegido; el diagrama de trazas identifica la emisión SPIFFE o la credencial dinámica correspondiente.
+`block xai` controls only the xAI Secret Engine; it does not block OpenAI. Data blocks are shared. The banner shows the provider and the chosen model; the trace diagram identifies the SPIFFE issuance or the corresponding dynamic credential.
 MD
 cell markdown <<'MD'
-## 10. Trazas y auditoría
+## 10. Traces and auditing
 
-En el chat, **Ver última traza → Ver en Grafana**: `spiffe.mint_jwt_svid`, `verify.client_credentials`, `vault.write`, `openai.token_exchange`, `openai.chat`, herramientas y OBO. El control `guardrail.energy_scope` decide si la consulta pertenece a energía o a esta demo antes de ejecutar herramientas; una denegación no ejecuta el agente conversacional. [Control de ámbito y lectura del JWT-SVID](docs/ENERGY_SCOPE_AND_SVID.md). Los prompts/resultados se capturan mediante callbacks; no se captura razonamiento privado del modelo.
+In the chat, **View latest trace → View in Grafana**: `spiffe.mint_jwt_svid`, `verify.client_credentials`, `vault.write`, `openai.token_exchange`, `openai.chat`, tools and OBO. The `guardrail.energy_scope` control decides whether the query is about energy or this demo before running tools; a denial does not run the conversational agent. [Scope control and reading the JWT-SVID](docs/ENERGY_SCOPE_AND_SVID.md). Prompts/results are captured through callbacks; the model's private reasoning is not captured.
 
-La configuración raw de este laboratorio conserva JWT de Verify y JWT-SVID en la respuesta de Vault. En `spiffe.mint_jwt_svid`, `spiffe.jwt_svid` muestra el token completo y `spiffe.jwt_svid.decoded` su cabecera/claims validados. En `openai.token_exchange`, `openai.exchange.subject_token` muestra el mismo token enviado a OpenAI. `lumen-spiffe-raw/` filtra solo la ruta de emisión en `verify`; se mantiene además la copia HMAC general. La Admin key no forma parte del runtime ni de esas trazas.
+This lab's raw configuration keeps the Verify JWT and the JWT-SVID in the Vault response. In `spiffe.mint_jwt_svid`, `spiffe.jwt_svid` shows the full token and `spiffe.jwt_svid.decoded` its validated header/claims. In `openai.token_exchange`, `openai.exchange.subject_token` shows the same token sent to OpenAI. `lumen-spiffe-raw/` filters only the issuance path in `verify`; the general HMAC copy is also kept. The Admin key is not part of the runtime or of those traces.
 
-En el visor de Lumen, seleccionar la flecha y pulsar **Ver valores sensibles / View sensitive values** permite inspeccionar los valores de esa llamada. **EN / ES** traduce las etiquetas sin modificar JWT, secretos ni cuerpos HTTP. [Detalle del visor](chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
+In the Lumen viewer, selecting the arrow and clicking **Ver valores sensibles / View sensitive values** lets you inspect the values of that call. **EN / ES** translates the labels without modifying JWTs, secrets or HTTP bodies. [Viewer details](chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
 
-La celda siguiente correlaciona la última prueba automática con Tempo/Loki. Para analizar una acción de la UI, sustituir `TRACE_ID` por el de esa acción. Las capturas y enlaces del [informe de reconstrucción](docs/E2E_OPENAI_VERIFICATION.md) identifican el despliegue probado.
+The next cell correlates the latest automated test with Tempo/Loki. To analyze a UI action, replace `TRACE_ID` with that action's ID. The screenshots and links in the [rebuild report](docs/E2E_OPENAI_VERIFICATION.md) identify the tested deployment.
 MD
 cell code <<'CODE'
 %%bash
@@ -213,15 +213,15 @@ LUMEN_OBSERVABILITY_REPORT=chatbot/docs/openai-observability-verification.json \
   bash chatbot/scripts/verify-observability.sh "$TRACE_ID"
 CODE
 cell markdown <<'MD'
-## 11. Cambio de proveedor, limpieza y límites
+## 11. Switching providers, cleanup and limits
 
-Para cambiar entre proveedores ya cargados, usa los botones **OpenAI**, **xAI** y **Claude** del banner entre consultas; se conserva la conversación y no se repite OIDC. `./demo.sh start --provider openai`, `xai` o `anthropic` prepara las tres integraciones y fija la selección inicial cuando no hay preferencia guardada. Ese comando reinicia la aplicación y requiere volver a entrar. **EN / ES** es una preferencia independiente y no necesita reiniciar el proceso.
+To switch between providers that are already loaded, use the **OpenAI**, **xAI** and **Claude** buttons in the banner between queries; the conversation is kept and OIDC is not repeated. `./demo.sh start --provider openai`, `xai` or `anthropic` prepares the three integrations and sets the initial selection when there is no saved preference. That command restarts the application and requires signing in again. **EN / ES** is an independent preference and does not require restarting the process.
 
-**Limpieza explícita, fuera de la ejecución rutinaria del notebook:** `./demo.sh remove --dry-run` muestra el alcance; `./demo.sh remove` elimina Vault, MySQL, observabilidad y recursos Lumen de Verify. Borra datos, claves de firma y trazas del cluster. Conserva `.env`, el cliente administrativo de Verify, los recursos OpenAI y el perfil Minikube. `./demo.sh start` reconstruye la demo. No se incluye una celda destructiva que se ejecute accidentalmente con «Run All».
+**Explicit cleanup, outside the notebook's routine run:** `./demo.sh remove --dry-run` shows the scope; `./demo.sh remove` deletes Vault, MySQL, observability and the Lumen resources in Verify. It erases data, signing keys and traces from the cluster. It keeps `.env`, the Verify administrative client, the OpenAI resources and the Minikube profile. `./demo.sh start` rebuilds the demo. No destructive cell is included that could run accidentally with «Run All».
 
-El acceso inicial a Vault usa la identidad OAuth disponible en el laboratorio; no es atestación SPIRE. Un bloqueo de emisión no invalida por sí solo un access token de proveedor ya emitido. El mapping exacto, el TTL y, en Claude, la protección JTI acotan su uso. La configuración Claude está documentada en `docs/manual/08-claude-spiffe.md`.
+Initial access to Vault uses the OAuth identity available in the lab; it is not SPIRE attestation. An issuance block does not by itself invalidate a provider access token that has already been issued. The exact mapping, the TTL and, for Claude, JTI protection limit its use. The Claude configuration is documented in `docs/manual/08-claude-spiffe.md`.
 
-Referencias: [OpenAI SPIFFE](https://developers.openai.com/api/docs/guides/workload-identity-federation/spiffe), [token exchange](https://developers.openai.com/api/reference/workload-identity-federation), [Vault SPIFFE](https://developer.hashicorp.com/vault/api-docs/secret/spiffe), [artículo HashiCorp](https://www.hashicorp.com/en/blog/implementing-workload-identity-with-hashicorp-vault-and-spiffe), [repo de referencia](https://github.com/DarthVaderRC/vault-spiffe).
+References: [OpenAI SPIFFE](https://developers.openai.com/api/docs/guides/workload-identity-federation/spiffe), [token exchange](https://developers.openai.com/api/reference/workload-identity-federation), [Vault SPIFFE](https://developer.hashicorp.com/vault/api-docs/secret/spiffe), [HashiCorp article](https://www.hashicorp.com/en/blog/implementing-workload-identity-with-hashicorp-vault-and-spiffe), [reference repo](https://github.com/DarthVaderRC/vault-spiffe).
 MD
 jq -n --slurpfile cells "$build/cells.json" '{nbformat:4,nbformat_minor:5,metadata:{kernelspec:{display_name:"Python 3 (IPython Bash magics)",language:"python",name:"python3"},language_info:{name:"python"}},cells:$cells[0]}' > 9_OpenAI_Vault_SPIFFE.ipynb
-echo 'Notebook 9 generado, sin salidas ni credenciales.'
+echo 'Notebook 9 generated, without outputs or credentials.'

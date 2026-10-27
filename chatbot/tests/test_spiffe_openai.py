@@ -1,4 +1,3 @@
-import asyncio
 import json
 import ssl
 import subprocess
@@ -175,3 +174,10 @@ def test_provider_selection(keys, selection, wanted):
         assert result.returncode != 0
     else:
         assert result.returncode == 0 and result.stdout == wanted
+
+
+@pytest.mark.parametrize('model_name, effort', [('gpt-5.6-luna', 'none'), ('gpt-4o-mini', None)])
+def test_openai_tools_disable_reasoning_only_on_gpt5_point_releases(model_name, effort):
+    from app.agent import make_model
+    model = make_model({'provider': 'openai', 'model': model_name, 'api_key': 'temporary-wif-token'})
+    assert model.reasoning_effort == effort

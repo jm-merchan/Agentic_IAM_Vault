@@ -24,7 +24,7 @@ def browser_language(header: str) -> str:
             continue
         if 0 < quality <= 1 and tag.split('-')[0] in {'es', 'en'}:
             candidates.append((quality, -index, tag.split('-')[0]))
-    return max(candidates)[2] if candidates else ('en' if header else 'es')
+    return max(candidates)[2] if candidates else 'en'
 
 
 def request_language(request) -> str:

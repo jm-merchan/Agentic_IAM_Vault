@@ -1,8 +1,8 @@
-# 10 · Arrancar Lumen y comprobar los recorridos
+# 10 · Start Lumen and check the walkthroughs
 
-[Índice](README.md) · Requiere 00–05, [xAI](06-xai.md), [OpenAI](07-openai-spiffe.md) y [Claude](08-claude-spiffe.md), y [09](09-observabilidad.md)
+[Index](README.md) · Requires 00–05, [xAI](06-xai.md), [OpenAI](07-openai-spiffe.md), [Claude](08-claude-spiffe.md) and [09](09-observabilidad.md)
 
-## 1. Revisar la configuración que va a cargar la app
+## 1. Review the configuration the app will load
 
 
 ```bash
@@ -12,10 +12,10 @@ export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 ```
 
 ```bash
-# Los perfiles se generan en 06 sección 6, 07 sección 7 y 08 sección 6.
-# Ninguna de esas secciones cambia por sí sola el catálogo publicado.
+# The profiles are generated in 06 section 6, 07 section 7 and 08 section 6.
+# None of those sections changes the published catalog on its own.
 initial=${LUMEN_MODEL_PROVIDER:-auto}
-case "$initial" in auto) initial=openai;; openai|xai|anthropic) ;; *) echo 'Proveedor inicial no válido' >&2; exit 1;; esac
+case "$initial" in auto) initial=openai;; openai|xai|anthropic) ;; *) echo 'Invalid initial provider' >&2; exit 1;; esac
 for provider in openai xai anthropic; do
   test -s "$MANUAL/model-$provider.json"
   vault kv metadata get -mount=secrets "chatbot/$provider" >/dev/null
@@ -30,8 +30,8 @@ jq -en --arg initial "$initial" \
     (.value|has("api_key")|not) and
     .value.credential_source==(if .key=="xai" then "vault_dynamic" else "vault_spiffe" end))
   then $profiles[$initial] + {providers:$profiles}
-  else error("Perfil de proveedor no válido") end' > "$MANUAL/model-catalog.json"
-# Solo se publica si los tres perfiles pasan la validación anterior.
+  else error("Invalid provider profile") end' > "$MANUAL/model-catalog.json"
+# Published only if all three profiles pass the validation above.
 vault kv put -mount=secrets chatbot/model - < "$MANUAL/model-catalog.json"
 for name in oidc research sts runtime model openai xai anthropic; do
   vault kv metadata get -mount=secrets "chatbot/$name" >/dev/null
@@ -42,20 +42,24 @@ vault read -format=json sys/config/oauth-resource-server/verify | \
   jq '.data|{issuer_id,use_jwks,user_claim,actor_claim,optional_authorization_details}'
 ```
 
-Prepara previamente las tres identidades. El bloque anterior publica sus perfiles juntos en `chatbot/model` mediante Vault CLI; no crea identidades nuevas. Es el equivalente manual de `chatbot/scripts/configure-models.sh`, sin ejecutar el lanzador. El banner permite elegir OpenAI, xAI o Claude sin reiniciar, conserva la conversación y recuerda la preferencia. `LUMEN_MODEL_PROVIDER` o `--provider` solo fijan la selección inicial; `auto` utiliza OpenAI.
+Prepare the three identities beforehand. The block above publishes their profiles together in `chatbot/model` through the Vault CLI; it does not create new identities. It is the manual equivalent of `chatbot/scripts/configure-models.sh`, without running the launcher. The banner lets you choose OpenAI, xAI or Claude without restarting, keeps the conversation and remembers the preference. `LUMEN_MODEL_PROVIDER` or `--provider` only set the initial selection; `auto` uses OpenAI.
 
-## 2. Instalar el runtime
+<a id="2-instalar-el-runtime"></a>
+
+## 2. Install the runtime
 
 ```bash
 uv venv --python 3.12 /tmp/vault-chatbot-venv
 uv pip install --python /tmp/vault-chatbot-venv/bin/python -r chatbot/requirements.lock.txt
 ```
 
-Si ese entorno ya existe, omitir `uv venv`. La lista bloqueada reproduce las dependencias del workspace: NiceGUI, Deep Agents, conectores de modelo, PyJWT, MySQL y OpenTelemetry. No se instala un framework distinto.
+If that environment already exists, skip `uv venv`. The locked list reproduces the workspace dependencies: NiceGUI, Deep Agents, model connectors, PyJWT, MySQL and OpenTelemetry. No different framework is installed.
 
-## 3. Crear bootstrap y arrancar sin credenciales administrativas
+<a id="3-crear-bootstrap-y-arrancar-sin-credenciales-administrativas"></a>
 
-Comprobar que los forwards Vault, MySQL y observabilidad están activos. En una terminal dedicada, recargar el entorno al principio y ejecutar:
+## 3. Create the bootstrap token and start without administrative credentials
+
+Check that the Vault, MySQL and observability forwards are running. In a dedicated terminal, reload the environment first and run:
 
 ```bash
 source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/manual/session.sh"
@@ -86,101 +90,105 @@ cd "$LUMEN_ROOT/chatbot"
 /tmp/vault-chatbot-venv/bin/python -m app.main
 ```
 
-La app carga su configuración y revoca el bootstrap en `load_config()`. Las operaciones de negocio usan JWT de Verify, OBO o identidad SPIFFE según el recurso. La ficha de agentes utiliza un token independiente de sólo lectura de metadatos, renovado por Lumen y revocado al cerrar; [alcance y enlaces](14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault). No recargar `session.sh` dentro del proceso de la app después de limpiar sus variables.
+The app loads its configuration and revokes the bootstrap token in `load_config()`. Business operations use Verify JWTs, OBO or the SPIFFE identity, depending on the resource. The agent details card uses a separate read-only metadata token, renewed by Lumen and revoked on shutdown; [scope and links](14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault). Do not reload `session.sh` inside the app process after clearing its variables.
 
-Esta ejecución en primer plano se mantiene mientras la terminal esté abierta; Ctrl+C la detiene. El lanzador automatizado utiliza launchd y copia el runtime fuera de Google Drive por las restricciones de macOS. Esa supervisión no es necesaria para entender el arranque manual.
+This foreground run lasts as long as the terminal stays open; Ctrl+C stops it. The automated launcher uses launchd and copies the runtime outside Google Drive because of macOS restrictions. That supervision is not needed to understand the manual startup.
 
-## 4. Abrir las interfaces
+## 4. Open the interfaces
 
-| Interfaz | URL / credencial |
+| Interface | URL / credential |
 |---|---|
-| Lumen | `http://localhost:8088`, entrar con Verify → Cloud Directory |
-| Vault | `https://127.0.0.1:8443/ui/`, Root token generado en 01 (`vault/config.env`), namespace `verify` |
-| Grafana | `http://localhost:3000/d/lumen-iam`, `lumen-admin`, secreto `chatbot/observability` |
+| Lumen | `http://localhost:8088`, sign in with Verify → Cloud Directory |
+| Vault | `https://127.0.0.1:8443/ui/`, root token generated in 01 (`vault/config.env`), namespace `verify` |
+| Grafana | `http://localhost:3000/d/lumen-iam`, `lumen-admin`, secret `chatbot/observability` |
 
-Para recuperar una contraseña humana en otra terminal, cargar [el entorno Vault](01-vault.md) y copiarla al portapapeles:
+To retrieve a human user's password in another terminal, load [the Vault environment](01-vault.md) and copy it to the clipboard:
 
 ```bash
 ROLE=reader
 vault kv get -format=json -mount=secrets "chatbot/users/$ROLE" | jq -jr .data.data.password | pbcopy
 ```
 
-Usar exactamente `localhost` para Lumen, no `127.0.0.1`, porque el callback está registrado con ese hostname. Cada cambio de usuario requiere cerrar sesión de Lumen y elegir otra cuenta en Verify; si persiste el SSO del anterior, cerrar su sesión Verify o utilizar un perfil privado de navegador.
+Use exactly `localhost` for Lumen, not `127.0.0.1`, because the callback is registered with that hostname. Each user change requires signing out of Lumen and choosing another account in Verify; if the previous user's SSO session persists, sign out of Verify or use a private browser profile.
 
-### Idioma y comprobaciones bilingües
+<a id="idioma-y-comprobaciones-bilingües"></a>
 
-Las instrucciones de este manual usan etiquetas españolas. Pulsa **ES** si quieres seguirlas literalmente o usa sus equivalencias en inglés. El chat, formulario, bandeja y visor de trazas tienen **EN / ES** arriba a la derecha; la selección se recuerda en la cookie `lumen_language` durante un año y tiene prioridad sobre el navegador. Sin ella, se usa `Accept-Language` con variantes regionales y prioridades. Si no hay un idioma admitido se usa inglés; si falta la cabecera, español. [Detalle y equivalencias](../../chatbot/README.md#idioma-español-e-inglés).
+### Language and bilingual checks
 
-1. **Detección inicial:** con un perfil sin la cookie `lumen_language`, abre Lumen con inglés como idioma preferido del navegador y comprueba la cabecera, la pantalla de Lumen antes de entrar y **EN** activo. Repite con español; debe quedar **ES**. Una sesión ya configurada mediante los botones no sirve para probar la detección inicial.
-2. **Cambio manual:** pulsa EN y ES, recarga y navega entre chat, solicitudes y trazas. La elección debe mantenerse, también después del login. El cambio afecta a la siguiente respuesta del modelo; los mensajes anteriores conservan su idioma. Espera a que termine una operación antes de cambiar.
-3. **Chat real:** elige **EN** y envía «What can you help me with? Answer in one sentence.» con OpenAI, xAI y Claude, esperando entre consultas. Deben responder en inglés. Vuelve a **ES** y pide «Dame un consejo breve para ahorrar energía en casa». Comprueba que el proveedor elegido y el historial se conservan.
-4. **Catálogo y propuesta:** usa «Find your plan» o pregunta «Show the energy plans in Lumen's catalogue». Los títulos y descripciones deben aparecer en inglés, los nombres de las tarifas se conservan y los precios proceden de una consulta OBO actual. Como gestor, pide una propuesta para una tarifa concreta: **Continue application** abre el formulario; la propuesta aún no está guardada.
-5. **Formulario:** como gestor, avanza al paso 2, pulsa **Continue** con los campos vacíos y comprueba el error en inglés. Escribe un valor ficticio en **Street**, cambia a ES y vuelve a EN: el valor y el paso deben conservarse. Los botones **Use test data**, **Save draft** y **Back to chat** equivalen a **Usar datos de prueba**, **Guardar borrador** y **Volver al chat**. Probar el idioma no requiere guardar una solicitud.
-6. **Trazas:** genera una consulta nueva y abre **View latest trace**. Verifica destinos, detalles, números y paginación en inglés. En modo laboratorio, **View sensitive values** traduce los títulos de captura; el token, `client_secret`, SVID, credenciales dinámicas y cuerpos cifrados/descifrados siguen mostrando el valor original. Cambiar el idioma no amplía permisos ni revela automáticamente datos.
-7. **Móvil:** comprueba que EN/ES sigue visible arriba a la derecha y que no aparece desplazamiento horizontal en el chat. El informe del 20/10 verificó un ancho de 390 px.
+The instructions in this manual use the Spanish labels. Press **ES** if you want to follow them literally, or use their English equivalents. The chat, form, inbox and trace viewer have **EN / ES** at the top right; the selection is remembered in the `lumen_language` cookie for one year and takes precedence over the browser. Without it, `Accept-Language` is used, including regional variants and priorities. If no supported language is found, English is used; if the header is missing, Spanish. [Details and equivalents](../../chatbot/README.md#idioma-español-e-inglés).
 
-El portal de IBM Verify y Grafana conservan su propia configuración de idioma. Cambiar EN/ES conserva la sesión y el paso de traza enlazado mediante `?span=`; **reiniciar Lumen** termina la sesión y descarta conversaciones, formularios no guardados y capturas en memoria. [Resultados actuales y límites](../runs/20261022T140230Z-workspace-review/README.md); [comprobación bilingüe anterior del 20/10](VALIDACION.md#interfaz-bilingüe-y-trazas--20-de-octubre-de-2026).
+1. **Initial detection:** with a profile that has no `lumen_language` cookie, open Lumen with English as the browser's preferred language and check the header, the Lumen screen before signing in, and that **EN** is active. Repeat with Spanish; **ES** should be selected. A session already configured with the buttons is not valid for testing initial detection.
+2. **Manual switch:** press EN and ES, reload and navigate between chat, applications and traces. The choice must persist, including after login. The switch applies to the model's next response; earlier messages keep their language. Wait for an operation to finish before switching.
+3. **Real chat:** choose **EN** and send «What can you help me with? Answer in one sentence.» with OpenAI, xAI and Claude, waiting between queries. They must answer in English. Switch back to **ES** and ask «Dame un consejo breve para ahorrar energía en casa» ("Give me a short tip to save energy at home"). Check that the chosen provider and the history are kept.
+4. **Catalog and proposal:** use «Find your plan» or ask «Show the energy plans in Lumen's catalogue». Titles and descriptions must appear in English, plan names are kept, and prices come from a current OBO query. As the writer, ask for a proposal for a specific plan: **Continue application** opens the form; the proposal is not saved yet.
+5. **Form:** as the writer, go to step 2, press **Continue** with the fields empty and check that the error is in English. Type a fictitious value in **Street**, switch to ES and back to EN: the value and the step must be kept. The **Use test data**, **Save draft** and **Back to chat** buttons correspond to **Usar datos de prueba**, **Guardar borrador** and **Volver al chat**. Testing the language does not require saving an application.
+6. **Traces:** run a new query and open **View latest trace**. Check that destinations, details, numbers and pagination are in English. In lab mode, **View sensitive values** translates the capture titles; the token, `client_secret`, SVID, dynamic credentials and encrypted/decrypted bodies still show the original value. Switching the language does not extend permissions or reveal data automatically.
+7. **Mobile:** check that EN/ES is still visible at the top right and that the chat does not scroll horizontally. The October 20 report verified a 390 px width.
 
-## 5. Probar perfiles y resultados esperados
+The IBM Verify portal and Grafana keep their own language settings. Switching EN/ES keeps the session and the trace step linked through `?span=`; **restarting Lumen** ends the session and discards conversations, unsaved forms and in-memory captures. [Current results and limits](../runs/20261022T140230Z-workspace-review/README.md); [earlier bilingual check of October 20](VALIDACION.md#interfaz-bilingüe-y-trazas--20-de-octubre-de-2026).
 
-| Paso | Lector `lumen-reader` | Gestor `lumen-writer` | Supervisor `lumen-supervisor` |
+## 5. Test the profiles and expected results
+
+| Step | Reader `lumen-reader` | Writer `lumen-writer` | Supervisor `lumen-supervisor` |
 |---|---|---|---|
-| Consultar catálogo | Permitido, SQL RO | Permitido | Permitido |
-| Comprobar límites Vault | RO sí; RW/protección no | RO/RW + encrypt/encode sí | RO + decrypt/decode sí |
-| Crear solicitud de cinco pasos | Denegado | Permitido | Denegado |
-| Leer la cola compartida del lab | Enmascarada | Enmascarada | Enmascarada hasta revelar |
-| Revelar DNI/IBAN/perfil | Denegado | Denegado | Permitido |
-| Leer secreto administrativo | Denegado | Denegado | Denegado |
+| Query the catalog | Allowed, SQL RO | Allowed | Allowed |
+| Check Vault limits | RO yes; RW/protection no | RO/RW + encrypt/encode yes | RO + decrypt/decode yes |
+| Create a five-step application | Denied | Allowed | Denied |
+| Read the lab's shared queue | Masked | Masked | Masked until revealed |
+| Reveal DNI/IBAN/profile | Denied | Denied | Allowed |
+| Read the administrative secret | Denied | Denied | Denied |
 
-Con gestor, pulsar **Usar datos de prueba**, revisar los cinco pasos de dirección, tarifa, identidad y pago, marcar la revisión y guardar. Anotar la referencia generada; no usar IDs de capturas históricas. Con lector y supervisor, abrir esa misma solicitud y contrastar lectura/revelado. La cola compartida de solicitudes es una decisión de este laboratorio; no se presenta como aislamiento por cliente/tenant.
+As the writer, press **Usar datos de prueba** (*Use test data*), review the five steps for address, plan, identity and payment, tick the review box and save. Write down the generated reference; do not use IDs from historical screenshots. As the reader and the supervisor, open that same application and compare reading and revealing. The shared application queue is a decision of this lab; it is not presented as per-customer/tenant isolation.
 
-## 6. Probar los dos flujos del agente
+## 6. Test the agent's two flows
 
-1. **Datos OBO:** pedir «Consulta las tarifas de electricidad del catálogo de Lumen». La traza debe incluir credenciales del proveedor, control de ámbito, `verify.obo_exchange`, `vault.read` en Database y `mysql.query` con SELECT. Una formulación explícita evita falsos rechazos del clasificador de ámbito de algunos modelos.
-2. **Agente Tavily:** usar una de las búsquedas de energía ofrecidas por la UI. Se autentica como `chatbot-research`, lee `secrets/data/tavily` y llama a Tavily; no delega los permisos SQL del humano para esta búsqueda.
-3. **Ámbito:** preguntar «¿Qué tiempo hace hoy en Palencia?» y después «venga». Debe mantenerse el rechazo de contenido ajeno a energía. Una pregunta posterior explícita sobre tarifas vuelve a admitirse. El primer filtro puede llamar al modelo. Cuando ese filtro marca la consulta como fuera de ámbito, el seguimiento corto se resuelve sin nuevas llamadas al modelo ni a Vault; compruébalo en la traza. Los proveedores pueden clasificar de forma distinta la primera pregunta: una respuesta textual de rechazo no demuestra por sí sola que no se haya llamado al modelo.
-4. **Bloqueos:** aplicar el capítulo [12](12-bloqueos.md) y repetir una acción que antes funcionaba. Un error visible debe corresponder a un 403 Vault o a la revocación real, no únicamente a un texto generado por el modelo.
+1. **OBO data:** ask «Consulta las tarifas de electricidad del catálogo de Lumen» ("Look up the electricity plans in Lumen's catalog"). The trace must include the provider credentials, the scope check, `verify.obo_exchange`, `vault.read` on Database and `mysql.query` with a SELECT. An explicit wording avoids false rejections by some models' scope classifier.
+2. **Tavily agent:** use one of the energy searches offered by the UI. It authenticates as `chatbot-research`, reads `secrets/data/tavily` and calls Tavily; it does not delegate the human's SQL permissions for this search.
+3. **Scope:** ask «¿Qué tiempo hace hoy en Palencia?» ("What's the weather in Palencia today?") and then «venga» ("go on"). The rejection of non-energy content must hold. A later explicit question about plans is accepted again. The first filter may call the model. When that filter marks the query as out of scope, the short follow-up is resolved without new calls to the model or to Vault; check this in the trace. Providers may classify the first question differently: a textual rejection response alone does not prove that the model was not called.
+4. **Blocks:** apply chapter [12](12-bloqueos.md) and repeat an action that worked before. A visible error must correspond to a Vault 403 or to the actual revocation, not just to text generated by the model.
 
-Repetir catálogo y control de ámbito con **OpenAI**, **xAI** y **Claude**, usando el banner entre consultas. Verificar que el modelo cambia, la conversación se conserva y el selector está bloqueado durante una respuesta. Abrir otra sesión para comprobar que su elección es independiente. Para OpenAI y Claude deben aparecer sus sujetos/roles SPIFFE respectivos; para xAI, la credencial dinámica. Las trazas del modelo deben indicar el proveedor elegido, no solo el inicial.
+Repeat the catalog and scope checks with **OpenAI**, **xAI** and **Claude**, using the banner between queries. Check that the model changes, the conversation is kept and the selector is locked while a response is in progress. Open another session to check that its choice is independent. For OpenAI and Claude, their respective SPIFFE subjects/roles must appear; for xAI, the dynamic credential. The model traces must show the chosen provider, not just the initial one.
 
-La salud del proceso debe enumerar las tres opciones. Esto comprueba la carga de configuración, no la disponibilidad de inferencia:
+The process health check must list the three options. This checks configuration loading, not inference availability:
 
 ```bash
 curl --fail --silent --show-error http://localhost:8088/health | \
   jq -e '.status=="ok" and ([.models[].provider]|sort)==["anthropic","openai","xai"]'
 ```
 
-El banner identifica el proveedor y el modelo. La clasificación de ámbito y el system prompt limitan la conversación; **la autorización de datos la decide Vault**, no el LLM. [Guardrails y trazas](../ENERGY_SCOPE_AND_SVID.md).
+The banner identifies the provider and the model. The scope classification and the system prompt constrain the conversation; **Vault decides data authorization**, not the LLM. [Guardrails and traces](../ENERGY_SCOPE_AND_SVID.md).
 
-## 7. Parar la ejecución manual
+## 7. Stop the manual run
 
-Detener Lumen y los port-forwards con Ctrl+C en sus terminales. Si se arrancó el publicador manual de JWKS, detener únicamente su PID después de comprobar que corresponde a ese proceso. Esto conserva los datos; no ejecutar `remove` como parte de una verificación de lectura.
+Stop Lumen and the port-forwards with Ctrl+C in their terminals. If you started the manual JWKS publisher, stop only its PID after checking that it belongs to that process. This keeps the data; do not run `remove` as part of a read-only verification.
 
-La retirada completa ya está documentada en el [README principal](../../README.md) y `./demo.sh remove --dry-run` permite revisar su alcance. Esta serie explica configuración y comprobación; no requiere retirar un despliegue activo.
+Full removal is already documented in the [main README](../../README.md), and `./demo.sh remove --dry-run` lets you review its scope. This series explains configuration and verification; it does not require removing an active deployment.
 
-## Actualizar una instalación existente
+<a id="actualizar-una-instalación-existente"></a>
 
-### Solo interfaz, idioma y visor de trazas
+## Update an existing installation
 
-Si los proveedores ya funcionan, el soporte EN/ES y el visor se incorporan con el código de la aplicación: `chatbot/app/`, incluido `translations_en.json`, y `chatbot/static/`. No hay nuevas variables de `.env`, identidades ni políticas por idioma. Tampoco hace falta volver a publicar `chatbot/model`.
+### Interface, language and trace viewer only
 
-- **Arranque manual en primer plano:** detener ese proceso con Ctrl+C y repetir la sección 3 con el código actualizado y un nuevo token bootstrap. Mantener los forwards e infraestructura existentes.
-- **Arranque gestionado por el lanzador:** desde la raíz, ejecutar `bash scripts/demo/start.sh`. Actualiza la copia en `$LUMEN_STATE_DIR/runtime/chatbot`, renueva los forwards de observabilidad y reinicia Lumen. Requiere que la infraestructura existente siga activa.
-- Volver a iniciar sesión y seguir las [comprobaciones bilingües](#idioma-y-comprobaciones-bilingües). El reinicio descarta el estado en memoria; la cookie de idioma del navegador y las solicitudes ya guardadas permanecen.
+If the providers already work, EN/ES support and the viewer come with the application code: `chatbot/app/`, including `translations_en.json`, and `chatbot/static/`. There are no new `.env` variables, identities or per-language policies. Nor do you need to republish `chatbot/model`.
 
-### Catálogo de los tres proveedores
+- **Manual foreground startup:** stop that process with Ctrl+C and repeat section 3 with the updated code and a new bootstrap token. Keep the existing forwards and infrastructure.
+- **Startup managed by the launcher:** from the root, run `bash scripts/demo/start.sh`. It updates the copy in `$LUMEN_STATE_DIR/runtime/chatbot`, renews the observability forwards and restarts Lumen. It requires the existing infrastructure to still be running.
+- Sign in again and follow the [bilingual checks](#idioma-y-comprobaciones-bilingües). The restart discards the in-memory state; the browser's language cookie and already saved applications remain.
 
-No hace falta recrear Vault, usuarios, MySQL ni las federaciones para incorporar el selector. Si las tres identidades ya existen:
+### Catalog of the three providers
 
-1. Cargar el entorno de la sección 1 y comprobar las variables `LUMEN_*_MODEL` de [00](00-entorno.md). Un valor antiguo en `.env` prevalece sobre los modelos por defecto.
-2. Reaplicar únicamente la política bootstrap de [04, sección 6](04-vault-iam.md#6-política-bootstrap-y-comprobaciones), que ahora permite leer `chatbot/anthropic` además de OpenAI y xAI.
-3. Generar los tres archivos de perfil con [06, sección 6](06-xai.md#6-preparar-el-perfil-xai-para-el-catálogo), [07, sección 7](07-openai-spiffe.md#7-preparar-el-perfil-openai-para-el-catálogo) y [08, sección 6](08-claude-spiffe.md#6-preparar-el-perfil-claude-para-el-catálogo). No repetir las secciones que crean apps, claves o roles.
-4. Comprobar el [filtro SPIFFE de observabilidad](09-observabilidad.md#actualizar-el-filtro-spiffe-de-una-instalación-existente): debe incluir OpenAI y Claude. Actualizar solo ese dispositivo si conserva el filtro anterior.
-5. Publicar el catálogo conjunto con el segundo bloque de la sección 1. Reiniciar solo Lumen con el código actualizado y el bloque de la sección 3; los forwards y ngrok siguen funcionando.
-6. Comprobar la salud y probar los tres botones según la sección 6. Si falta una identidad, preparar antes su capítulo correspondiente.
+You do not need to recreate Vault, users, MySQL or the federations to add the selector. If the three identities already exist:
 
-La aplicación carga el catálogo al arrancar: cambiar modelos/IDs en Vault requiere reiniciar Lumen; cambiar entre perfiles ya cargados desde el banner no. La selección inicial se usa cuando el navegador todavía no tiene una preferencia guardada. El arranque sincroniza las claves públicas de Claude con el perfil administrativo descrito en [08](08-claude-spiffe.md).
+1. Load the environment from section 1 and check the `LUMEN_*_MODEL` variables from [00](00-entorno.md). An old value in `.env` takes precedence over the default models.
+2. Reapply only the bootstrap policy from [04, section 6](04-vault-iam.md#6-política-bootstrap-y-comprobaciones), which now allows reading `chatbot/anthropic` in addition to OpenAI and xAI.
+3. Generate the three profile files with [06, section 6](06-xai.md#6-preparar-el-perfil-xai-para-el-catálogo), [07, section 7](07-openai-spiffe.md#7-preparar-el-perfil-openai-para-el-catálogo) and [08, section 6](08-claude-spiffe.md#6-preparar-el-perfil-claude-para-el-catálogo). Do not repeat the sections that create apps, keys or roles.
+4. Check the [observability SPIFFE filter](09-observabilidad.md#actualizar-el-filtro-spiffe-de-una-instalación-existente): it must include OpenAI and Claude. Update only that device if it still has the previous filter.
+5. Publish the combined catalog with the second block of section 1. Restart only Lumen with the updated code and the block from section 3; the forwards and ngrok keep running.
+6. Check health and test the three buttons as described in section 6. If an identity is missing, prepare its chapter first.
 
-**Cómo decide Vault:** al seleccionar una llamada a Vault, el botón pequeño junto al estado HTTP despliega su lógica y la auditoría correlacionada. Comprueba una lectura permitida y otra denegada: políticas, actor y RAR deben corresponder a la llamada seleccionada. Al cambiar de paso se cierra y descarta la evidencia anterior. [Datos disponibles y límites](../../chatbot/OBSERVABILITY.md#cómo-decide-vault).
+The application loads the catalog at startup: changing models/IDs in Vault requires restarting Lumen; switching between already loaded profiles from the banner does not. The initial selection is used when the browser does not yet have a saved preference. Startup synchronizes Claude's public keys with the administrative profile described in [08](08-claude-spiffe.md).
 
-**Consola de peticiones:** en cada paso de una traza nueva, **Abrir consola de peticiones** muestra la petición real editable (URL, método, cabeceras/token y cuerpo). Incluye mensajes, instrucciones y herramientas del LLM, los intercambios Verify/Vault y un editor SQL para MySQL. **Enviar petición real** ejecuta la llamada; también puedes copiar cURL o exportar a Postman. Los tokens no se renuevan y las capturas en memoria caducan a los diez minutos. [Uso, efectos y límites](../../chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).
+**How Vault decides:** when you select a call to Vault, the small button next to the HTTP status expands its logic and the correlated audit entries. Check one allowed read and one denied read: policies, actor and RAR must correspond to the selected call. Moving to another step closes and discards the previous evidence. [Available data and limits](../../chatbot/OBSERVABILITY.md#cómo-decide-vault).
+
+**Request console:** in each step of a new trace, **Abrir consola de peticiones** (*Open request console*) shows the real, editable request (URL, method, headers/token and body). It includes the LLM's messages, instructions and tools, the Verify/Vault exchanges and an SQL editor for MySQL. **Enviar petición real** (*Send actual request*) executes the call; you can also copy it as cURL or export it to Postman. Tokens are not renewed, and in-memory captures expire after ten minutes. [Usage, effects and limits](../../chatbot/OBSERVABILITY.md#consola-para-repetir-una-llamada-real).

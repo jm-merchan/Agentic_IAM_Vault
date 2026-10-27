@@ -1,8 +1,8 @@
-# 05 · Transit y Transform para solicitudes protegidas
+# 05 · Transit and Transform for protected applications
 
-[Índice](README.md) · Requiere [02](02-mysql.md) y [04](04-vault-iam.md)
+[Index](README.md) · Requires [02](02-mysql.md) and [04](04-vault-iam.md)
 
-## 1. Crear los motores y la clave Transit
+## 1. Create the engines and the Transit key
 
 
 ```bash
@@ -15,7 +15,7 @@ export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 vault secrets list
 ```
 
-Omitir cada `enable` si el motor ya está montado. En una instalación nueva:
+Skip each `enable` if the engine is already mounted. In a new installation:
 
 ```bash
 vault secrets enable transit
@@ -32,9 +32,9 @@ vault read transform/role/lumen-dni
 vault read transform/role/lumen-iban
 ```
 
-Transit cifra el perfil completo con AES-GCM; Transform tokeniza DNI e IBAN. Se usa tokenización con mappings, **no FPE**: el token no tiene por qué conservar formato DNI/IBAN. `convergence=false` permite tokens diferentes para el mismo valor. KMIP protege los tablespaces y es una capa independiente.
+Transit encrypts the complete profile with AES-GCM; Transform tokenizes the DNI and IBAN. Tokenization with mappings is used, **not FPE**: the token does not need to keep the DNI/IBAN format. `convergence=false` allows different tokens for the same value. KMIP protects the tablespaces and is an independent layer.
 
-## 2. Crear la tabla de solicitudes
+## 2. Create the applications table
 
 
 ```bash
@@ -56,11 +56,11 @@ CREATE TABLE IF NOT EXISTS scripting.energy_applications (
 SQL
 ```
 
-`profile_ciphertext`, `dni_token` e `iban_token` contienen las salidas de Vault. `dni_hint` e `iban_hint` son versiones enmascaradas; tarifa, estado y referencia permanecen legibles. El flujo de cinco pasos lo implementa [applications.py](../../chatbot/app/applications.py), con un UUID estable para evitar duplicar la solicitud al reintentar.
+`profile_ciphertext`, `dni_token` and `iban_token` contain the Vault outputs. `dni_hint` and `iban_hint` are masked versions; tariff, status and reference remain readable. The five-step flow is implemented by [applications.py](../../chatbot/app/applications.py), with a stable UUID to avoid duplicating the application on retry.
 
-## 3. Preparar valores sintéticos para el botón de permisos
+## 3. Prepare synthetic values for the permissions button
 
-Este bloque configura las entradas de prueba del runtime. Usa root para prepararlas, pero **el botón de la app vuelve a acceder con OBO** y, por tanto, puede recibir 403.
+This block configures the runtime's test inputs. It uses root to prepare them, but **the app's button accesses Vault again with OBO** and can therefore receive a 403.
 
 ```bash
 jq -n '{version:1,profile_plaintext:("lumen-permission-probe"|@base64),
@@ -84,9 +84,9 @@ jq --slurpfile probe "$MANUAL/probe.json" '.permission_probe=$probe[0]' "$MANUAL
 bash chatbot/scripts/configure-rar-fixtures.sh
 ```
 
-## 4. Entender las operaciones de recuperación
+## 4. Understand the recovery operations
 
-Prueba administrativa de ida y vuelta; el resultado se guarda localmente:
+Administrative round-trip test; the result is saved locally:
 
 ```bash
 jq '{ciphertext:.profile_ciphertext}' "$MANUAL/probe.json" | \
@@ -98,14 +98,14 @@ jq '{value:.dni.token,transformation:"lumen-dni"}' "$MANUAL/probe.json" | \
 jq -e --slurpfile probe "$MANUAL/probe.json" '.data.decoded_value==$probe[0].dni.value' "$MANUAL/decoded.json"
 ```
 
-Para demostrar autorización, repetir estas operaciones con un JWT OBO que incluya RAR para esa ruta y `capabilities:["update"]`, como explica [11](11-obo.md). Con root siempre serían permitidas.
+To demonstrate authorization, repeat these operations with an OBO JWT that includes RAR for that path and `capabilities:["update"]`, as explained in [11](11-obo.md). With root they would always be allowed.
 
-| Operación | Lector | Gestor | Supervisor |
+| Operation | Reader | Writer | Supervisor |
 |---|---|---|---|
-| Leer solicitudes enmascaradas (SQL RO) | Sí | Sí | Sí |
-| Guardar solicitud (SQL RW + encrypt/encode) | No | Sí | No |
-| Revelar perfil, DNI e IBAN (decrypt/decode) | No | No | Sí |
+| Read masked applications (SQL RO) | Yes | Yes | Yes |
+| Save an application (SQL RW + encrypt/encode) | No | Yes | No |
+| Reveal profile, DNI and IBAN (decrypt/decode) | No | No | Yes |
 
-El permiso de crear una solicitud requiere que funcionen todas sus operaciones. Los datos personales del formulario no se envían al LLM. [Validación de la instalación manual](VALIDACION.md).
+Permission to create an application requires all of its operations to work. The personal data in the form is not sent to the LLM. [Validation of the manual installation](VALIDACION.md).
 
-Fuentes locales: [06-data-protection.sh](../../chatbot/scripts/06-data-protection.sh), [configure-permission-probe.sh](../../chatbot/scripts/configure-permission-probe.sh).
+Local sources: [06-data-protection.sh](../../chatbot/scripts/06-data-protection.sh), [configure-permission-probe.sh](../../chatbot/scripts/configure-permission-probe.sh).

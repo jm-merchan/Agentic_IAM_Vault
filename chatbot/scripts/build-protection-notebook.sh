@@ -11,23 +11,23 @@ add_cell() {
   mv "$BUILD_DIR/next" "$BUILD_DIR/cells.json"
 }
 add_cell markdown <<'MD'
-# Lumen — solicitudes protegidas con tres perfiles
+# Lumen — protected applications with three profiles
 
-Referencia de solicitudes protegidas; `./demo.sh` incluye estas etapas. Formulario en cinco pasos, OBO, Transit y Transform tokenization; mantiene MySQL KMIP. Aprovisionamiento **Bash + Vault CLI + API Verify**, sin Terraform ni Python para configurar los proveedores. La aplicación continúa en NiceGUI/Python con Deep Agents y selección OpenAI/xAI/Claude.
+Protected applications reference; `./demo.sh` includes these stages. Five-step form, OBO, Transit and Transform tokenization; MySQL KMIP is kept. Provisioning with **Bash + Vault CLI + Verify API**, without Terraform or Python to configure the providers. The application remains NiceGUI/Python with Deep Agents and OpenAI/xAI/Claude selection.
 
-Ejecutar desde la raíz del repositorio. Los notebooks 1–6 deben estar preparados; la observabilidad del 7 permite ver las trazas de esta extensión. Este notebook se entrega sin salidas ni credenciales.
+Run from the repository root. Notebooks 1–6 must be prepared; the observability from notebook 7 lets you view the traces of this extension. This notebook is delivered without outputs or credentials.
 
-[README con recorrido y capturas](chatbot/README.md#solicitudes-en-cinco-pasos) · [Observabilidad](chatbot/OBSERVABILITY.md#9-solicitudes-protegidas-transit-y-transform)
+[README with walkthrough and screenshots](chatbot/README.md#solicitudes-en-cinco-pasos) · [Observability](chatbot/OBSERVABILITY.md#9-solicitudes-protegidas-transit-y-transform)
 MD
 add_cell markdown <<'MD'
-## 1. Comprobar Vault, licencia y MySQL
+## 1. Check Vault, license and MySQL
 
-Namespace Vault **verify**, contexto Kubernetes **workshop**. La licencia debe incluir Transform Secrets Engine y Agentic IAM. El proyecto `Demo_Transform_Radar` sirve como referencia para Transit/Transform; sus datos y claves no se copian.
+Vault namespace **verify**, Kubernetes context **workshop**. The license must include the Transform Secrets Engine and Agentic IAM. The `Demo_Transform_Radar` project serves as a reference for Transit/Transform; its data and keys are not copied.
 MD
 add_cell code <<'CODE'
 %%bash
 set -euo pipefail
-source /tmp/vault/config.env
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_TOKEN VAULT_CACERT VAULT_NAMESPACE=''
 vault read -format=json sys/license/status | jq '.data.autoloaded | {expiration_time,features}'
 export VAULT_NAMESPACE=verify
@@ -35,11 +35,11 @@ vault secrets list
 kubectl --context workshop -n mysql get pod mysql-enterprise-0
 CODE
 add_cell markdown <<'MD'
-## 2. Crear protección y tabla adicional
+## 2. Create the protection and the additional table
 
-Crea `transit/keys/lumen-applications` (AES-256-GCM, no exportable), transformaciones de tokenización `lumen-dni` y `lumen-iban` con roles del mismo nombre, `convergence=false` y `mapping_mode=default`. Reutiliza recursos existentes. Crea `scripting.energy_applications` con InnoDB `ENCRYPTION='Y'`, sin borrar ni alterar las solicitudes antiguas.
+Creates `transit/keys/lumen-applications` (AES-256-GCM, non-exportable), the tokenization transformations `lumen-dni` and `lumen-iban` with roles of the same name, `convergence=false` and `mapping_mode=default`. Existing resources are reused. Creates `scripting.energy_applications` with InnoDB `ENCRYPTION='Y'`, without deleting or altering the old applications.
 
-Nombre, domicilio, contacto y nota se guardan en un JSON cifrado. DNI e IBAN se guardan como tokens aleatorios. Tarifa, identidad de sesión, estado, fecha y pistas enmascaradas son metadatos en claro. El cifrado KMIP del tablespace sigue siendo otra capa independiente.
+Name, address, contact and note are stored in an encrypted JSON. DNI and IBAN are stored as random tokens. Tariff, session identity, status, date and masked hints are clear-text metadata. KMIP tablespace encryption remains a separate, independent layer.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -47,17 +47,17 @@ set -euo pipefail
 bash chatbot/scripts/06-data-protection.sh
 CODE
 add_cell markdown <<'MD'
-## 3. Tres perfiles y políticas OBO
+## 3. Three profiles and OBO policies
 
-| Usuario | Grupo Verify | SQL | Protección |
+| User | Verify group | SQL | Protection |
 |---|---|---|---|
-| lumen-reader | chatbot-readers | RO | Solo pistas enmascaradas |
-| lumen-writer (gestor) | chatbot-writers | RW | Encrypt + encode |
+| lumen-reader | chatbot-readers | RO | Masked hints only |
+| lumen-writer (manager) | chatbot-writers | RW | Encrypt + encode |
 | lumen-supervisor | chatbot-supervisors | RO | Decrypt + decode |
 
-El script 03 crea/activa el supervisor mediante los permisos administrativos ya existentes y conserva las contraseñas de usuarios existentes. Las tres contraseñas están en `verify`, KV `secrets`, rutas `chatbot/users/{reader,writer,supervisor}`. No imprimirlas en celdas.
+Script 03 creates/activates the supervisor using the existing administrative permissions and keeps the passwords of existing users. The three passwords are in `verify`, KV `secrets`, paths `chatbot/users/{reader,writer,supervisor}`. Do not print them in cells.
 
-04 limita el agente a ocho rutas: dos credenciales DB y seis operaciones criptográficas. 05 sincroniza miembros, entidades, políticas y asignación a OIDC. RAR usa **read** para credenciales y **update** para operaciones criptográficas. Reiniciar Lumen después.
+04 limits the agent to eight paths: two DB credentials and six cryptographic operations. 05 synchronizes members, entities, policies and the OIDC assignment. RAR uses **read** for credentials and **update** for cryptographic operations. Restart Lumen afterwards.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -69,7 +69,7 @@ CODE
 add_cell code <<'CODE'
 %%bash
 set -euo pipefail
-source /tmp/vault/config.env
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_TOKEN VAULT_CACERT VAULT_NAMESPACE=verify
 for policy in chatbot-reader chatbot-writer chatbot-supervisor chatbot-data-ceiling; do
   printf '\nPolicy: %s\n' "$policy"
@@ -77,11 +77,11 @@ for policy in chatbot-reader chatbot-writer chatbot-supervisor chatbot-data-ceil
 done
 CODE
 add_cell markdown <<'MD'
-## 4. Auditoría y trazas
+## 4. Auditing and traces
 
-Se conserva HMAC en `lumen-stdout/`. Las salidas raw filtran las cuatro rutas de lectura de la demo y las seis rutas Transit/Transform en `verify/`. `lumen-protection-raw/` no filtra operación, para conservar también los eventos request de denegaciones. Las rutas son exactas, sin comodines. La salida `lumen-xai-raw/` cubre además `xai/creds/lumen`.
+HMAC is kept in `lumen-stdout/`. The raw outputs filter the demo's four read paths and the six Transit/Transform paths in `verify/`. `lumen-protection-raw/` does not filter by operation, so that request events for denials are also kept. The paths are exact, without wildcards. The `lumen-xai-raw/` output also covers `xai/creds/lumen`.
 
-**En este laboratorio el usuario pidió raw:** las trazas y auditorías incluyen JWT, cuerpos de petición y respuesta; también DNI/IBAN en claro y JSON Base64 antes de cifrar. No equivale a confidencialidad frente a los operadores de observabilidad. Utilizar el botón de datos ficticios.
+**In this lab the user asked for raw:** traces and audit logs include JWTs, request and response bodies; also DNI/IBAN in clear text and Base64 JSON before encryption. This does not amount to confidentiality from the observability operators. Use the fictitious data button.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -89,9 +89,9 @@ set -euo pipefail
 LUMEN_VAULT_AUDIT_MODE=raw bash chatbot/scripts/enable-audit.sh
 CODE
 add_cell markdown <<'MD'
-## 5. Arrancar o reiniciar Lumen
+## 5. Start or restart Lumen
 
-Detener la instancia anterior antes de ejecutar esta celda. Permanece ejecutándose. Abrir exactamente **http://localhost:8088** por el callback OIDC.
+Stop the previous instance before running this cell. It keeps running. Open exactly **http://localhost:8088** because of the OIDC callback.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -99,26 +99,26 @@ set -euo pipefail
 LUMEN_TRACE_VAULT_RAW=1 bash chatbot/scripts/run.sh
 CODE
 add_cell markdown <<'MD'
-## 6. Recorrido interactivo
+## 6. Interactive walkthrough
 
-Las etiquetas siguientes están en español: selecciona **ES** para seguirlas literalmente. **EN** cambia el formulario, validaciones y bandeja a inglés; el idioma inicial procede del navegador si no hay elección guardada. **Take the next step**, **Use test data**, **Save draft** y **Reveal data** son las equivalencias de **Da el siguiente paso**, **Usar datos de prueba**, **Guardar borrador** y **Revelar datos**. Cambiar EN/ES mantiene el paso y los datos escritos durante la sesión, con los mismos permisos y validaciones de DNI/IBAN españoles. [Prueba de conservación sin guardar una solicitud](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+The labels below are in English: select **EN** to follow them literally. **ES** switches the form, validations and inbox to Spanish; the initial language comes from the browser if no choice has been saved. **Da el siguiente paso**, **Usar datos de prueba**, **Guardar borrador** and **Revelar datos** are the Spanish equivalents of **Take the next step**, **Use test data**, **Save draft** and **Reveal data**. Switching EN/ES keeps the step and the data typed during the session, with the same permissions and the same validation of Spanish DNI/IBAN numbers. [Preservation test without saving an application](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
-1. **Gestor**: entrar con `lumen-writer`. «Da el siguiente paso» → aceptar sugerencias aleatorias con Tab (o «Usar datos de prueba») → recorrer tarifa, vivienda, titular, pago y revisión. Probar una letra incorrecta del DNI o modificar los dígitos de control del IBAN: el avance queda bloqueado. Revisar, marcar confirmación y guardar.
-2. **Gestor**: en «Solicitudes», pulsar «Revelar datos». Se lee ciphertext con SQL RW, pero Vault deniega Transit decrypt con HTTP 403. Abrir el enlace de traza del diálogo.
-3. **Lector**: cambiar de usuario desde el chat a `lumen-reader`. La bandeja muestra pistas; revelar produce también 403. Crear solicitudes queda bloqueado. «Comprobar límites en Vault» deniega credencial RW.
-4. **Supervisor**: entrar como `lumen-supervisor` y aceptar el consentimiento OIDC normal de primer acceso. Revelar la misma solicitud: SQL RO → Transit decrypt → Transform decode DNI → Transform decode IBAN. «Ocultar y cerrar» elimina el diálogo. Crear solicitudes y obtener RW siguen bloqueados.
-5. **Chat/LLM**: «Consulta las solicitudes registradas». La herramienta devuelve la proyección enmascarada; el formulario y los datos revelados no se añaden al prompt. Tavily mantiene su agente autónomo separado.
+1. **Writer**: sign in as `lumen-writer`. «Take the next step» → accept the random suggestions with Tab (or «Use test data») → go through tariff, home, holder, payment and review. Try a wrong DNI letter or change the IBAN check digits: progress is blocked. Review, tick the confirmation and save.
+2. **Writer**: in «Applications», click «Reveal data». The ciphertext is read with SQL RW, but Vault denies Transit decrypt with HTTP 403. Open the trace link in the dialog.
+3. **Reader**: switch user from the chat to `lumen-reader`. The inbox shows hints; revealing also produces 403. Creating applications is blocked. «Check limits in Vault» denies the RW credential.
+4. **Supervisor**: sign in as `lumen-supervisor` and accept the normal first-access OIDC consent. Reveal the same application: SQL RO → Transit decrypt → Transform decode DNI → Transform decode IBAN. «Hide and close» removes the dialog. Creating applications and obtaining RW remain blocked.
+5. **Chat/LLM**: «Show the registered applications». The tool returns the masked projection; the form and the revealed data are not added to the prompt. Tavily keeps its separate autonomous agent.
 
-![Revisión](docs/screenshots/current/form-review.jpg)
-![Gestor denegado](docs/screenshots/current/writer-reveal-denied.jpg)
-![Supervisor autorizado](docs/screenshots/current/supervisor-reveal-success.jpg)
+![Review](docs/screenshots/current/form-review.jpg)
+![Writer denied](docs/screenshots/current/writer-reveal-denied.jpg)
+![Supervisor authorized](docs/screenshots/current/supervisor-reveal-success.jpg)
 
-La bandeja es compartida **solo para este laboratorio**. SQL RO no aplica seguridad por fila ni columna: puede leer ciphertext/tokens, pero Vault exige políticas independientes para revelarlos.
+The inbox is shared **for this lab only**. SQL RO does not enforce row- or column-level security: it can read ciphertext/tokens, but Vault requires independent policies to reveal them.
 MD
 add_cell markdown <<'MD'
-## 7. Comprobar almacenamiento sin imprimir datos en claro
+## 7. Check storage without printing clear-text data
 
-Los indicadores deben ser `1` para las solicitudes creadas por el formulario, también con las sugerencias aleatorias. No se compara contra antiguos valores de ejemplo fijos. Esta comprobación administrativa se realiza directamente en MySQL, fuera del flujo del agente. No descifra ni destokeniza.
+The indicators must be `1` for the applications created through the form, including with the random suggestions. No comparison is made against old fixed sample values. This administrative check is performed directly in MySQL, outside the agent flow. It neither decrypts nor detokenizes.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -136,9 +136,9 @@ FROM scripting.energy_applications;
 SQL
 CODE
 add_cell markdown <<'MD'
-## 8. Pruebas y correlación
+## 8. Tests and correlation
 
-Las pruebas unitarias cubren normalización y checksum, bloqueo del perfil RO en servidor, protección antes de INSERT, fallo sin fila parcial, reintento sin duplicación, recuperación denegada y captura POST. Los informes JSON de pruebas reales solo guardan identificadores, tamaños y booleanos.
+The unit tests cover normalization and checksum, server-side blocking of the RO profile, protection before INSERT, failure without a partial row, retry without duplication, denied retrieval and POST capture. The JSON reports from real tests store only identifiers, sizes and booleans.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -152,23 +152,23 @@ CODE
 add_cell code <<'CODE'
 %%bash
 set -euo pipefail
-# Sustituir por el ID de una nueva ejecución; los datos de Tempo/Loki retienen 7 días.
+# Replace with the ID of a new run; Tempo/Loki retain data for 7 days.
 TRACE_ID=''
 if [ -z "$TRACE_ID" ]; then
-  echo 'Copia el Trace ID del enlace de guardado/revelación y repite esta celda.'
+  echo 'Copy the Trace ID from the save/reveal link and rerun this cell.'
 else
   LUMEN_OBSERVABILITY_REPORT=chatbot/docs/application-latest-verification.json \
     bash chatbot/scripts/verify-observability.sh "$TRACE_ID"
 fi
 CODE
 add_cell markdown <<'MD'
-## 9. Repetición y límites
+## 9. Repetition and limits
 
-Los scripts reutilizan usuarios, motores, roles y claves. No hay limpieza destructiva ni migración de `service_requests`; los borradores originales siguen en «Borradores anteriores». Una fila nueva solo se inserta después de obtener los tres resultados protegidos. Un fallo posterior a tokenizar puede dejar asociaciones de token sin fila SQL, pues no hay transacción distribuida entre Vault y MySQL.
+The scripts reuse users, engines, roles and keys. There is no destructive cleanup or migration of `service_requests`; the original drafts remain under «Previous drafts». A new row is inserted only after the three protected results have been obtained. A failure after tokenization can leave token mappings without an SQL row, since there is no distributed transaction between Vault and MySQL.
 
-Para nuevas ejecuciones sin contenido raw: `LUMEN_VAULT_AUDIT_MODE=hmac bash chatbot/scripts/enable-audit.sh`, detener Lumen y arrancar con `LUMEN_TRACE_CONTENT=0 LUMEN_TRACE_VAULT_RAW=0 bash chatbot/scripts/run.sh`. Esto no elimina registros previos.
+For new runs without raw content: `LUMEN_VAULT_AUDIT_MODE=hmac bash chatbot/scripts/enable-audit.sh`, stop Lumen and start it with `LUMEN_TRACE_CONTENT=0 LUMEN_TRACE_VAULT_RAW=0 bash chatbot/scripts/run.sh`. This does not delete previous records.
 
-Referencias: [Transit](https://developer.hashicorp.com/vault/api-docs/secret/transit), [Transform](https://developer.hashicorp.com/vault/api-docs/secret/transform), [tokenización](https://developer.hashicorp.com/vault/docs/secrets/transform/tokenization), [OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo).
+References: [Transit](https://developer.hashicorp.com/vault/api-docs/secret/transit), [Transform](https://developer.hashicorp.com/vault/api-docs/secret/transform), [tokenization](https://developer.hashicorp.com/vault/docs/secrets/transform/tokenization), [OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo).
 MD
 jq -n --slurpfile cells "$BUILD_DIR/cells.json" '{nbformat:4,nbformat_minor:5,metadata:{kernelspec:{display_name:"Python 3 (IPython Bash magics)",language:"python",name:"python3"},language_info:{name:"python"}},cells:$cells[0]}' > 8_Lumen_Protected_Applications.ipynb
 printf 'Notebook 8 generated.\n'

@@ -11,38 +11,38 @@ add_cell() {
   mv "$build_dir/next" "$build_dir/cells.json"
 }
 add_cell markdown <<'MD'
-# IBM Verify + Vault Agentic IAM y OBO — Bash / API
+# IBM Verify + Vault Agentic IAM and OBO — Bash / API
 
-Este notebook conserva el ejercicio base `verify-agent`; Lumen completo se inicia con `./demo.sh` y no requiere su sesión humana guardada. Este ejercicio configura el laboratorio existente `merchan.verify.ibm.com` y Vault `https://127.0.0.1:8443`, **exclusivamente en el namespace `verify`**. Todas las celdas de código usan Bash (`%%bash`); el kernel IPython solamente ejecuta esa magic. No hay scripts Python.
+This notebook keeps the base `verify-agent` exercise; the full Lumen demo is started with `./demo.sh` and does not need its saved human session. This exercise configures the existing `merchan.verify.ibm.com` lab and Vault `https://127.0.0.1:8443`, **exclusively in the `verify` namespace**. All code cells use Bash (`%%bash`); the IPython kernel only runs that magic. There are no Python scripts.
 
-El cliente administrativo se creó una vez en la UI porque todavía no había credenciales API administrativas. El resto se configura con `curl`, `jq` y la CLI de Vault. Se reutiliza `vault-authn-entry`; no se recrea ni se regenera su secreto.
+The administrative client was created once in the UI because there were no administrative API credentials yet. Everything else is configured with `curl`, `jq` and the Vault CLI. `vault-authn-entry` is reused; it is not recreated and its secret is not regenerated.
 
-## Estado comprobado
+## Verified status
 
-Configuración aplicada y scripts ejecutados contra el tenant y Vault. Las pruebas autónomas y OBO se recogen al final. Las celdas no incluyen tokens ni contraseñas, y sus salidas se entregan limpias. El informe de ejecución es independiente de los contadores de Jupyter.
+Configuration applied and scripts run against the tenant and Vault. The autonomous and OBO tests are collected at the end. The cells contain no tokens or passwords, and their outputs are delivered clean. The run report is independent of the Jupyter counters.
 
-El humano se autentica con Authorization Code + PKCE; el actor usa Client Credentials de `vault-authn-entry`. El STS intercambia ambos tokens y agrega RAR. Vault valida el JWT en cada petición, sin crear un token Vault intermedio.
+The human authenticates with Authorization Code + PKCE; the actor uses the Client Credentials of `vault-authn-entry`. The STS exchanges both tokens and adds RAR. Vault validates the JWT on every request, without creating an intermediate Vault token.
 MD
 add_cell markdown <<'MD'
-## 1. Prerrequisitos y bootstrap
+## 1. Prerequisites and bootstrap
 
-Abrir el notebook con el kernel `.venv`/Python 3 del proyecto. Ejecutar desde la raíz del proyecto o desde `verify/`. Se requieren Bash 3.2+, `curl`, `jq`, `vault`, `openssl` y `nc` (callback local en macOS). Vault debe estar accesible y desbloqueado; `/tmp/vault/config.env` contiene `VAULT_ADDR`, `VAULT_TOKEN` y `VAULT_CACERT`.
+Open the notebook with the project's `.venv`/Python 3 kernel. Run it from the project root or from `verify/`. Requires Bash 3.2+, `curl`, `jq`, `vault`, `openssl` and `nc` (local callback on macOS). Vault must be reachable and unsealed; `/tmp/vault/config.env` contains `VAULT_ADDR`, `VAULT_TOKEN` and `VAULT_CACERT`.
 
-Ya existen en el namespace `verify`, motor KV v2 `secrets/`:
+The following already exist in the `verify` namespace, KV v2 engine `secrets/`:
 
-| Ruta | Uso |
+| Path | Use |
 |---|---|
-| `verify` | Cliente OAuth de la aplicación, con `client_id` y `client_secret` |
-| `verify-admin` | Cliente `vault-verify-automation`, con `client_id`, `client_secret` y `tenant` |
+| `verify` | The application's OAuth client, with `client_id` and `client_secret` |
+| `verify-admin` | The `vault-verify-automation` client, with `client_id`, `client_secret` and `tenant` |
 
-Para otro tenant hay que adaptar explícitamente el código y crear el bootstrap en **Seguridad → Acceso de API**. Permisos: `manageAppAccessAdmin`, `manageSTSClients`, `manageAuthDetailTypes` y `readUsers`. El último comprueba el sujeto en el directorio. Guardar la credencial en Vault; no introducirla en una celda ni en sus salidas.
+For another tenant, the code must be adapted explicitly and the bootstrap created under **Security → API access**. Permissions: `manageAppAccessAdmin`, `manageSTSClients`, `manageAuthDetailTypes` and `readUsers`. The last one checks the subject in the directory. Store the credential in Vault; do not enter it in a cell or its outputs.
 
-![Cliente API con cuatro permisos](docs/screenshots/09-api-automation-client.jpg)
+![API client with four permissions](docs/screenshots/09-api-automation-client.jpg)
 MD
 add_cell markdown <<'MD'
-## 2. Scripts compartidos
+## 2. Shared scripts
 
-Los scripts del workspace son la fuente de implementación. Este notebook no los sobrescribe con copias embebidas, para evitar recuperar versiones antiguas después de una revisión.
+The workspace scripts are the implementation source. This notebook does not overwrite them with embedded copies, to avoid restoring old versions after a review.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -51,9 +51,9 @@ if [ -d verify ]; then cd verify; fi
 for file in scripts/0*.sh scripts/common.sh scripts/configure-base.sh; do bash -n "$file"; done
 CODE
 add_cell markdown <<'MD'
-## 3. Verificar conectividad e inventario
+## 3. Verify connectivity and inventory
 
-Esta etapa no cambia recursos. Comprueba la CA de Vault, el namespace, el motor KV, las credenciales y las APIs administrativas. El inventario imprime solo identificadores y nombres de recursos.
+This stage does not change resources. It checks the Vault CA, the namespace, the KV engine, the credentials and the administrative APIs. The inventory prints only resource identifiers and names.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -63,15 +63,15 @@ bash scripts/00-preflight.sh
 bash scripts/01-inventory.sh
 CODE
 add_cell markdown <<'MD'
-## 4. Configurar Verify por API
+## 4. Configure Verify through the API
 
-Se localiza la aplicación existente por nombre y se actualiza preservando su configuración y credencial. Se establece JWT, Code/query, cliente confidencial con Basic, PKCE y `may_act.client_id`.
+The existing application is located by name and updated while preserving its configuration and credential. JWT, Code/query, a confidential client with Basic, PKCE and `may_act.client_id` are set.
 
-Se crea `vault:path_access` con un esquema de ruta/capacidades y se comprueba su contenido. El texto de consentimiento debe enviarse codificado en base64: es un requisito de la API de Verify. Se crea o actualiza `vault-obo-sts`, que exige token de actor, emite JWT de 600 segundos y no recibe permisos administrativos de Verify.
+`vault:path_access` is created with a path/capabilities schema and its content is checked. The consent text must be sent base64-encoded: this is a Verify API requirement. `vault-obo-sts` is created or updated; it requires an actor token, issues 600-second JWTs and receives no Verify administrative permissions.
 
-La introspección STS usa `name` (no `targetName`) y la regla personalizada `{"sub":requestContext["actor_token"].sub}` para `actor-token`. La API rechaza `sourceId` cuando se usa una regla personalizada.
+STS introspection uses `name` (not `targetName`) and the custom rule `{"sub":requestContext["actor_token"].sub}` for `actor-token`. The API rejects `sourceId` when a custom rule is used.
 
-La credencial STS se guarda en `secrets/verify-sts`; los IDs de recursos, en `secrets/verify-config`. La reejecución reutiliza la aplicación, el tipo RAR y el STS existentes.
+The STS credential is stored in `secrets/verify-sts`; the resource IDs, in `secrets/verify-config`. Rerunning reuses the existing application, RAR type and STS.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -80,17 +80,17 @@ if [ -d verify/scripts ]; then cd verify; fi
 bash scripts/02-configure-verify.sh
 CODE
 add_cell markdown <<'MD'
-![STS creado por API](docs/screenshots/10-sts-created-api.jpg)
+![STS created through the API](docs/screenshots/10-sts-created-api.jpg)
 
-![Tipo RAR creado por API](docs/screenshots/11-rar-created-api.jpg)
+![RAR type created through the API](docs/screenshots/11-rar-created-api.jpg)
 
-## 5. Obtener un token humano con PKCE
+## 5. Obtain a human token with PKCE
 
-Esta celda muestra una URL de autorización y espera hasta diez minutos. Abrirla en Chrome y completar IBMid y el consentimiento. Si IBMid lleva primero al dashboard, abrir de nuevo la misma URL mientras la celda sigue esperando. El callback usa `http://localhost:9876/callback` y `nc` escucha únicamente en `127.0.0.1`.
+This cell displays an authorization URL and waits up to ten minutes. Open it in Chrome and complete IBMid and the consent. If IBMid first takes you to the dashboard, open the same URL again while the cell is still waiting. The callback uses `http://localhost:9876/callback` and `nc` listens only on `127.0.0.1`.
 
-La celda comprueba `state`, intercambia el código con el verificador PKCE, comprueba issuer, caducidad y `may_act`, y guarda el resultado en `secrets/verify-human-session`. Nunca imprime JWT. El decodificado local no verifica la firma: Vault lo hace al probar el acceso.
+The cell checks `state`, exchanges the code with the PKCE verifier, checks issuer, expiry and `may_act`, and stores the result in `secrets/verify-human-session`. It never prints JWTs. Local decoding does not verify the signature: Vault does that when testing access.
 
-Si hay otro proceso escuchando en 9876, cerrarlo antes. No lanzar dos ejecuciones simultáneas de esta etapa. La credencial humana caduca: repetir esta celda cuando sea necesario.
+If another process is listening on 9876, close it first. Do not launch two runs of this stage at the same time. The human credential expires: repeat this cell when needed.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -99,15 +99,15 @@ if [ -d verify/scripts ]; then cd verify; fi
 bash scripts/03-human-login.sh
 CODE
 add_cell markdown <<'MD'
-## 6. Configurar Vault en verify
+## 6. Configure Vault in verify
 
-Se crean o actualizan el perfil OAuth `verify`, las entidades `verify-human` y `verify-agent`, sus aliases y las políticas. Se comprueba el ID humano contra el directorio de Verify y se usa el `sub` del token Client Credentials para el agente.
+The `verify` OAuth profile, the `verify-human` and `verify-agent` entities, their aliases and the policies are created or updated. The human ID is checked against the Verify directory and the `sub` of the Client Credentials token is used for the agent.
 
-**Ajuste necesario verificado en este laboratorio:** `actor_claim="actor-token.sub"`. El valor predeterminado `act.sub` no identifica al actor de estos JWT, cuyo `act` contiene `client_id`. La ruta RAR es `secrets/data/agentic-demo/shared`, relativa al namespace; no lleva el prefijo `verify/`.
+**Required adjustment verified in this lab:** `actor_claim="actor-token.sub"`. The default `act.sub` does not identify the actor of these JWTs, whose `act` contains `client_id`. The RAR path is `secrets/data/agentic-demo/shared`, relative to the namespace; it does not carry the `verify/` prefix.
 
-Siguiendo la limitación de STS descrita por HashiCorp, este perfil no configura `audiences`; valida issuer, JWKS, RS256 y las identidades registradas. El perfil exige RAR; únicamente el registro de este agente tiene `optional_authorization_details=true` para permitir su flujo autónomo Client Credentials. Cuando se incluye RAR, sigue siendo restrictivo.
+Following the STS limitation described by HashiCorp, this profile does not configure `audiences`; it validates issuer, JWKS, RS256 and the registered identities. The profile requires RAR; only this agent's registration has `optional_authorization_details=true` to allow its autonomous Client Credentials flow. When RAR is included, it is still restrictive.
 
-El agente solo puede leer `shared`. El humano tiene lectura de `shared` y `human-only`. La delegación debe respetar la intersección entre la política humana, el límite del agente y RAR. Ninguna política de demo permite leer credenciales de bootstrap.
+The agent can only read `shared`. The human can read `shared` and `human-only`. Delegation must respect the intersection of the human policy, the agent ceiling and RAR. No demo policy allows reading bootstrap credentials.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -116,15 +116,15 @@ if [ -d verify/scripts ]; then cd verify; fi
 bash scripts/04-configure-vault.sh
 CODE
 add_cell markdown <<'MD'
-![Agente registrado en verify](docs/screenshots/12-vault-agent-registry.jpg)
+![Agent registered in verify](docs/screenshots/12-vault-agent-registry.jpg)
 
-## 7. Token Exchange y pruebas de autorización
+## 7. Token Exchange and authorization tests
 
-Se obtiene un token nuevo del actor, se intercambia con el humano en el STS y se valida la estructura de las claims. El token delegado queda en `secrets/verify-delegated-session`. Las peticiones directas a Vault usan el JWT y `X-Vault-Namespace: verify`.
+A new actor token is obtained, exchanged together with the human token at the STS, and the claims structure is validated. The delegated token is stored in `secrets/verify-delegated-session`. Direct requests to Vault use the JWT and `X-Vault-Namespace: verify`.
 
-Se prueban accesos positivos y negativos. Dos pruebas adicionales aíslan el límite del agente y RAR, de modo que un HTTP 403 no se interprete simplemente como evidencia de que el JWT funciona. La lectura positiva acredita que Vault ha aceptado la firma e identidades.
+Positive and negative access is tested. Two additional tests isolate the agent ceiling and RAR, so that an HTTP 403 is not simply taken as evidence that the JWT works. The positive read proves that Vault accepted the signature and identities.
 
-El informe público `docs/api-verification.json` contiene solo fecha, resultados y estados HTTP. Si alguna comprobación falla, el script termina con error y no sustituye el informe exitoso anterior; comprobar siempre su fecha.
+The public report `docs/api-verification.json` contains only the date, results and HTTP statuses. If any check fails, the script exits with an error and does not replace the previous successful report; always check its date.
 MD
 add_cell code <<'CODE'
 %%bash
@@ -134,21 +134,21 @@ bash scripts/05-test-access.sh
 jq . docs/api-verification.json
 CODE
 add_cell markdown <<'MD'
-## 8. Repetir la demostración
+## 8. Repeat the demonstration
 
-Para otra demostración, ejecutar la etapa 5 para renovar el token humano y la 7 para generar un token delegado nuevo y probar el acceso. Las etapas de configuración pueden repetirse sin duplicar los recursos del laboratorio; actualizan los objetos gestionados por estos scripts. El motor KV mantiene versiones de las credenciales y sesiones.
+For another demonstration, run stage 5 to renew the human token and stage 7 to generate a new delegated token and test access. The configuration stages can be repeated without duplicating lab resources; they update the objects managed by these scripts. The KV engine keeps versions of the credentials and sessions.
 
-Este notebook parte del tenant y la aplicación existentes. No crea una cuenta IBM Verify, no modifica el despliegue Minikube ni toca el material archivado de Okta. ROPC quedó habilitado en la preparación inicial del laboratorio, pero estos scripts no lo utilizan.
+This notebook starts from the existing tenant and application. It does not create an IBM Verify account, does not modify the Minikube deployment and does not touch the archived Okta material. ROPC was enabled during the initial lab setup, but these scripts do not use it.
 
-Referencias:
+References:
 
 - [HashiCorp: IBM Verify](https://developer.hashicorp.com/vault/ai/iam/providers/verify)
 - [HashiCorp: OBO](https://developer.hashicorp.com/vault/ai/iam/setup-obo)
-- [HashiCorp: perfil OAuth y actor_claim](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server)
-- [HashiCorp: RAR opcional](https://developer.hashicorp.com/vault/ai/iam/make-rar-optional)
-- [IBM: API de aplicaciones](https://docs.verify.ibm.com/verify/reference/updateapplication)
-- [IBM: API STS](https://docs.verify.ibm.com/verify/reference/createstsclient)
-- [IBM: API de tipos RAR](https://docs.verify.ibm.com/verify/reference/createauthdetailtype)
+- [HashiCorp: OAuth profile and actor_claim](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server)
+- [HashiCorp: optional RAR](https://developer.hashicorp.com/vault/ai/iam/make-rar-optional)
+- [IBM: Applications API](https://docs.verify.ibm.com/verify/reference/updateapplication)
+- [IBM: STS API](https://docs.verify.ibm.com/verify/reference/createstsclient)
+- [IBM: RAR types API](https://docs.verify.ibm.com/verify/reference/createauthdetailtype)
 MD
-jq -n --slurpfile cells "$build_dir/cells.json" '{cells:($cells[0]|to_entries|map(.value+{id:("verify-cell-"+(.key|tostring))})),metadata:{kernelspec:{display_name:"Python 3 (celdas Bash)",language:"python",name:"python3"},language_info:{name:"python"}},nbformat:4,nbformat_minor:5}' > 5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb
-printf 'Notebook generado: verify/5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb\n'
+jq -n --slurpfile cells "$build_dir/cells.json" '{cells:($cells[0]|to_entries|map(.value+{id:("verify-cell-"+(.key|tostring))})),metadata:{kernelspec:{display_name:"Python 3 (Bash cells)",language:"python",name:"python3"},language_info:{name:"python"}},nbformat:4,nbformat_minor:5}' > 5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb
+printf 'Notebook generated: verify/5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb\n'

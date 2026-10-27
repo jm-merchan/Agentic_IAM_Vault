@@ -3,12 +3,11 @@ set +x
 set -euo pipefail
 umask 077
 DEMO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-DEMO_ENV_FILE=${DEMO_ENV_FILE:-$DEMO_ROOT/.env}
-LUMEN_STATE_DIR=${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}
-export DEMO_ROOT DEMO_ENV_FILE LUMEN_STATE_DIR
+source "$DEMO_ROOT/scripts/demo/env-file.sh" "$DEMO_ROOT"
+export DEMO_ROOT
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 load_inputs() {
-  [ -f "$DEMO_ENV_FILE" ] || fail "Falta $DEMO_ENV_FILE. Copia .env.example y completa los secretos."
+  [ -f "$DEMO_ENV_FILE" ] || fail "Missing $DEMO_ENV_FILE. Copy .env.example there and fill in the secrets."
   set -a
   source "$DEMO_ENV_FILE"
   set +a
@@ -43,10 +42,18 @@ start_managed() {
   label="local.lumen-demo.$fingerprint.$name"
   mkdir -p "$LUMEN_STATE_DIR/services"
   file="$LUMEN_STATE_DIR/services/$name.plist"
-  jq -n --arg label "$label" --arg state "$LUMEN_STATE_DIR" --arg path "$PATH" --arg userhome "$HOME" --arg name "$name" --arg verify "${CHATBOT_VERIFY_ACCESS:-0}" --arg tenant "$VERIFY_TENANT" --arg vault_ui "${LUMEN_VAULT_UI_URL:-https://127.0.0.1:8443}" --arg raw "${LUMEN_TRACE_VAULT_RAW:-1}" --arg content "${LUMEN_TRACE_CONTENT:-1}" --args \
-    '{Label:$label,ProgramArguments:$ARGS.positional,WorkingDirectory:$state,RunAtLoad:true,KeepAlive:($name != "lumen"),ThrottleInterval:10,EnvironmentVariables:{PATH:$path,HOME:$userhome,VAULT_ENV_FILE:($state+"/vault/config.env"),LUMEN_STATE_DIR:$state,VERIFY_TENANT:$tenant,LUMEN_VAULT_UI_URL:$vault_ui,LUMEN_TRACE_VAULT_RAW:$raw,LUMEN_TRACE_CONTENT:$content,CHATBOT_VERIFY_ACCESS:$verify},StandardOutPath:($state+"/logs/"+$name+".log"),StandardErrorPath:($state+"/logs/"+$name+".log")}' -- "$@" > "$file"
+  jq -n --arg label "$label" --arg state "$LUMEN_STATE_DIR" --arg path "$PATH" --arg userhome "$HOME" --arg name "$name" --arg verify "${CHATBOT_VERIFY_ACCESS:-0}" --arg tenant "$VERIFY_TENANT" --arg vault_ui "${LUMEN_VAULT_UI_URL:-https://127.0.0.1:8443}" --arg raw "${LUMEN_TRACE_VAULT_RAW:-1}" --arg content "${LUMEN_TRACE_CONTENT:-1}" \
+    --arg max_bytes "${LUMEN_TRACE_CONTENT_MAX_BYTES:-}" --arg otlp "${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}" --arg python "${CHATBOT_PYTHON:-}" --args \
+    '{Label:$label,ProgramArguments:$ARGS.positional,WorkingDirectory:$state,RunAtLoad:true,KeepAlive:($name != "lumen"),ThrottleInterval:10,EnvironmentVariables:({PATH:$path,HOME:$userhome,VAULT_ENV_FILE:($state+"/vault/config.env"),LUMEN_STATE_DIR:$state,VERIFY_TENANT:$tenant,LUMEN_VAULT_UI_URL:$vault_ui,LUMEN_TRACE_VAULT_RAW:$raw,LUMEN_TRACE_CONTENT:$content,CHATBOT_VERIFY_ACCESS:$verify}
+      + ({LUMEN_TRACE_CONTENT_MAX_BYTES:$max_bytes,OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:$otlp,CHATBOT_PYTHON:$python}|with_entries(select(.value != "")))),StandardOutPath:($state+"/logs/"+$name+".log"),StandardErrorPath:($state+"/logs/"+$name+".log")}' -- "$@" > "$file"
   plutil -convert xml1 "$file"
   unload_managed "$name"
+  # bootout returns before launchd has torn the old job down (error 5 meanwhile).
+  local _
+  for _ in 1 2 3 4 5; do
+    launchctl bootstrap "gui/$(id -u)" "$file" 2>/dev/null && return 0
+    sleep 1
+  done
   launchctl bootstrap "gui/$(id -u)" "$file"
 }
 start_forward() {

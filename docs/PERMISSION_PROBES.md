@@ -1,65 +1,65 @@
-# Comprobación de permisos: SQL, Transit y Transform
+# Permission check: SQL, Transit and Transform
 
-El botón **Comprobar límites en Vault** ejecuta nueve peticiones reales. La respuesta se divide en base de datos/administración, Transit y Transform. Cada fila muestra el resultado de Vault y el permiso esperado del perfil; el resumen indica cuántas comprobaciones coinciden.
+The **Check limits in Vault** button runs nine real requests. The response is split into database/administration, Transit and Transform. Each row shows the Vault result and the profile's expected permission; the summary states how many checks match.
 
-| Ruta en el namespace `verify` | Lector | Gestor | Supervisor |
+| Path in the `verify` namespace | Reader | Writer | Supervisor |
 |---|---|---|---|
-| `database/creds/chatbot-readonly` | Permitido | Permitido | Permitido |
-| `database/creds/chatbot-readwrite` | Denegado | Permitido | Denegado |
-| `secrets/data/verify-admin` | Denegado | Denegado | Denegado |
-| `transit/encrypt/lumen-applications` | Denegado | Permitido | Denegado |
-| `transit/decrypt/lumen-applications` | Denegado | Denegado | Permitido |
-| `transform/encode/lumen-dni` | Denegado | Permitido | Denegado |
-| `transform/decode/lumen-dni` | Denegado | Denegado | Permitido |
-| `transform/encode/lumen-iban` | Denegado | Permitido | Denegado |
-| `transform/decode/lumen-iban` | Denegado | Denegado | Permitido |
+| `database/creds/chatbot-readonly` | Allowed | Allowed | Allowed |
+| `database/creds/chatbot-readwrite` | Denied | Allowed | Denied |
+| `secrets/data/verify-admin` | Denied | Denied | Denied |
+| `transit/encrypt/lumen-applications` | Denied | Allowed | Denied |
+| `transit/decrypt/lumen-applications` | Denied | Denied | Allowed |
+| `transform/encode/lumen-dni` | Denied | Allowed | Denied |
+| `transform/decode/lumen-dni` | Denied | Denied | Allowed |
+| `transform/encode/lumen-iban` | Denied | Allowed | Denied |
+| `transform/decode/lumen-iban` | Denied | Denied | Allowed |
 
-La matriz corresponde al agente **Estándar / Modo actual**, sin bloqueos
-administrativos. Un agente por tarea puede restringirla; la comprobación usa la
-combinación activa y muestra su identidad en Vault.
+The matrix corresponds to the **Standard / Current mode** agent, with no administrative
+blocks. A task agent can restrict it; the check uses the
+active combination and shows its identity in Vault.
 
-Transit cifra o descifra el perfil de una solicitud. Transform tokeniza o recupera DNI e IBAN. El gestor puede proteger datos para guardarlos; el supervisor puede recuperar los originales. El lector solo consulta la proyección enmascarada.
+Transit encrypts or decrypts an application's profile. Transform tokenizes or retrieves the DNI and IBAN. The writer can protect data in order to save it; the supervisor can retrieve the originals. The reader only queries the masked projection.
 
-## Cómo se comprueba
+## How it is checked
 
-Cada ruta obtiene su propio JWT mediante OBO. Las lecturas SQL/KV usan RAR `read`; las seis peticiones POST de Transit/Transform usan RAR `update`. Se consulta Vault incluso cuando se espera una denegación: los grupos determinan la columna «Esperado», pero el resultado procede de la respuesta real.
+Each path obtains its own JWT through OBO. SQL/KV reads use RAR `read`; the six Transit/Transform POST requests use RAR `update`. Vault is queried even when a denial is expected: the groups determine the "Expected" column, but the result comes from the real response.
 
-Solo HTTP 403 se presenta como «Denegado». Errores de red, OBO o del servicio no se interpretan como un permiso denegado. En las operaciones autorizadas de descifrado/recuperación se compara además el dato recuperado con el valor ficticio original. Un resultado inesperado queda reflejado en la tabla y en el resumen.
+Only HTTP 403 is shown as "Denied". Network, OBO or service errors are not interpreted as a denied permission. For authorized decrypt/retrieval operations, the retrieved data is also compared with the original fictitious value. An unexpected result is reflected in the table and in the summary.
 
-Durante el aprovisionamiento, `04-vault-agents.sh` invoca `configure-permission-probe.sh` después de crear la configuración del runtime. Este prepara una muestra cifrada y dos tokens de datos ficticios, y los conserva en `secrets/chatbot/runtime`. Su creación es idempotente y mantiene los grupos y la clave de sesión existentes. La aplicación ya podía leer esa configuración: no se añaden permisos al token de bootstrap ni a los perfiles humanos.
+During provisioning, `04-vault-agents.sh` calls `configure-permission-probe.sh` after creating the runtime configuration. It prepares an encrypted sample and two fictitious data tokens, and keeps them in `secrets/chatbot/runtime`. Its creation is idempotent and keeps the existing groups and session key. The application could already read that configuration: no permissions are added to the bootstrap token or to the human profiles.
 
-Esto permite probar `decrypt` y `decode` en una instalación vacía, sin consultar solicitudes de clientes y sin depender de que antes entre un gestor. Cada prueba autorizada de `encode` crea tokens ficticios en Transform; las credenciales SQL emitidas caducan según su lease. El chat no muestra credenciales ni valores recuperados y no se modifican filas de MySQL.
+This makes it possible to test `decrypt` and `decode` on an empty installation, without querying customer applications and without depending on a writer having signed in first. Each authorized `encode` test creates fictitious tokens in Transform; the issued SQL credentials expire according to their lease. The chat does not show credentials or retrieved values, and no MySQL rows are modified.
 
-## Capturas de los tres perfiles
+## Screenshots of the three profiles
 
-**Lector: una ruta permitida y ocho denegadas.**
+**Reader: one path allowed and eight denied.**
 
-![Lector: SQL, Transit y Transform](screenshots/current/reader-permissions.jpg)
+![Reader: SQL, Transit and Transform](screenshots/current/reader-permissions.jpg)
 
-**Gestor: cinco rutas permitidas y cuatro denegadas.**
+**Writer: five paths allowed and four denied.**
 
-![Gestor: cifrar y tokenizar, sin revelar](screenshots/current/writer-permissions.jpg)
+![Writer: encrypt and tokenize, without revealing](screenshots/current/writer-permissions.jpg)
 
-**Supervisor: cuatro rutas permitidas y cinco denegadas.**
+**Supervisor: four paths allowed and five denied.**
 
-![Supervisor: descifrar y recuperar, sin escribir](screenshots/current/supervisor-permissions.jpg)
+![Supervisor: decrypt and retrieve, without writing](screenshots/current/supervisor-permissions.jpg)
 
-## Trazas y auditoría
+## Traces and auditing
 
-**Ver última traza → Ver en Grafana** muestra el span `permissions.probe` y las nueve operaciones, incluidas las denegaciones. `probe.check_count` indica el número de rutas y `probe.matches_expected` si coinciden con el perfil. Los spans `vault.read`/`vault.write` conservan HTTP status, ruta, JWT OBO y petición/respuesta conforme al modo raw del laboratorio. En Loki, filtrar por el mismo Trace ID para ver los pares request/response.
+**View latest trace → View in Grafana** shows the `permissions.probe` span and the nine operations, including the denials. `probe.check_count` gives the number of paths and `probe.matches_expected` whether they match the profile. The `vault.read`/`vault.write` spans keep the HTTP status, path, OBO JWT and request/response according to the lab raw mode. In Loki, filter by the same Trace ID to see the request/response pairs.
 
-Las capturas se renovaron el **22/10/2026**. Los resultados y los Trace ID de
-esta revisión están en el [informe integral](runs/20261022T140230Z-workspace-review/README.md).
-Para obtener una traza navegable, ejecuta el botón en tu propia sesión: las trazas
-locales están ligadas a ella y caducan. Los informes JSON son evidencia fechada.
+The screenshots were refreshed on **10/22/2026**. The results and Trace IDs of
+this review are in the [full review report](runs/20261022T140230Z-workspace-review/README.md).
+To get a navigable trace, click the button in your own session: local traces
+are tied to it and expire. The JSON reports are dated evidence.
 
-El [informe histórico del 15/10](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría)
-conserva el diagnóstico de ingestión de Alloy y su corrección; no es una
-limitación pendiente de la interfaz actual.
+The [historical 10/15 report](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría)
+keeps the Alloy ingestion diagnosis and its fix; it is not an
+outstanding limitation of the current interface.
 
-La salida actual incluye la identidad del agente OBO de la sesión y metadatos
-consultados directamente en Vault, con enlaces al registro, entidad, alias y
-políticas. Esta información contextual no sustituye las nueve decisiones HTTP.
-La traza identifica por separado los agentes de los proveedores y de Tavily.
-Consulta [la ficha del agente y sus enlaces](manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault)
-para el alcance de la credencial de inspección y la fecha de los metadatos.
+The current output includes the session's OBO agent identity and metadata
+queried directly from Vault, with links to the registration, entity, alias and
+policies. This contextual information does not replace the nine HTTP decisions.
+The trace identifies the provider agents and the Tavily agent separately.
+See [the agent card and its links](manual/14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault)
+for the scope of the inspection credential and the date of the metadata.

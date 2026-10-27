@@ -32,7 +32,7 @@ else: sys.exit('Unexpected Vault command')
 @pytest.fixture
 def lab(tmp_path):
     root=tmp_path/'repo'; scripts=root/'scripts/demo'; scripts.mkdir(parents=True)
-    for name in ('common.sh', 'block.sh'):
+    for name in ('common.sh', 'env-file.sh', 'block.sh'):
         shutil.copy(ROOT/'scripts/demo'/name, scripts/name)
     helper=root/'chatbot/scripts'; helper.mkdir(parents=True)
     shutil.copy(ROOT/'chatbot/scripts/access-controls.sh', helper)
@@ -57,7 +57,8 @@ def run(lab, *args):
     ('xai',['xai/creds/lumen','secrets/data/chatbot/xai-access']),
     ('database-read',['database/creds/chatbot-readonly','database/creds/chatbot-readwrite','database/creds/chatbot-contract']),
     ('database-write',['database/creds/chatbot-readwrite','database/creds/chatbot-contract']),
-    ('decrypt',['transit/decrypt/lumen-applications','transform/decode/lumen-dni','transform/decode/lumen-iban']),
+    ('decrypt',['transit/decrypt/lumen-applications','transform/decode/lumen-dni','transform/decode/lumen-iban',
+                 'transit/decrypt/lumen-contracts','secrets/data/lumen-contracts/*']),
 ])
 def test_scoped_block_and_reversible_unblock(lab, target, paths):
     r=run(lab,'block',target); assert r.returncode==0,r.stderr

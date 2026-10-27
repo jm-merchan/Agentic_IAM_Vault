@@ -1,8 +1,8 @@
-# 02 · MySQL Enterprise, KMIP y roles dinámicos
+# 02 · MySQL Enterprise, KMIP and dynamic roles
 
-[Índice](README.md) · Requiere [01](01-vault.md) · Siguiente: [Verify](03-verify.md)
+[Index](README.md) · Requires [01](01-vault.md) · Next: [Verify](03-verify.md)
 
-## 1. Configurar KMIP en el namespace root
+## 1. Configure KMIP in the root namespace
 
 
 ```bash
@@ -16,7 +16,7 @@ export VAULT_NAMESPACE=''
 vault secrets list
 ```
 
-Si `kmip/` no existe, habilitarlo. Los siguientes comandos crean su configuración, scope y rol para MySQL:
+If `kmip/` does not exist, enable it. The following commands create its configuration, scope and role for MySQL:
 
 ```bash
 vault secrets enable kmip
@@ -35,9 +35,9 @@ vault read kmip/config
 vault read kmip/scope/my-service/role/admin
 ```
 
-MySQL guarda sus claves de cifrado en el servidor KMIP de Vault y se autentica con este certificado cliente. El rol `admin` permite todas las operaciones KMIP dentro de `my-service`, reproduciendo el laboratorio. No es una credencial SQL.
+MySQL stores its encryption keys in Vault's KMIP server and authenticates with this client certificate. The `admin` role allows all KMIP operations inside `my-service`, reproducing the lab. It is not an SQL credential.
 
-## 2. Preparar Kubernetes y desplegar MySQL
+## 2. Prepare Kubernetes and deploy MySQL
 
 ```bash
 "${K[@]}" create namespace mysql --dry-run=client -o yaml | "${K[@]}" apply -f -
@@ -64,11 +64,11 @@ sed "s/__MYSQL_TAG__/$tag/g" deploy/mysql.yaml > "$MANUAL/mysql.yaml"
 "${K[@]}" -n mysql rollout status statefulset/mysql-enterprise --timeout=600s
 ```
 
-[my.cnf](../../deploy/my.cnf) carga `keyring_okv.so` al iniciar MySQL. [mysql.yaml](../../deploy/mysql.yaml) contiene el Service KMIP que apunta al Vault activo, un initContainer que prepara los certificados, el StatefulSet y un PVC de 10 GiB.
+[my.cnf](../../deploy/my.cnf) loads `keyring_okv.so` when MySQL starts. [mysql.yaml](../../deploy/mysql.yaml) contains the KMIP Service pointing to the active Vault, an initContainer that prepares the certificates, the StatefulSet and a 10 GiB PVC.
 
-## 3. Crear la base y los datos de ejemplo
+## 3. Create the database and the sample data
 
-Esta función ejecuta el cliente MySQL dentro del pod; la contraseña root procede de su Kubernetes Secret.
+This function runs the MySQL client inside the pod; the root password comes from its Kubernetes Secret.
 
 ```bash
 mysql_admin() {
@@ -81,7 +81,7 @@ SELECT PLUGIN_NAME, PLUGIN_STATUS FROM INFORMATION_SCHEMA.PLUGINS
 SQL
 ```
 
-Debe indicar `ACTIVE`. Crear las tablas con `ENCRYPTION='Y'`:
+It must show `ACTIVE`. Create the tables with `ENCRYPTION='Y'`:
 
 ```bash
 mysql_admin <<'SQL'
@@ -116,11 +116,11 @@ CREATE TABLE IF NOT EXISTS scripting.service_requests (
 SQL
 ```
 
-Las tarifas son ficticias. La cuarta tabla, `energy_applications`, se crea en el capítulo 05 para almacenar ciphertext y tokens.
+The tariffs are fictitious. The fourth table, `energy_applications`, is created in chapter 05 to store ciphertext and tokens.
 
-## 4. Conectar el motor Database con MySQL
+## 4. Connect the Database engine to MySQL
 
-La cuenta `vault_chatbot_admin` crea y elimina usuarios SQL temporales. Vault rota su contraseña al terminar; Lumen no conoce esa cuenta.
+The `vault_chatbot_admin` account creates and deletes temporary SQL users. Vault rotates its password at the end; Lumen does not know this account.
 
 ```bash
 export VAULT_NAMESPACE=verify
@@ -144,9 +144,9 @@ vault write -f database/rotate-root/chatbot-mysql
 rm -- "$MANUAL/mysql-admin-password"
 ```
 
-Si `database/config/chatbot-mysql` ya existe, leerlo y omitir esta creación/rotación inicial. No restablecer el usuario MySQL con una contraseña inventada: perderías la coherencia con Vault.
+If `database/config/chatbot-mysql` already exists, read it and skip this initial creation/rotation. Do not reset the MySQL user with a made-up password: you would lose consistency with Vault.
 
-## 5. Definir roles read-only y read-write
+## 5. Define read-only and read-write roles
 
 ```bash
 for role in readonly readwrite; do
@@ -166,9 +166,9 @@ vault read database/roles/chatbot-readonly
 vault read database/roles/chatbot-readwrite
 ```
 
-## 6. Emitir y revocar una credencial de prueba
+## 6. Issue and revoke a test credential
 
-Esta prueba usa el administrador de Vault, por lo que verifica el motor, no los permisos OBO:
+This test uses the Vault administrator, so it verifies the engine, not the OBO permissions:
 
 ```bash
 vault read -format=json database/creds/chatbot-readonly > "$MANUAL/db-test.json"
@@ -180,10 +180,10 @@ SELECT NAME,ENCRYPTION FROM INFORMATION_SCHEMA.INNODB_TABLESPACES
 SQL
 ```
 
-Resultado: lease de 120 segundos y tablas con cifrado `Y`. La prueba de acceso SQL con el usuario humano se explica en [OBO manual](11-obo.md). Para la app, mantener en otra terminal:
+Result: a 120-second lease and tables with encryption `Y`. The SQL access test with the human user is explained in [manual OBO](11-obo.md). For the app, keep this running in another terminal:
 
 ```bash
 kubectl --context workshop -n mysql port-forward --address 127.0.0.1 svc/mysql-enterprise 13306:3306
 ```
 
-Fuentes locales: [mysql.sh](../../scripts/demo/mysql.sh), [01-database.sh](../../chatbot/scripts/01-database.sh).
+Local sources: [mysql.sh](../../scripts/demo/mysql.sh), [01-database.sh](../../chatbot/scripts/01-database.sh).

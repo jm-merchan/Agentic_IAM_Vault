@@ -8,7 +8,7 @@ scim() { api "$@" --header 'Accept: application/scim+json' --header 'Content-Typ
 for role in reader writer supervisor; do
   kv_read "chatbot/users/$role" > "$TMP_WORK/credential-$role.json"
   jq -e --arg username "lumen-$role" '.username==$username and (.password|type=="string" and length>0)' "$TMP_WORK/credential-$role.json" >/dev/null ||
-    fail "Credencial inválida para lumen-$role; revisa el paso credenciales."
+    fail "Invalid credential for lumen-$role; review the credenciales step."
 done
 printf '[]' > "$TMP_WORK/users-public.json"
 for role in reader writer supervisor; do
@@ -31,7 +31,7 @@ for role in reader writer supervisor; do
   fi
   scim GET "/v2.0/Users/$uid" "$TMP_WORK/user.json"
   jq -e --arg username "$username" --arg id "$uid" '.userName==$username and .id==$id and .active==true' "$TMP_WORK/user.json" >/dev/null ||
-    fail "La respuesta SCIM no coincide con el usuario activo $username."
+    fail "SCIM response does not match the active user $username."
   # A previous POST may have succeeded before the local user_id was saved.
   kv_read "chatbot/users/$role" > "$TMP_WORK/credential.json"
   if ! jq -e --arg id "$uid" '.user_id==$id' "$TMP_WORK/credential.json" >/dev/null; then

@@ -1,4 +1,3 @@
-import asyncio
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -15,7 +14,7 @@ from app.i18n import EN, safe_return_path
 from app.rar import LAB_CONTEXT, authorization_details
 from app.rar_lab import interpretation, run_comparison, scenarios
 from app.security import AccessDenied, Session
-from app.services import Services, VaultPermissionDenied, VaultResponseError
+from app.services import Services, VaultPermissionDenied
 from app.telemetry import span, records_for, trace_id
 from app.trace_flow import build_flow
 

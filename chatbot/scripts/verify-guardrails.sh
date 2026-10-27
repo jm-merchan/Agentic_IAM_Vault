@@ -4,7 +4,7 @@ set +x
 set -euo pipefail
 umask 077
 CHATBOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
-source "${VAULT_ENV_FILE:-/tmp/vault/config.env}"
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_CACERT VAULT_NAMESPACE=verify
 export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://127.0.0.1:4318/v1/traces}
 export LUMEN_TRACE_CONTENT=1 LUMEN_TRACE_VAULT_RAW=1

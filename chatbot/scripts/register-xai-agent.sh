@@ -12,9 +12,9 @@ vault write identity/entity/name/chatbot-xai external_id="$cid" policies=chatbot
 entity=$(vault read -field=id identity/entity/name/chatbot-xai)
 alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r '.data.aliases[]?|select(.name=="chatbot-xai")|.id')
 if [ -z "$alias_id" ]; then
-  # After changing the Vault image, 2.1.2 can read the stored profile while its
+  # After changing the Vault image, Vault can read the stored profile while its
   # issuer lookup is cold. Reapply the same profile before creating a new alias.
-  jq '.data|del(.config_id,.profile_name)' "$TMP_WORK/profile.json" | vault write sys/config/oauth-resource-server/verify - >/dev/null
+  jq '.data|del(.config_id,.profile_name,.mount_accessor)' "$TMP_WORK/profile.json" | vault write sys/config/oauth-resource-server/verify - >/dev/null
   [ "$(vault read -field=config_id sys/config/oauth-resource-server/verify)" = "$(jq -r .data.config_id "$TMP_WORK/profile.json")" ] || fail 'OAuth profile ID changed'
   vault write identity/entity-alias name=chatbot-xai canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$cid" >/dev/null
 fi

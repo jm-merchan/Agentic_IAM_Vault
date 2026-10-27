@@ -4,7 +4,7 @@ set +x
 set -euo pipefail
 umask 077
 VERIFY_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-source "${VAULT_ENV_FILE:-/tmp/vault/config.env}"
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_TOKEN VAULT_CACERT
 export VAULT_NAMESPACE=verify
 TENANT=${VERIFY_TENANT:-https://merchan.verify.ibm.com}
@@ -16,6 +16,16 @@ fail() { printf '%s\n' "$*" >&2; exit 1; }
 # Sensitive values travel through stdin or protected files, never curl argv.
 kv_read() { vault kv get -format=json -mount=secrets "$1" | jq -e '.data.data'; }
 kv_write() { vault kv put -mount=secrets "$1" - >/dev/null; }
+# Makes one provider profile active while keeping the others selectable.
+model_profile_write() {
+  local profile current
+  profile=$(cat)
+  current=$(vault kv get -format=json -mount=secrets chatbot/model 2>/dev/null | jq -c '.data.data' || echo null)
+  jq -n --argjson p "$profile" --argjson c "${current:-null}" '
+    ($c // {}) as $c
+    | ($c.providers // (if $c.provider then {($c.provider): ($c|del(.providers))} else {} end)) as $known
+    | $p + {providers: ($known + {($p.provider): $p})}' | kv_write chatbot/model
+}
 form_encode() { jq -jr 'to_entries|map((.key|@uri)+"="+(.value|tostring|@uri))|join("&")'; }
 http() {
   local method=$1 url=$2 output=$3 headers=$4; shift 4

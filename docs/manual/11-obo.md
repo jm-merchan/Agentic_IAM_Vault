@@ -1,14 +1,14 @@
-# 11 · Seguir OIDC, OBO y RAR desde Bash
+# 11 · Follow OIDC, OBO and RAR from Bash
 
-[Índice](README.md) · Requiere [03](03-verify.md), [04](04-vault-iam.md), [02](02-mysql.md) y [05](05-proteccion.md)
+[Index](README.md) · Requires [03](03-verify.md), [04](04-vault-iam.md), [02](02-mysql.md) and [05](05-proteccion.md)
 
-Esta prueba reproduce el protocolo sin pedir al LLM que lo haga. El usuario inicia sesión en el navegador; Bash recibe el código, usa PKCE y solicita el token delegado. **No se habilita ROPC** ni se intercambia la contraseña humana por un token desde curl.
+This test reproduces the protocol without asking the LLM to do it. The user signs in through the browser; Bash receives the code, uses PKCE and requests the delegated token. **ROPC is not enabled**, and the human password is never exchanged for a token from curl.
 
-El [notebook 10 · tokens con oauth2c](../../10_OAuth2c_Verify_Vault.ipynb) ofrece un recorrido alternativo con la herramienta utilizada por HashiCorp: actor Client Credentials, humano PKCE y token exchange con el STS y RAR. Carga el entorno en cada celda y obtiene credenciales administrativas nuevas para preparar/retirar su callback. Usa este recorrido o el notebook por separado: ambos emplean el puerto 9876.
+[Notebook 10 · tokens with oauth2c](../../10_OAuth2c_Verify_Vault.ipynb) offers an alternative walkthrough with the tool used by HashiCorp: Client Credentials actor, PKCE human and token exchange with the STS and RAR. It loads the environment in each cell and obtains fresh administrative credentials to set up/remove its callback. Use either this walkthrough or the notebook, not both at once: they both use port 9876.
 
-Para el ensayo completamente por script, [13](13-repeticion-script.md) usa el mismo grant Authorization Code + PKCE: curl envía el formulario de login de Cloud Directory, conserva sus cookies, acepta únicamente el consentimiento de `openid profile email` e intercepta el callback registrado de Lumen. El código se canjea por tokens con el verifier y se validan firma y nonce. No necesita el callback temporal 9876 de este capítulo. Se empieza con un cookie jar vacío para cada usuario, sin `prompt=login`; en este tenant, añadir ese parámetro produjo una segunda pantalla de login tras autenticaciones rápidas.
+For the fully scripted rehearsal, [13](13-repeticion-script.md) uses the same Authorization Code + PKCE grant: curl submits the Cloud Directory login form, keeps its cookies, accepts only the `openid profile email` consent and intercepts Lumen's registered callback. The code is exchanged for tokens with the verifier, and the signature and nonce are validated. It does not need this chapter's temporary 9876 callback. Each user starts with an empty cookie jar, without `prompt=login`; on this tenant, adding that parameter produced a second login screen after quick authentications.
 
-## 1. Añadir un callback local solo para esta prueba
+## 1. Add a local callback for this test only
 
 
 ```bash
@@ -17,7 +17,7 @@ source "$LUMEN_STATE_DIR/vault/config.env"
 export VAULT_ADDR VAULT_CACERT VAULT_TOKEN VAULT_NAMESPACE=verify
 ```
 
-Renovar `verify.headers` con el paso 1 del capítulo 03. Se añade temporalmente `http://localhost:9876/callback`; no se sustituye el callback de Lumen.
+Renew `verify.headers` with step 1 of chapter 03. `http://localhost:9876/callback` is added temporarily; Lumen's callback is not replaced.
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/oidc | jq '.data.data' > "$MANUAL/oidc-credential.json"
@@ -33,9 +33,9 @@ curl --fail --silent --show-error --request PUT --header "@$MANUAL/verify.header
   --data-binary "@$MANUAL/obo-app-update.json" "$TENANT/v1.0/applications/$APP_ID" > "$MANUAL/obo-app-result.json"
 ```
 
-Si ya utilizas ese callback para otro fin, conserva su configuración y no lo retires al final. No ejecutar esta prueba si el puerto 9876 está ocupado.
+If you already use that callback for another purpose, keep its configuration and do not remove it at the end. Do not run this test if port 9876 is in use.
 
-## 2. Preparar state, PKCE y la recepción del código
+## 2. Prepare the state, PKCE and the code receiver
 
 ```bash
 STATE=$(openssl rand -hex 24)
@@ -52,11 +52,11 @@ CALLBACK_PID=$!
 printf '%s\n' "$TENANT/oauth2/authorize?$QUERY"
 ```
 
-Abrir la URL mostrada y entrar como `lumen-reader` (Cloud Directory). La página final muestra «OK». Repetir más adelante el procedimiento para writer/supervisor; comprobar que Verify está usando la cuenta correcta.
+Open the URL shown and sign in as `lumen-reader` (Cloud Directory). The final page shows «OK». Repeat the procedure later for writer/supervisor; check that Verify is using the correct account.
 
-## 3. Verificar state e intercambiar el código
+## 3. Verify the state and exchange the code
 
-Ejecutar tras recibir el callback:
+Run after receiving the callback:
 
 ```bash
 REQUEST=$(head -1 "$MANUAL/callback-request")
@@ -91,7 +91,7 @@ curl --fail --silent --show-error --header "@$MANUAL/oidc.headers" \
 jq -e '.access_token|type=="string" and length>0' "$MANUAL/human.json"
 ```
 
-El código es de un uso y está ligado al verifier. El **access token resultante no es de un uso**. Decodificar los claims sirve para inspeccionar, no para validar su firma:
+The code is single-use and bound to the verifier. The **resulting access token is not single-use**. Decoding the claims is for inspection, not for validating the signature:
 
 ```bash
 jwt_claims() {
@@ -105,11 +105,11 @@ jwt_claims "$MANUAL/human.jwt" > "$MANUAL/human-claims.json"
 jq '{iss,sub,groups,may_act,exp}' "$MANUAL/human-claims.json"
 ```
 
-Debe verse el ID del humano, el grupo correspondiente y `may_act.client_id` igual al client ID OIDC. En la aplicación, PyJWT verifica firma y claims; en esta prueba Vault validará el JWT delegado antes de permitir el acceso.
+You should see the human's ID, the corresponding group and `may_act.client_id` equal to the OIDC client ID. In the application, PyJWT verifies the signature and claims; in this test, Vault validates the delegated JWT before allowing access.
 
-## 4. Obtener un actor token y hacer token exchange
+## 4. Get an actor token and perform the token exchange
 
-Preparar credenciales STS y una función cuyo cuerpo deja visible el intercambio completo. Cada llamada obtiene un actor nuevo y solicita RAR para una sola ruta/capacidad:
+Prepare the STS credentials and a function whose body makes the complete exchange visible. Each call obtains a new actor and requests RAR for a single path/capability:
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/sts | jq '.data.data' > "$MANUAL/sts-credential.json"
@@ -137,9 +137,9 @@ jq -er .access_token "$MANUAL/obo.json" > "$MANUAL/obo.jwt"
 jwt_claims "$MANUAL/obo.jwt" | jq '{sub,"actor-token",groups,authorization_details,exp}'
 ```
 
-El STS puede emitir RAR para una ruta que el usuario no tiene permitida en Vault. La emisión del token **no concede por sí sola ese permiso**: Vault intersecta permisos del humano, techo del actor y RAR.
+The STS can issue RAR for a path the user is not allowed to access in Vault. Issuing the token **does not grant that permission by itself**: Vault intersects the human's permissions, the actor's ceiling and the RAR.
 
-## 5. Usar el JWT delegado con Vault CLI
+## 5. Use the delegated JWT with the Vault CLI
 
 ```bash
 (
@@ -149,21 +149,21 @@ El STS puede emitir RAR para una ruta que el usuario no tiene permitida en Vault
 jq '{lease_id,lease_duration,username:.data.username}' "$MANUAL/obo-db.json"
 ```
 
-Lector, gestor y supervisor deben recibir credenciales RO si no existe un bloqueo adicional. Para probar que el JWT con RAR RO no sirve para otra ruta, usar **el mismo JWT**:
+Reader, writer and supervisor must receive RO credentials unless an additional block exists. To prove that the JWT with RO RAR does not work for another path, use **the same JWT**:
 
 ```bash
 if VAULT_TOKEN=$(jq -er .access_token "$MANUAL/obo.json") \
   vault read -format=json database/creds/chatbot-readwrite \
   > "$MANUAL/unexpected-rw.json" 2> "$MANUAL/denied-rw.log"; then
-  printf 'ERROR: se esperaba denegación por RAR\n' >&2
+  printf 'ERROR: expected denial by RAR\n' >&2
   exit 1
 fi
 cat "$MANUAL/denied-rw.log"
 ```
 
-Debe indicar **403 / permission denied**; un timeout o error de TLS no demuestra autorización correcta.
+It must show **403 / permission denied**; a timeout or TLS error does not prove that authorization works correctly.
 
-Para pedir RW con un RAR nuevo y comprobar el perfil:
+To request RW with a new RAR and check the profile:
 
 ```bash
 obo_token database/creds/chatbot-readwrite read
@@ -176,11 +176,11 @@ else
 fi
 ```
 
-Esperado: lector 403, gestor éxito, supervisor 403. La capability es `read` porque se leen credenciales del motor, aunque esas credenciales SQL permitan escribir.
+Expected: reader 403, writer success, supervisor 403. The capability is `read` because the engine's credentials are being read, even though those SQL credentials allow writing.
 
-## 6. Probar los permisos SQL de la credencial emitida
+## 6. Test the SQL permissions of the issued credential
 
-Sin esperar a que caduque el lease de 120 s, construir un archivo MySQL privado y usarlo dentro del pod. La contraseña no aparece en argv:
+Without waiting for the 120 s lease to expire, build a private MySQL file and use it inside the pod. The password does not appear in argv:
 
 ```bash
 jq -r '"[client]\nuser="+(.data.username|@json)+"\npassword="+(.data.password|@json)' \
@@ -195,7 +195,7 @@ jq -r '"[client]\nuser="+(.data.username|@json)+"\npassword="+(.data.password|@j
 ' < "$MANUAL/mysql-client.cnf"
 ```
 
-Comprobar el permiso SQL con una transacción que nunca se confirma. Seleccionar `obo-db.json` para RO; repetir con `obo-rw.json` solo si se emitió correctamente para el gestor. Volver a obtener las credenciales si pasaron 120 segundos.
+Check the SQL permission with a transaction that is never committed. Select `obo-db.json` for RO; repeat with `obo-rw.json` only if it was issued successfully for the writer. Obtain the credentials again if 120 seconds have passed.
 
 ```bash
 CREDENTIAL=obo-db.json
@@ -210,19 +210,19 @@ if "${K[@]}" -n mysql exec -i mysql-enterprise-0 -c mysql -- sh -c '
     -e "START TRANSACTION; INSERT INTO service_requests(subject_id,plan_id,note) VALUES('"'"'manual-test'"'"',1,'"'"'prueba reversible'"'"'); ROLLBACK;"
 ' < "$MANUAL/mysql-client.cnf" > "$MANUAL/sql-write.log" 2>&1; then
   [ "$CREDENTIAL" = obo-rw.json ]
-  printf 'INSERT autorizado; transacción revertida\n'
+  printf 'INSERT authorized; transaction rolled back\n'
 else
   [ "$CREDENTIAL" = obo-db.json ]
   rg -q 'INSERT command denied' "$MANUAL/sql-write.log"
-  printf 'INSERT denegado por MySQL al usuario RO\n'
+  printf 'INSERT denied by MySQL to the RO user\n'
 fi
 ```
 
-El error esperado es `INSERT command denied`; una contraseña caducada o una conexión fallida no demuestra el permiso SQL.
+The expected error is `INSERT command denied`; an expired password or a failed connection does not prove the SQL permission.
 
-## 7. Probar Transit/Transform y el secreto prohibido
+## 7. Test Transit/Transform and the forbidden secret
 
-Ejemplo con el ciphertext sintético creado en 05. Primero recuperar los datos de prueba con la credencial administrativa de la terminal, después operar con OBO:
+Example with the synthetic ciphertext created in 05. First retrieve the test data with the terminal's administrative credential, then operate with OBO:
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/runtime | jq '.data.data.permission_probe' > "$MANUAL/probe.json"
@@ -237,7 +237,7 @@ else
 fi
 ```
 
-Debe funcionar solo con supervisor. Comprobar también las dos rutas de Transform:
+It must work only for the supervisor. Also check the two Transform paths:
 
 ```bash
 for field in dni iban; do
@@ -255,9 +255,9 @@ for field in dni iban; do
 done
 ```
 
-Esperado: ambos devuelven 403 para lector/gestor y ambos coinciden con el valor original para supervisor. El gestor solo tiene las rutas inversas `encrypt`/`encode`. La comprobación de permisos de la interfaz prueba también esas rutas de escritura con datos sintéticos.
+Expected: both return 403 for reader/writer, and both match the original value for the supervisor. The writer only has the inverse `encrypt`/`encode` paths. The interface's permission check also tests those write paths with synthetic data.
 
-Para comprobar las operaciones de guardado, repetir con RAR específico para `encrypt` y `encode`. Solo el gestor debe pasar estas tres operaciones; lector y supervisor deben recibir 403:
+To check the save operations, repeat with a specific RAR for `encrypt` and `encode`. Only the writer must pass these three operations; reader and supervisor must receive 403:
 
 ```bash
 obo_token transit/encrypt/lumen-applications update
@@ -283,22 +283,22 @@ for field in dni iban; do
 done
 ```
 
-Estas llamadas crean tokens sintéticos de prueba en Transform, pero no guardan una solicitud en MySQL.
+These calls create synthetic test tokens in Transform, but they do not save an application in MySQL.
 
-Ninguno de los tres debe poder leer el secreto administrativo, aunque lo solicite en RAR:
+None of the three must be able to read the administrative secret, even if they request it in the RAR:
 
 ```bash
 obo_token secrets/data/verify-admin read
 if VAULT_TOKEN=$(jq -er .access_token "$MANUAL/obo.json") \
   vault read -format=json secrets/data/verify-admin \
   > "$MANUAL/unexpected-admin.json" 2> "$MANUAL/denied-admin.log"; then
-  printf 'ERROR: acceso administrativo inesperado\n' >&2
+  printf 'ERROR: unexpected administrative access\n' >&2
   exit 1
 fi
 cat "$MANUAL/denied-admin.log"
 ```
 
-## 8. Acceso autónomo a Tavily
+## 8. Autonomous access to Tavily
 
 ```bash
 vault kv get -format=json -mount=secrets chatbot/research | jq '.data.data' > "$MANUAL/research-client.json"
@@ -311,7 +311,7 @@ VAULT_TOKEN=$(jq -er .access_token "$MANUAL/research-jwt.json") \
   vault read -format=json secrets/data/tavily > "$MANUAL/tavily.json"
 ```
 
-No hay subject humano, actor_token ni token exchange STS en esta llamada. Vault aplica la política de `chatbot-research`, que solo permite leer Tavily. El RAR es opcional únicamente para ese registro. La llamada externa de ejemplo (consume cuota) sería:
+There is no human subject, actor_token or STS token exchange in this call. Vault applies the `chatbot-research` policy, which only allows reading Tavily. RAR is optional only for that registration. The example external call (it consumes quota) would be:
 
 ```bash
 jq -jr '"Authorization: Bearer "+.data.data.TAVILY_API_KEY+"\nContent-Type: application/json\n"' \
@@ -322,9 +322,9 @@ curl --fail --silent --show-error --header "@$MANUAL/tavily.headers" \
 jq '[.results[]|{title,url}]' "$MANUAL/tavily-result.json"
 ```
 
-## 9. Revocar leases de prueba y retirar el callback temporal
+## 9. Revoke the test leases and remove the temporary callback
 
-Hacerlo con el token administrativo de la terminal. Si los leases ya caducaron, comprobar su ausencia con `vault lease lookup` y no confundirlo con una revocación fallida del recurso externo.
+Do this with the terminal's administrative token. If the leases have already expired, check that they are gone with `vault lease lookup` and do not mistake this for a failed revocation of the external resource.
 
 ```bash
 for file in obo-db.json obo-rw.json; do
@@ -342,4 +342,4 @@ curl --fail --silent --show-error --request PUT --header "@$MANUAL/verify.header
   > "$MANUAL/obo-cleanup-result.json"
 ```
 
-Los JWT Verify conservan su vigencia hasta expirar; `vault token revoke` no revoca JWT externos. Para bloquear accesos anteriores y nuevos ver [12](12-bloqueos.md). Los archivos privados de la sesión manual contienen tokens de corta vida: no incluirlos en Git, README ni capturas públicas.
+Verify JWTs remain valid until they expire; `vault token revoke` does not revoke external JWTs. To block both earlier and new access, see [12](12-bloqueos.md). The private files of the manual session contain short-lived tokens: do not include them in Git, READMEs or public screenshots.

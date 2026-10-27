@@ -441,13 +441,13 @@ class Services(ApplicationServices, SpiffeModelServices):
             ('Transit · cifrar y descifrar el perfil', 'transit/decrypt/lumen-applications',
              {'ciphertext': fixture['profile_ciphertext']}, reveal, 'plaintext', fixture['profile_plaintext']),
         ]
-        for field in ('dni', 'iban'):
-            name = 'lumen-' + field
+        for document in ('dni', 'iban'):
+            name = 'lumen-' + document
             probes.extend([
                 ('Transform · tokenizar y recuperar DNI e IBAN', 'transform/encode/' + name,
-                 {'value': fixture[field]['value'], 'transformation': name}, write, 'encoded_value', None),
+                 {'value': fixture[document]['value'], 'transformation': name}, write, 'encoded_value', None),
                 ('Transform · tokenizar y recuperar DNI e IBAN', 'transform/decode/' + name,
-                 {'value': fixture[field]['token'], 'transformation': name}, reveal, 'decoded_value', fixture[field]['value']),
+                 {'value': fixture[document]['token'], 'transformation': name}, reveal, 'decoded_value', fixture[document]['value']),
             ])
         for section, path, payload, expected, result_key, original in probes:
             # Always call Vault, including expected denials. RAR only grants the

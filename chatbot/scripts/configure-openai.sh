@@ -3,12 +3,12 @@
 source "$(dirname "$0")/../../verify/scripts/common.sh"
 CHATBOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 identity_only=false
-case "${1:-}" in --identity-only) identity_only=true;; '') ;; *) fail 'Argumento no válido';; esac
+case "${1:-}" in --identity-only) identity_only=true;; '') ;; *) fail 'Invalid argument';; esac
 if [ "$identity_only" = false ]; then
-  : "${OPENAI_IDENTITY_PROVIDER_ID:?Configura el Workload Identity Provider de OpenAI}"
-  : "${OPENAI_SERVICE_ACCOUNT_ID:?Configura el service account mapping de OpenAI}"
+  : "${OPENAI_IDENTITY_PROVIDER_ID:?Set the OpenAI Workload Identity Provider}"
+  : "${OPENAI_SERVICE_ACCOUNT_ID:?Set the OpenAI service account mapping}"
 fi
-: "${NGROK_DOMAIN:?Configura NGROK_DOMAIN}"
+: "${NGROK_DOMAIN:?Set NGROK_DOMAIN}"
 admin_login
 api GET /v1.0/applications "$TMP_WORK/apps.json"
 app_id=$(jq -r '[._embedded.applications[]|select(.name=="vault-chatbot-openai")|._links.self.href|split("/")[-1]]|if length>1 then error("Duplicate OpenAI application") else .[0]//empty end' "$TMP_WORK/apps.json")
@@ -39,13 +39,13 @@ vault write identity/entity/name/chatbot-openai external_id="$cid" policies=chat
 entity=$(vault read -field=id identity/entity/name/chatbot-openai)
 alias_id=$(vault read -format=json "identity/entity/id/$entity" | jq -r '.data.aliases[]?|select(.name=="chatbot-openai")|.id')
 if [ -z "$alias_id" ]; then
-  vault read -format=json sys/config/oauth-resource-server/verify | jq '.data|del(.config_id,.profile_name)' | vault write sys/config/oauth-resource-server/verify - >/dev/null
+  vault read -format=json sys/config/oauth-resource-server/verify | jq '.data|del(.config_id,.profile_name,.mount_accessor)' | vault write sys/config/oauth-resource-server/verify - >/dev/null
   vault write identity/entity-alias name=chatbot-openai canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$cid" >/dev/null
 fi
 jq -n --arg entity "$entity" '{display_name:"chatbot-openai",entity_id:$entity,ceiling_policies:["chatbot-openai"],no_default_ceiling_policy:true,optional_authorization_details:false,description:"Lumen workload: Vault SPIFFE JWT-SVID to OpenAI WIF"}' | vault write agent-registry/register - >/dev/null
 vault policy write chatbot-bootstrap "$CHATBOT_DIR/policies/bootstrap.hcl" >/dev/null
-[ "$identity_only" = false ] || { echo 'Identidad chatbot-openai preparada; proveedor activo sin cambios.'; exit 0; }
-jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-4.1-nano}" --arg provider "$OPENAI_IDENTITY_PROVIDER_ID" --arg service_account "$OPENAI_SERVICE_ACCOUNT_ID" \
+[ "$identity_only" = false ] || { echo 'chatbot-openai identity ready; active provider unchanged.'; exit 0; }
+jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-5.6-luna}" --arg provider "$OPENAI_IDENTITY_PROVIDER_ID" --arg service_account "$OPENAI_SERVICE_ACCOUNT_ID" \
   --arg issuer "https://$NGROK_DOMAIN/v1/verify/spiffe" --arg sub "spiffe://${SPIFFE_TRUST_DOMAIN:-lumen.demo}/ns/verify/agent/lumen-openai" \
-  '{provider:"openai",model:$model,credential_source:"vault_spiffe",credential_path:"spiffe/role/lumen-openai/mintjwt",auth_flow:"spiffe_jwt_svid",identity_provider_id:$provider,service_account_id:$service_account,issuer:$issuer,spiffe_id:$sub,audience:"https://api.openai.com/v1"}' | kv_write chatbot/model
-echo 'OpenAI configurado: SPIFFE JWT-SVID y token exchange; sin API key de inferencia estática.'
+  '{provider:"openai",model:$model,credential_source:"vault_spiffe",credential_path:"spiffe/role/lumen-openai/mintjwt",auth_flow:"spiffe_jwt_svid",identity_provider_id:$provider,service_account_id:$service_account,issuer:$issuer,spiffe_id:$sub,audience:"https://api.openai.com/v1"}' | model_profile_write
+echo 'OpenAI configured: SPIFFE JWT-SVID and token exchange; no static inference API key.'

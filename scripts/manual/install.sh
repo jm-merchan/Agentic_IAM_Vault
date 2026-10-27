@@ -2,9 +2,9 @@
 # Execute the documented Bash blocks in order. Does not call demo.sh start.
 source "$(dirname "$0")/common.sh"
 trap 'printf "Fallo en la instalación manual; consultar %s/logs\n" "$MANUAL" >&2' ERR
-[ -f .env ] || { echo 'Completa .env antes de instalar' >&2; exit 1; }
+[ -f "$DEMO_ENV_FILE" ] || { echo "Fill in $DEMO_ENV_FILE before installing" >&2; exit 1; }
 set -a
-source .env
+source "$DEMO_ENV_FILE"
 set +a
 require_model_inputs
 [ -z "$(kubectl --context workshop get namespace vault mysql lumen-observability --ignore-not-found -o name)" ] || { echo 'Se requiere un despliegue vacío; usa rehearse.sh rebuild' >&2; exit 1; }

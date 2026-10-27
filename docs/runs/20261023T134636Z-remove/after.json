@@ -1,0 +1,34 @@
+{
+  "checked_at": "2026-10-23T13:50:24.980318+00:00",
+  "remaining_demo_namespaces": [],
+  "remaining_demo_pvs": [],
+  "remaining_vault_cluster_roles": [],
+  "remaining_vault_helm_releases": [],
+  "remaining_data_directories": [],
+  "ports_closed": {
+    "8088": true,
+    "8443": true,
+    "13306": true,
+    "3000": true,
+    "3200": true,
+    "4318": true,
+    "3100": true,
+    "4040": true,
+    "4041": true
+  },
+  "operational_state_removed": {
+    "vault": true,
+    "mysql": true,
+    "runtime": true,
+    "vault-chatbot-storage": true,
+    "services": true,
+    "pids": true,
+    "ngrok": true,
+    "openai": true,
+    "manual": true
+  },
+  "manual_state_archived": true,
+  "env_unchanged": true,
+  "all_passed": true,
+  "verification_note": "Final dry-run recreated empty vault/ and pids/ directories through load_inputs; inspected and removed both with rmdir."
+}

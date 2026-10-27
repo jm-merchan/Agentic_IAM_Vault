@@ -5,15 +5,15 @@ source "$(dirname "$0")/../../scripts/demo/common.sh"
 load_inputs
 source "$DEMO_ROOT/verify/scripts/common.sh"
 for name in NGROK_DOMAIN OPENAI_IDENTITY_PROVIDER_ID OPENAI_SERVICE_ACCOUNT_ID ANTHROPIC_FEDERATION_RULE_ID ANTHROPIC_ORGANIZATION_ID ANTHROPIC_SERVICE_ACCOUNT_ID ANTHROPIC_WORKSPACE_ID; do
-  [ -n "${!name:-}" ] || fail "Completa $name para preconfigurar los tres proveedores"
+  [ -n "${!name:-}" ] || fail "Set $name to preconfigure all three providers"
 done
 for provider in openai xai anthropic; do
   kv_read "chatbot/$provider" | jq -e '.client_id and .client_secret' >/dev/null
 done
 default=${LUMEN_PROVIDER_OVERRIDE:-${LUMEN_MODEL_PROVIDER:-auto}}
-case "$default" in auto|all) default=openai;; openai|xai|anthropic) ;; *) fail 'Proveedor inicial no válido';; esac
+case "$default" in auto|all) default=openai;; openai|xai|anthropic) ;; *) fail 'Invalid initial provider';; esac
 jq -n --arg default "$default" \
-  --arg openai "${LUMEN_OPENAI_MODEL:-gpt-4.1-nano}" --arg xai "${LUMEN_XAI_MODEL:-grok-4.3}" \
+  --arg openai "${LUMEN_OPENAI_MODEL:-gpt-5.6-luna}" --arg xai "${LUMEN_XAI_MODEL:-grok-4.3}" \
   --arg anthropic "${LUMEN_ANTHROPIC_MODEL:-claude-haiku-5-5}" \
   --arg idp "$OPENAI_IDENTITY_PROVIDER_ID" --arg openai_account "$OPENAI_SERVICE_ACCOUNT_ID" \
   --arg rule "$ANTHROPIC_FEDERATION_RULE_ID" --arg org "$ANTHROPIC_ORGANIZATION_ID" \
@@ -31,4 +31,4 @@ jq -n --arg default "$default" \
     audience:"https://api.anthropic.com",federation_rule_id:$rule,organization_id:$org,
     service_account_id:$account,workspace_id:$workspace}} as $profiles |
   $profiles[$default] + {providers:$profiles}' | kv_write chatbot/model
-echo 'OpenAI, xAI y Claude preconfigurados; selección desde el banner de Lumen.'
+echo 'OpenAI, xAI and Claude preconfigured; select one from the Lumen banner.'

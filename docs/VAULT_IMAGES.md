@@ -1,39 +1,40 @@
-# Imágenes Vault 2.2.0 con el plugin xAI
+# Vault 2.2.0 images with the xAI plugin
 
-Las dos ediciones se publican en el repositorio Docker Hub existente
+Both editions are published to the existing Docker Hub repository
 [`josemerchan/vault-xai`](https://hub.docker.com/r/josemerchan/vault-xai/tags).
-Ambas contienen el plugin para `linux/amd64` y `linux/arm64`.
+Both contain the plugin for `linux/amd64` and `linux/arm64`.
 
-| Imagen | Versión del binario | Uso |
+| Image | Binary version | Use |
 |---|---|---|
-| `josemerchan/vault-xai:2.2.0-ent` | `2.2.0+ent` | Enterprise; requiere licencia con las funciones usadas |
-| `josemerchan/vault-xai:2.2.0` | `2.2.0` | Community; no sustituye Enterprise en la demo completa |
+| `josemerchan/vault-xai:2.2.0-ent` | `2.2.0+ent` | Enterprise; requires a license with the features used |
+| `josemerchan/vault-xai:2.2.0` | `2.2.0` | Community; does not replace Enterprise in the full demo |
 
-El tag de contenedor usa `-ent`, como las imágenes oficiales, mientras que el
-binario muestra `+ent`. Lumen necesita Enterprise para Agentic IAM, namespaces,
-KMIP y Transform.
+The container tag uses `-ent`, like the official images, while the
+binary shows `+ent`. Lumen needs Enterprise for Agentic IAM, namespaces,
+KMIP and Transform.
 
-La publicación **no actualiza el clúster existente**. La versión predeterminada
-del despliegue se conserva en `2.1.2-ent`; migrar Raft a otra versión se evalúa
-por separado. El primer punto de agentes por tarea funciona con la versión
-actual y no depende de esa migración.
+Publishing **does not upgrade an existing cluster**. The deployment uses
+`2.2.0-ent` by default; the version is defined only once in
+[`deploy/vault-image.conf`](../deploy/vault-image.conf), which the build,
+the image tests and the launcher read. `VAULT_IMAGE_TAG` in `.env` overrides it.
+A cluster created with another version requires a separate Raft migration.
 
-## Reproducir la construcción
+## Reproducing the build
 
-Se necesita Podman, Go, jq y el repositorio del plugin. El script usa únicamente
-su revisión Git confirmada y rechaza cambios pendientes en archivos seguidos;
-los binarios se compilan desde esa revisión en un contexto temporal.
+You need Podman, Go, jq and the plugin repository. The script uses only
+its committed Git revision and rejects pending changes in tracked files;
+the binaries are compiled from that revision in a temporary context.
 
 ```bash
 bash scripts/build-vault-images.sh --build
 ```
 
-Por defecto lee `$HOME/Projects/vault-plugin-secrets-xai`. Se puede elegir otra
-ruta mediante `XAI_PLUGIN_REPO`. `VAULT_PUBLISH_REPOSITORY` permite seleccionar
-el destino; el valor predeterminado es `docker.io/josemerchan/vault-xai`.
+By default it reads `$HOME/Projects/vault-plugin-secrets-xai`. Another
+path can be chosen with `XAI_PLUGIN_REPO`. `VAULT_PUBLISH_REPOSITORY` selects
+the destination; the default value is `docker.io/josemerchan/vault-xai`.
 
-Para probar la edición Enterprise, preparar un archivo privado de licencia
-desde la configuración de la demo:
+To test the Enterprise edition, prepare a private license file
+from the demo configuration:
 
 ```bash
 bash -c 'source scripts/demo/common.sh; load_inputs; mkdir -p "$LUMEN_STATE_DIR/images/vault-2.2.0"; printf "VAULT_LICENSE=%s\n" "$VAULT_LICENSE" > "$LUMEN_STATE_DIR/images/vault-2.2.0/license.env"'
@@ -43,30 +44,30 @@ bash -c 'source scripts/demo/common.sh; load_inputs; mkdir -p "$LUMEN_STATE_DIR/
 bash scripts/test-vault-images.sh
 ```
 
-Arranca cuatro servidores dev aislados, sin puertos publicados. Cada uno
-registra y carga el plugin; al terminar elimina exclusivamente sus contenedores.
-No llama a xAI ni se conecta al clúster de Lumen.
+It starts four isolated dev servers, with no published ports. Each one
+registers and loads the plugin; when it finishes, it removes only its own containers.
+It does not call xAI or connect to the Lumen cluster.
 
-La publicación, con la sesión de Podman autenticada en Docker Hub, construye y
-prueba ambas ediciones antes de subir sus manifiestos:
+Publishing, with the Podman session authenticated to Docker Hub, builds and
+tests both editions before pushing their manifests:
 
 ```bash
 bash scripts/build-vault-images.sh --publish
 ```
 
-Una repetición de `--publish` reemplaza esas mismas dos etiquetas por la
-construcción comprobada. No escribe `latest` ni cambia etiquetas anteriores.
-La licencia se usa únicamente en los contenedores de prueba; no entra en el
-contexto de construcción ni en las imágenes publicadas.
+Repeating `--publish` replaces those same two tags with the
+verified build. It does not write `latest` or change earlier tags.
+The license is used only in the test containers; it does not enter the
+build context or the published images.
 
 ```bash
 rm -f "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/images/vault-2.2.0/license.env"
 ```
 
-Consultar [el informe de publicación](vault-images-2.2.0.json) para los digests,
-la revisión del plugin y los manifiestos verificados en Docker Hub. Las pruebas
-de imagen cubren arranque y carga del plugin; no constituyen una prueba de
-migración Raft, KMIP o federación de un clúster existente.
+See [the publication report](vault-images-2.2.0.json) for the digests,
+the plugin revision and the manifests verified on Docker Hub. The image tests
+cover startup and plugin loading; they are not a test of a
+Raft, KMIP or federation migration of an existing cluster.
 
-Referencias: [notas de Vault 2.x](https://developer.hashicorp.com/vault/docs/updates/release-notes)
-y [cambios importantes](https://developer.hashicorp.com/vault/docs/updates/important-changes).
+References: [Vault 2.x release notes](https://developer.hashicorp.com/vault/docs/updates/release-notes)
+and [important changes](https://developer.hashicorp.com/vault/docs/updates/important-changes).

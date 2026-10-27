@@ -2,7 +2,7 @@
 set -euo pipefail
 umask 077
 PIDS=()
-trap 'for pid in "${PIDS[@]}"; do kill "$pid" 2>/dev/null || true; done' EXIT INT TERM
+trap 'for pid in ${PIDS[@]+"${PIDS[@]}"}; do kill "$pid" 2>/dev/null || true; done' EXIT INT TERM
 for deployment in grafana tempo loki alloy; do
   kubectl --context workshop -n lumen-observability rollout status "deployment/$deployment" --timeout=180s
 done

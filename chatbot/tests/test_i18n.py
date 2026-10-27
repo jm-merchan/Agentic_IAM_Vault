@@ -1,4 +1,3 @@
-import json
 import time
 from copy import deepcopy
 from types import SimpleNamespace
@@ -19,7 +18,7 @@ from app.trace_inspection import localize_inspection
 @pytest.mark.parametrize('header,expected', [
     ('es-ES,es;q=0.9,en;q=0.8', 'es'), ('en-GB,en;q=0.9,es;q=0.8', 'en'),
     ('es;q=0.2,en-US;q=0.9', 'en'), ('fr-FR,es-MX;q=0.8,en;q=0.6', 'es'),
-    ('fr-FR', 'en'), ('', 'es'), ('es;q=0,en;q=0.5', 'en'),
+    ('fr-FR', 'en'), ('', 'en'), ('es;q=0,en;q=0.5', 'en'),
     ('es;q=broken,en-US', 'en'), ('es;q=2,en;q=0.8', 'en'),
 ])
 def test_browser_language_respects_regions_and_weights(header, expected):
@@ -81,6 +80,25 @@ def test_translations_and_placeholders_never_modify_inserted_values():
     assert es.number(0.145) == '0,145'
     assert en.number(0.145) == '0.145'
     assert en.props('flat aria-label="Cambiar tema"') == 'flat aria-label="Switch theme"'
+
+
+@pytest.mark.asyncio
+async def test_vault_denial_is_fully_translated(monkeypatch):
+    import httpx
+    from app import services as services_module
+    from app.services import Services, VaultPermissionDenied
+    services = Services.__new__(Services)
+    services.config = {'vault_addr': 'https://vault.test'}
+    services.vault_tls = True
+    transport = httpx.MockTransport(lambda request: httpx.Response(403, json={'errors': ['permission denied']}))
+    client = httpx.AsyncClient
+    monkeypatch.setattr(services_module.httpx, 'AsyncClient',
+                        lambda **kwargs: client(transport=transport, **{k: v for k, v in kwargs.items() if k != 'verify'}))
+    with pytest.raises(VaultPermissionDenied) as denied:
+        await services.vault_get('transit/decrypt/lumen-applications', 'token')
+    message = Translator('en')(str(denied.value))
+    assert message == ('Vault denied this operation (HTTP 403): transit/decrypt/lumen-applications. '
+                       'Check the permissions or active access blocks.')
 
 
 @pytest.mark.asyncio

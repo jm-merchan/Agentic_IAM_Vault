@@ -18,11 +18,11 @@ configure_rar() {
   if ! jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '(.schema|fromjson)==$wanted[0]' "$TMP_WORK/rar-check.json" >/dev/null; then
     jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '
       (.schema|fromjson)==($wanted[0]|del(.properties.allowed_parameters,.properties.denied_parameters,.properties.required_parameters))
-    ' "$TMP_WORK/rar-check.json" >/dev/null || fail 'El esquema RAR no es una versión conocida de Lumen; no se modifica.'
+    ' "$TMP_WORK/rar-check.json" >/dev/null || fail 'The RAR schema is not a known Lumen version; leaving it unchanged.'
     jq --rawfile schema "$VERIFY_DIR/config/rar-schema.json" '.schema=$schema' "$TMP_WORK/rar-check.json" > "$TMP_WORK/rar-update.json"
     api PUT "/v1.0/auth-detail-types/$RAR_ID" "$TMP_WORK/rar-updated.json" --data-binary "@$TMP_WORK/rar-update.json"
     api GET "/v1.0/auth-detail-types/$RAR_ID" "$TMP_WORK/rar-check.json"
   fi
-  jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '(.schema|fromjson)==$wanted[0]' "$TMP_WORK/rar-check.json" >/dev/null || fail 'Verify no conserva el esquema RAR esperado.'
-  echo 'RAR preparado: ruta, capacidades y parámetros opcionales; se conserva el ID existente.'
+  jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '(.schema|fromjson)==$wanted[0]' "$TMP_WORK/rar-check.json" >/dev/null || fail 'Verify did not keep the expected RAR schema.'
+  echo 'RAR ready: path, capabilities and optional parameters; existing ID preserved.'
 }

@@ -14,7 +14,7 @@ from app.trace_content import ContentRecorder
 
 
 def setup(monkeypatch, allowed=True):
-    session = Session('test', subject='reader', expires_at=time.time()+600)
+    session = Session('test', subject='reader', expires_at=time.time()+600, language='es')
     config = {'provider': 'openai', 'model': 'test-model', 'api_key': 'test-transient-key'}
     services = SimpleNamespace(config={'model': {'provider': 'openai', 'model': 'test-model'}},
         model_credentials=AsyncMock(return_value=(config, time.monotonic()+180)), event=Mock())
@@ -87,6 +87,15 @@ async def test_classifier_gets_bounded_context_and_only_decision_tool(provider):
     assert len(context['history']) == 8 and all(len(m['content']) == 4000 for m in context['history'])
     assert context['latest_request'] == 'venga'
     assert classifier.ainvoke.call_args.kwargs.get('temperature') == (0 if provider == 'openai' else None)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('model_name, temperature', [('gpt-5.6-luna', 0), ('gpt-5-mini', None), ('o3-mini', None)])
+async def test_classifier_sets_temperature_only_where_sampling_is_controllable(model_name, temperature):
+    classifier = SimpleNamespace(ainvoke=AsyncMock(return_value=ScopeDecision(category='energy')))
+    model = SimpleNamespace(with_structured_output=Mock(return_value=classifier))
+    assert await assess_scope(model, [], 'Consulta planes', ContentRecorder(), {'model': model_name, 'provider': 'openai'})
+    assert classifier.ainvoke.call_args.kwargs.get('temperature') == temperature
 
 
 def test_short_followup_uses_last_answer_not_an_old_rejection():

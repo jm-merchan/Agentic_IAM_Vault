@@ -29,8 +29,10 @@ CONFIG_ID=$(vault read -field=config_id sys/config/oauth-resource-server/verify)
 ensure_alias() {
   local entity=$1 external=$2 name=$3 existing
   existing=$(vault read -format=json "identity/entity/id/$entity" | jq -r --arg name "$name" --arg config "$CONFIG_ID" '.data.aliases[]?|select(.name==$name and (.mount_accessor|endswith("_"+$config)))|.id')
-  if [ -z "$existing" ]; then
-    vault write identity/entity-alias name="$name" canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$external" >/dev/null
+  if [ -z "$existing" ] && ! vault write identity/entity-alias name="$name" canonical_id="$entity" issuer="$TENANT/oauth2" external_id="$external" >/dev/null 2>"$TMP_WORK/alias.err"; then
+    grep -q 'alias already exists' "$TMP_WORK/alias.err" && fail "The Verify identity for $name is already mapped to another Vault entity, for example a Lumen demo user. Sign in with a dedicated account."
+    cat "$TMP_WORK/alias.err" >&2
+    exit 1
   fi
 }
 ensure_alias "$HUMAN_ENTITY" "$HUMAN_ID" verify-subject

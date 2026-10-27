@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 import json
 import re
 
-from opentelemetry import trace
 from .rar import LAB_CONTEXT, authorization_details
 from .security import AccessDenied, ISSUER
 from .services import VaultPermissionDenied, VaultResponseError

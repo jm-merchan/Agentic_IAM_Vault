@@ -4,12 +4,12 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
-import json
 import os
 import secrets
 import ssl
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from urllib.parse import urlencode
 
 import httpx
@@ -48,7 +48,7 @@ class Session:
     catalogue_evidence: dict | None = field(default=None, repr=False)
     application_draft: dict | None = field(default=None, repr=False)
     model_provider: str = ''
-    language: str = 'es'
+    language: str = 'en'
     task_agent: str = 'legacy'
     rar_scenario: str = 'allowed'
     rar_results: dict = field(default_factory=dict, repr=False)
@@ -150,7 +150,7 @@ def load_config() -> dict:
     """Use a short-lived bootstrap token scoped only to chatbot client credentials."""
     token = os.environ.pop('CHATBOT_BOOTSTRAP_TOKEN', '')
     addr = os.environ.get('VAULT_ADDR', 'https://127.0.0.1:8443')
-    ca = os.environ.get('VAULT_CACERT', '/tmp/vault/vault.ca')
+    ca = os.environ.get('VAULT_CACERT') or str(Path(os.environ.get('LUMEN_STATE_DIR') or Path.home() / '.local/state/lumen-vault-demo') / 'vault/vault.ca')
     if not token:
         raise RuntimeError('Inicia la aplicación con bash chatbot/scripts/run.sh.')
     context = ssl.create_default_context(cafile=ca)

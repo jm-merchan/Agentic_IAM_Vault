@@ -9,11 +9,11 @@ VERIFIER=$(openssl rand -hex 32)
 CHALLENGE=$(printf '%s' "$VERIFIER" | openssl dgst -sha256 -binary | openssl base64 -A | tr '+/' '-_' | tr -d '=')
 QUERY=$(jq -n --arg cid "$CLIENT_ID" --arg state "$STATE" --arg challenge "$CHALLENGE" '{client_id:$cid,response_type:"code",response_mode:"query",redirect_uri:"http://localhost:9876/callback",scope:"openid profile email",state:$state,code_challenge:$challenge,code_challenge_method:"S256"}' | form_encode)
 URL="$TENANT/oauth2/authorize?$QUERY"
-printf 'HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\nContent-Length: 45\r\n\r\nCallback recibido. Puedes cerrar esta ventana.' > "$TMP_WORK/http-response"
+printf 'HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: close\r\nContent-Length: 45\r\n\r\nCallback received. You can close this window.' > "$TMP_WORK/http-response"
 nc -l 127.0.0.1 9876 < "$TMP_WORK/http-response" > "$TMP_WORK/http-request" 2> "$TMP_WORK/nc-error" &
 CALLBACK_PID=$!
 trap 'kill "$CALLBACK_PID" 2>/dev/null || true; rm -rf "$TMP_WORK"' EXIT
-printf 'Abre esta URL en Chrome y completa el inicio de sesión (10 min):\n%s\n' "$URL"
+printf 'Open this URL in Chrome and complete the sign-in (10 min):\n%s\n' "$URL"
 for ((attempt=0; attempt<600; attempt++)); do
   if head -1 "$TMP_WORK/http-request" | grep -q '^GET /callback?'; then break; fi
   kill -0 "$CALLBACK_PID" 2>/dev/null || fail 'Callback listener stopped; check port 9876.'

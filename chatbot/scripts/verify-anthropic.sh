@@ -4,7 +4,7 @@ set -euo pipefail
 umask 077
 CHATBOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 rm -f "$CHATBOT_DIR/docs/anthropic-spiffe-verification.json"
-source "${VAULT_ENV_FILE:-/tmp/vault/config.env}"
+source "${VAULT_ENV_FILE:-${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/vault/config.env}"
 export VAULT_ADDR VAULT_CACERT VAULT_NAMESPACE=verify
 CLAUDE_STATE="${LUMEN_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lumen-vault-demo}/claude"
 mkdir -p "$CLAUDE_STATE"
@@ -13,7 +13,7 @@ mkdir -p "$CLAUDE_STATE"
 VAULT_TOKEN="$VAULT_TOKEN" vault read -format=json spiffe/.well-known/keys |
   jq -e '.data.keys | select(type=="array" and length>0) |
     map({kty,kid,use,alg,n,e,crv,x,y} | with_entries(select(.value!=null)))' > "$CLAUDE_STATE/issuer-keys.json"
-printf 'Claves públicas actuales de Vault: %s/issuer-keys.json\n' "$CLAUDE_STATE"
+printf 'Current Vault public keys: %s/issuer-keys.json\n' "$CLAUDE_STATE"
 export OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-http://127.0.0.1:4318/v1/traces}
 export LUMEN_TRACE_CONTENT=${LUMEN_TRACE_CONTENT:-1}
 export LUMEN_TRACE_VAULT_RAW=${LUMEN_TRACE_VAULT_RAW:-1}
@@ -36,7 +36,7 @@ async def main():
     config = load_config()
     config['model'] = model_config(config, 'anthropic')
     if config['model'].get('provider') != 'anthropic' or config['model'].get('credential_source') != 'vault_spiffe':
-        raise SystemExit('El proveedor activo no es Claude SPIFFE.')
+        raise SystemExit('The active provider is not Claude SPIFFE.')
     services = Services(config, Identity(config))
     session = Session('verification', model_provider='anthropic', subject='verification', expires_at=time.time()+600)
     with span('lumen.verify.anthropic_spiffe'):
@@ -61,10 +61,10 @@ then
   exit 0
 else
   result=$?
-  printf '\nLa comprobación real de Claude ha fallado; la instalación no está validada.\n' >&2
-  printf 'Si Vault se ha recreado o ha rotado su firmante y Claude devuelve HTTP 401, ejecuta: bash scripts/demo/claude-issuer.sh\n' >&2
-  printf 'La sincronización usa el perfil ant lumen-admin (o LUMEN_CLAUDE_ADMIN_PROFILE). Copia pública local: %s/issuer-keys.json\n' "$CLAUDE_STATE" >&2
-  printf 'Para revisar eventos: https://platform.claude.com/settings/workload-identity-federation\n' >&2
-  printf 'Después repite ./demo.sh start. Si sigue fallando, revisa la regla, el sujeto, la audiencia y los permisos.\n' >&2
+  printf '\nThe live Claude check failed; the installation is not validated.\n' >&2
+  printf 'If Vault was recreated or rotated its signing key and Claude returns HTTP 401, run: bash scripts/demo/claude-issuer.sh\n' >&2
+  printf 'The sync uses the ant profile lumen-admin (or LUMEN_CLAUDE_ADMIN_PROFILE). Local public copy: %s/issuer-keys.json\n' "$CLAUDE_STATE" >&2
+  printf 'To review events: https://platform.claude.com/settings/workload-identity-federation\n' >&2
+  printf 'Then rerun ./demo.sh start. If it still fails, review the rule, subject, audience and permissions.\n' >&2
   exit "$result"
 fi

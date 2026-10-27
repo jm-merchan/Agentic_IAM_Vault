@@ -231,6 +231,9 @@ class ModelSpans(AsyncCallbackHandler):
         current = self.active.pop(run_id, None)
         if current:
             current.set_attribute('error.type', type(error).__name__)
+            if self.recorder.enabled:
+                # Provider errors can echo request content, so they follow the content switch.
+                current.set_attribute('error.message', self.recorder.text(str(error))[:1000])
             current.set_status(Status(StatusCode.ERROR))
             current.end()
 

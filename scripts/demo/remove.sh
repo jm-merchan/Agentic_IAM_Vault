@@ -10,9 +10,12 @@ state=$(cd "$LUMEN_STATE_DIR" && pwd -P)
 case "$state" in /|/tmp|/private/tmp|/Users|"$HOME"|"$DEMO_ROOT"|"$HOME/.local/state") fail 'LUMEN_STATE_DIR demasiado amplio para remove';; esac
 case "$DEMO_ROOT/" in "$state/"*) fail 'El estado no puede contener el workspace';; esac
 env_path=$(cd "$(dirname "$DEMO_ENV_FILE")" && pwd -P)/$(basename "$DEMO_ENV_FILE")
-for folder in vault mysql runtime vault-chatbot-storage services pids ngrok openai; do
+# oauth2c holds captures for the vault-chatbot-oidc callback; that app is deleted below.
+STATE_FOLDERS=(vault mysql runtime vault-chatbot-storage services pids ngrok openai oauth2c claude contracts pdf-approval personal-spaces)
+for folder in "${STATE_FOLDERS[@]}"; do
   case "$env_path" in "$state/$folder"|"$state/$folder/"*) fail '.env está dentro de un directorio que se retiraría';; esac
 done
+[ ! -d "$state/oauth2c/.lock" ] || fail 'Hay una celda oauth2c en marcha; termínala antes de retirar la demo.'
 [ ! -L /tmp/lumen-telemetry ] || fail 'La ruta de telemetría es un enlace; no se sigue'
 REMOVE_WORK=$(mktemp -d /tmp/lumen-remove.XXXXXX)
 trap 'rm -rf "$REMOVE_WORK"' EXIT
@@ -41,7 +44,7 @@ printf 'Esto incluye todos los secretos/namespaces internos de este Vault y las 
 jq -r '.[]|"  Volumen: \(.namespace)/\(.name)"' "$REMOVE_WORK/volumes.json"
 printf 'Verify: %s\n' "$VERIFY_TENANT"
 jq -r '.[]|"  \(.kind): \(.name) (\(.id))"' "$REMOVE_WORK/targets.json"
-printf 'Estado operativo local: %s/{vault,mysql,runtime,vault-chatbot-storage,services,pids,ngrok,openai}\n' "$state"
+printf 'Estado operativo local: %s/{%s}\n' "$state" "$(IFS=,; echo "${STATE_FOLDERS[*]}")"
 printf 'Se conservan .env, recursos WIF externos de OpenAI/Claude, cliente administrativo, RAR compartido, otros recursos Verify, perfil Minikube y documentación.\n'
 printf 'Plan sin credenciales: %s/remove-plan.json\n' "$LUMEN_STATE_DIR"
 if [ "$dry_run" = true ]; then echo 'Simulación: no se han detenido ni eliminado recursos.'; exit 0; fi
@@ -100,7 +103,7 @@ if [ "$legacy_keys" = true ]; then
   for file in cluster-keys.json vault.key vault.ca vault.crt vault.csr; do rm -f "/tmp/vault/$file"; done
 fi
 if [ "$legacy_config" = true ]; then rm /tmp/vault/config.env; fi
-for folder in vault mysql runtime vault-chatbot-storage services pids ngrok openai; do rm -rf "$state/$folder"; done
+for folder in "${STATE_FOLDERS[@]}"; do rm -rf "${state:?}/$folder"; done
 # This fixed path belongs to the lab's local span exporter; historical screenshots
 # and the source notebooks are preserved in the workspace.
 rm -f /tmp/lumen-telemetry/spans.jsonl

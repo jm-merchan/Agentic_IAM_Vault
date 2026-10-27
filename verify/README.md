@@ -169,7 +169,7 @@ El namespace `verify` y su motor KV v2 `secrets/` están creados. En la UI de Va
 Para comprobar únicamente los metadatos desde el Mac, con la CLI de Vault instalada:
 
 ```sh
-source /tmp/vault/config.env
+source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/vault/config.env"
 vault kv metadata get -namespace=verify -mount=secrets verify
 ```
 

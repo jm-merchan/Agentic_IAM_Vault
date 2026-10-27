@@ -28,6 +28,8 @@ fi
 mkdir -p "$AUTH_WORK"
 chmod 700 "$AUTH_WORK"
 rm -f "$AUTH_WORK/cookies" "$AUTH_WORK/tokens.json"
+# The password, client secret, session and code are only needed during this login.
+trap 'rm -f "$AUTH_WORK/user.json" "$AUTH_WORK/form" "$AUTH_WORK/client.json" "$AUTH_WORK/token.headers" "$AUTH_WORK/token.form" "$AUTH_WORK/cookies" "$AUTH_WORK/code" "$AUTH_WORK/verifier"' EXIT
 vault kv get -format=json -mount=secrets "chatbot/users/$ROLE" | jq '.data.data' > "$AUTH_WORK/user.json"
 if [ "$TASK_AGENT" = legacy ]; then
   vault kv get -format=json -mount=secrets chatbot/oidc | jq '.data.data' > "$AUTH_WORK/client.json"
@@ -85,7 +87,7 @@ done
 url_decode() { local x=${1//+/ }; [[ "$x" != *\\* ]] || return 1; printf '%b' "${x//%/\\x}"; }
 CODE=''; RETURNED_STATE=''; OAUTH_ERROR=''
 while IFS='=' read -r k v; do case $k in code) CODE=$(url_decode "$v");;state) RETURNED_STATE=$(url_decode "$v");;error) OAUTH_ERROR=$(url_decode "$v");;esac;done < <(printf '%s\n' "${callback_url#*\?}" | tr '&' '\n')
-[ "$RETURNED_STATE" = "$STATE" ] && [ -n "$CODE" ] && [ -z "$OAUTH_ERROR" ]
+[ "$RETURNED_STATE" = "$STATE" ] && [ -n "$CODE" ] && [ -z "$OAUTH_ERROR" ] || { echo 'Invalid OAuth callback' >&2; exit 1; }
 printf '%s' "$CODE" > "$AUTH_WORK/code"
 printf '%s' "$VERIFIER" > "$AUTH_WORK/verifier"
 jq -jr '"Authorization: Basic "+((.client_id+":"+.client_secret)|@base64)+"\nContent-Type: application/x-www-form-urlencoded\n"' "$AUTH_WORK/client.json" > "$AUTH_WORK/token.headers"

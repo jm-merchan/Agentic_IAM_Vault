@@ -2,13 +2,15 @@
 # Isolated dev servers: no host ports, existing cluster, or provider calls.
 set -euo pipefail
 umask 077
-state=${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/images/vault-2.2.0
+source "$(dirname "$0")/../deploy/vault-image.conf"
+version=$VAULT_IMAGE_VERSION
+state=${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/images/vault-$version
 license_file=${VAULT_TEST_LICENSE_FILE:-$state/license.env}
 [ -s "$license_file" ] || { echo 'Set VAULT_TEST_LICENSE_FILE to a private VAULT_LICENSE env file.' >&2; exit 1; }
 container=''
 cleanup() { if [ -n "$container" ]; then podman rm -f "$container" >/dev/null 2>&1 || true; fi; }
 trap cleanup EXIT
-for tag in 2.2.0 2.2.0-ent; do
+for tag in "$version" "$version-ent"; do
   for arch in amd64 arm64; do
     container="lumen-build-check-${tag}-${arch}-$$"
     podman run -d --name "$container" --platform "linux/$arch" --cap-add IPC_LOCK \

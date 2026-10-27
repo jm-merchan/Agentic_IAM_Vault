@@ -23,6 +23,7 @@ def test_start_requires_real_claude_verification(tmp_path, sync_status, claude_s
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text("exit 0\n")
     shutil.copy(ROOT / "scripts/demo/common.sh", root / "scripts/demo/common.sh")
+    shutil.copy(ROOT / "scripts/demo/env-file.sh", root / "scripts/demo/env-file.sh")
     (root / "scripts/demo/model-provider.sh").write_text(
         "select_model_provider() { export LUMEN_SELECTED_PROVIDER=openai; }\n")
     (root / "chatbot/scripts/verify-anthropic.sh").write_text(

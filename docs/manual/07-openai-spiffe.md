@@ -249,7 +249,7 @@ SPIFFE_ISSUER="https://$NGROK_DOMAIN/v1/verify/spiffe"
 SPIFFE_SUBJECT="spiffe://${SPIFFE_TRUST_DOMAIN:-lumen.demo}/ns/verify/agent/lumen-openai"
 : "${OPENAI_IDENTITY_PROVIDER_ID:?Falta el ID WIF}"
 : "${OPENAI_SERVICE_ACCOUNT_ID:?Falta el ID de la cuenta de servicio}"
-jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-4.1-nano}" \
+jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-5.6-luna}" \
   --arg provider "$OPENAI_IDENTITY_PROVIDER_ID" --arg account "$OPENAI_SERVICE_ACCOUNT_ID" \
   --arg issuer "$SPIFFE_ISSUER" --arg sub "$SPIFFE_SUBJECT" '{
   provider:"openai",model:$model,credential_source:"vault_spiffe",
@@ -298,7 +298,7 @@ curl --fail --silent --show-error --header 'Content-Type: application/json' \
 jq '{token_type,expires_in,expires_at,scope}' "$MANUAL/openai-access.json"
 jq -jer '"Authorization: Bearer "+.access_token+"\nContent-Type: application/json\n"' \
   "$MANUAL/openai-access.json" > "$MANUAL/openai-inference.headers"
-jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-4.1-nano}" '{model:$model,
+jq -n --arg model "${LUMEN_OPENAI_MODEL:-gpt-5.6-luna}" '{model:$model,
   messages:[{role:"user",content:"Responde solo: SPIFFE OK"}],max_tokens:30}' > "$MANUAL/openai-inference.json"
 curl --fail --silent --show-error --header "@$MANUAL/openai-inference.headers" \
   --data-binary "@$MANUAL/openai-inference.json" https://api.openai.com/v1/chat/completions \

@@ -1,8 +1,8 @@
 {
-  "checked_at": "2026-10-22T14:47:12.604938+00:00",
+  "checked_at": "2026-10-26T16:24:50.800287+00:00",
   "provider": "openai",
-  "model": "gpt-4.1-nano",
-  "trace_id": "ad367be94543eccc867b0a0c953de115",
+  "model": "gpt-5.6-luna",
+  "trace_id": "888ff7262ff589fcb04b1606ca23bca9",
   "cases": [
     {
       "case": "weather",

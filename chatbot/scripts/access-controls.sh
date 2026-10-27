@@ -6,8 +6,9 @@ block_paths() {
     xai) printf '%s\n' xai/creds/lumen secrets/data/chatbot/xai-access ;;
     database-read) printf '%s\n' database/creds/chatbot-readonly database/creds/chatbot-readwrite database/creds/chatbot-contract ;;
     database-write) printf '%s\n' database/creds/chatbot-readwrite database/creds/chatbot-contract ;;
-    decrypt) printf '%s\n' transit/decrypt/lumen-applications transform/decode/lumen-dni transform/decode/lumen-iban ;;
-    *) fail 'Recurso inválido: usa xai, database-read, database-write o decrypt.' ;;
+    decrypt) printf '%s\n' transit/decrypt/lumen-applications transform/decode/lumen-dni transform/decode/lumen-iban \
+      transit/decrypt/lumen-contracts 'secrets/data/lumen-contracts/*' ;;
+    *) fail 'Invalid resource: use xai, database-read, database-write or decrypt.' ;;
   esac
 }
 initialize_block_policies() {

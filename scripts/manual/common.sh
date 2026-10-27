@@ -3,7 +3,7 @@ set +x
 set -Eeuo pipefail
 umask 077
 MANUAL_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-export LUMEN_STATE_DIR=${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}
+source "$MANUAL_ROOT/scripts/demo/env-file.sh" "$MANUAL_ROOT"
 export MANUAL="$LUMEN_STATE_DIR/manual"
 export MANUAL_RUN=${MANUAL_RUN:-$MANUAL_ROOT/docs/runs/$(date -u +%Y%m%dT%H%M%SZ)-manual-script}
 mkdir -p "$MANUAL" "$MANUAL_RUN" "$MANUAL/blocks" "$MANUAL/logs"

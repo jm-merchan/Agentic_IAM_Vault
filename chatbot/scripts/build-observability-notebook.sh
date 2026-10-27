@@ -11,18 +11,18 @@ cell() {
   mv "$BUILD_DIR/next" "$BUILD_DIR/cells.json"
 }
 cell markdown <<'MD'
-# Lumen — permisos, audit log de Vault y trazas del agente
+# Lumen — permissions, Vault audit log and agent traces
 
-Referencia de observabilidad; `./demo.sh` incluye estas etapas. Aprovisionamiento **Bash**, contexto Kubernetes `workshop`, namespace `lumen-observability`. Grafana 13.2.4 + Loki 3.7.8 + Tempo 2.10.8 (modo monolítico) + Alloy 1.21.0-rc.0. Se fija esta versión candidata para el laboratorio porque incorpora la corrección de pérdida de líneas stdout/stderr [grafana/alloy#7080](https://github.com/grafana/alloy/pull/7080). Aplicación instrumentada con OpenTelemetry 1.45.1. Servicios ClusterIP; accesos del navegador y OTLP mediante port-forward en `127.0.0.1`. No se publica un Ingress ni NodePort. [Revisión vigente de interfaz y servicios](docs/runs/20261022T140230Z-workspace-review/README.md).
+Observability reference; `./demo.sh` includes these stages. **Bash** provisioning, `workshop` Kubernetes context, `lumen-observability` namespace. Grafana 13.2.4 + Loki 3.7.8 + Tempo 2.10.8 (monolithic mode) + Alloy 1.21.0-rc.0. This release candidate is pinned for the lab because it includes the fix for lost stdout/stderr lines [grafana/alloy#7080](https://github.com/grafana/alloy/pull/7080). Application instrumented with OpenTelemetry 1.45.1. ClusterIP services; browser and OTLP access through port-forwards on `127.0.0.1`. No Ingress or NodePort is published. [Current review of the interface and services](docs/runs/20261022T140230Z-workspace-review/README.md).
 
-[Guía del recorrido con capturas](chatbot/OBSERVABILITY.md) · [Verificación ejecutada](chatbot/docs/observability-verification.json)
+[Walkthrough guide with screenshots](chatbot/OBSERVABILITY.md) · [Executed verification](chatbot/docs/observability-verification.json)
 
-Vault no tenía auditoría habilitada al empezar esta ampliación. Solo hay evidencia desde su activación; no reconstruye peticiones anteriores. La configuración actual conserva `lumen-stdout/` con HMAC y añade `lumen-agent-raw/`, filtrado a cuatro rutas de lectura, y `lumen-protection-raw/`, filtrado a seis rutas Transit/Transform en `verify`, sin HMAC; `lumen-xai-raw/` cubre `xai/creds/lumen`. Los JWT, cuerpos y respuestas completos también aparecen en `vault.read` y `vault.write` (notebook 8).
+Vault had no auditing enabled when this extension started. Evidence exists only from its activation onward; earlier requests are not reconstructed. The current configuration keeps `lumen-stdout/` with HMAC and adds `lumen-agent-raw/`, filtered to four read paths, and `lumen-protection-raw/`, filtered to six Transit/Transform paths in `verify`, without HMAC; `lumen-xai-raw/` covers `xai/creds/lumen`. Full JWTs, bodies and responses also appear in `vault.read` and `vault.write` (notebook 8).
 MD
 cell markdown <<'MD'
-## 1. Activar auditoría y correlación
+## 1. Enable auditing and correlation
 
-Seis dispositivos raíz: `lumen-stdout/` protegido y cinco salidas raw (`lumen-agent-raw/`, `lumen-protection-raw/`, `lumen-xai-raw/`, `lumen-xai-access-raw/`, `lumen-spiffe-raw/`) con filtros distintos. `traceparent` une las copias con Tempo. No cambia políticas de usuarios ni del agente. Alloy lee logs de los tres pods de Vault por API de Kubernetes, con RBAC de lectura restringido al namespace `vault`; etiqueta las copias como `audit_mode=raw` o `hmac`.
+Six root devices: the protected `lumen-stdout/` and five raw outputs (`lumen-agent-raw/`, `lumen-protection-raw/`, `lumen-xai-raw/`, `lumen-xai-access-raw/`, `lumen-spiffe-raw/`) with different filters. `traceparent` links the copies to Tempo. It does not change user or agent policies. Alloy reads the logs of the three Vault pods through the Kubernetes API, with read RBAC restricted to the `vault` namespace; it labels the copies as `audit_mode=raw` or `hmac`.
 MD
 cell code <<'CODE'
 %%bash
@@ -30,9 +30,9 @@ set -euo pipefail
 bash chatbot/scripts/enable-audit.sh
 CODE
 cell markdown <<'MD'
-## 2. Desplegar Grafana, Loki, Tempo y Alloy
+## 2. Deploy Grafana, Loki, Tempo and Alloy
 
-PVCs: Loki 5 GiB, Tempo 5 GiB, Grafana 1 GiB. Retención de logs/trazas: 7 días; almacenamiento local de laboratorio, sin HA. Admin de Grafana: `lumen-admin`; contraseña aleatoria guardada en Vault `verify/secrets/chatbot/observability` y en el Secret Kubernetes `lumen-observability/grafana-admin`. El chatbot no puede leer ese secreto. El script reutiliza la credencial existente. Grafana tiene un límite de 1536 MiB y `GOMEMLIMIT=768MiB`. En el arranque con `demo.sh`, `launchd` recupera los port-forward cuando se interrumpe su conexión.
+PVCs: Loki 5 GiB, Tempo 5 GiB, Grafana 1 GiB. Log/trace retention: 7 days; local lab storage, no HA. Grafana admin: `lumen-admin`; random password stored in Vault `verify/secrets/chatbot/observability` and in the Kubernetes Secret `lumen-observability/grafana-admin`. The chatbot cannot read that secret. The script reuses the existing credential. Grafana has a 1536 MiB limit and `GOMEMLIMIT=768MiB`. When started with `demo.sh`, `launchd` restores the port-forwards if their connection drops.
 MD
 cell code <<'CODE'
 %%bash
@@ -43,33 +43,35 @@ for deployment in grafana loki tempo alloy; do
 done
 CODE
 cell markdown <<'MD'
-## 3. Abrir puertos locales e iniciar la aplicación instrumentada
+## 3. Open local ports and start the instrumented application
 
-Para el despliegue completo desde la raíz:
+For the complete deployment from the root:
 
 ```bash
 ./demo.sh
 ```
 
-El lanzador mantiene port-forwards y aplicación mediante servicios de usuario. Los scripts individuales son para mantenimiento; no hacen falta terminales adicionales. La configuración se lee de `.env`.
+The launcher keeps the port-forwards and the application running as user services. The individual scripts are for maintenance; no extra terminals are needed. Configuration is read from `.env`.
 
-`run.sh` usa `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4318/v1/traces`. Los tokens de bootstrap siguen siendo temporales y limitados. El proveedor se elige en el banner entre los perfiles OpenAI/xAI/Claude cargados; cada uno usa su identidad de Vault.
+`run.sh` uses `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4318/v1/traces`. Bootstrap tokens remain temporary and limited. The provider is chosen in the banner among the loaded OpenAI/xAI/Claude profiles; each one uses its own Vault identity.
 
-La captura LLM está habilitada por defecto con `LUMEN_TRACE_CONTENT=1`: mensajes, respuestas, herramientas, argumentos y resultados, con ocultación de credenciales. Independientemente, `LUMEN_TRACE_VAULT_RAW=1` guarda el intercambio con Vault, JWT y credenciales en claro. Límite por campo: 65.536 bytes, con truncamiento indicado; Tempo usa `distributor.max_attribute_bytes=131072`. Para volver a metadatos de nuevas trazas: `LUMEN_TRACE_CONTENT=0 LUMEN_TRACE_VAULT_RAW=0 bash chatbot/scripts/run.sh`. El audit log tiene su propio interruptor (sección 8).
+LLM capture is enabled by default with `LUMEN_TRACE_CONTENT=1`: messages, responses, tools, arguments and results, with credentials redacted. Independently, `LUMEN_TRACE_VAULT_RAW=1` stores the Vault exchange, JWTs and credentials in clear text. Per-field limit: 65,536 bytes, with truncation flagged; Tempo uses `distributor.max_attribute_bytes=131072`. To go back to metadata only for new traces: `LUMEN_TRACE_CONTENT=0 LUMEN_TRACE_VAULT_RAW=0 bash chatbot/scripts/run.sh`. The audit log has its own switch (section 8).
 
-En Grafana abre un span `xai.chat`, `openai.chat` o `anthropic.chat` y revisa `lumen.user.message`, `gen_ai.input.messages`, `gen_ai.output.messages` y `gen_ai.tool.definitions`. En `tool.*`, revisa `gen_ai.tool.call.arguments` y `gen_ai.tool.call.result`. El enlace **Ver última traza** del chat ofrece paneles legibles por llamada. Las trazas anteriores no contienen mensajes. Se captura el contenido del callback LangChain, no el cuerpo HTTP exacto ni razonamiento interno del modelo.
+In Grafana, open an `xai.chat`, `openai.chat` or `anthropic.chat` span and review `lumen.user.message`, `gen_ai.input.messages`, `gen_ai.output.messages` and `gen_ai.tool.definitions`. In `tool.*`, review `gen_ai.tool.call.arguments` and `gen_ai.tool.call.result`. The chat's **View latest trace** link offers readable panels per call. Earlier traces contain no messages. The LangChain callback content is captured, not the exact HTTP body or the model's internal reasoning.
 
-El visor local ofrece un diagrama interactivo con iconos por servicio, filtros de destino, flechas de petición/retorno y detalles de cada llamada. En laboratorio, **Ver valores sensibles / View sensitive values** abre los valores de OAuth y HTTP Basic (incluido `client_secret`), JWT-SVID, credenciales MySQL y cuerpos de cifrado/descifrado. Las nuevas capturas permanecen en memoria diez minutos; las capturas raw de Vault/SPIFFE mantienen la retención de trazas. [Alcance completo](chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
+The local viewer offers an interactive diagram with per-service icons, destination filters, request/return arrows and details for each call. In the lab, **Ver valores sensibles / View sensitive values** opens the OAuth and HTTP Basic values (including `client_secret`), JWT-SVID, MySQL credentials and encryption/decryption bodies. New captures stay in memory for ten minutes; raw Vault/SPIFFE captures follow the trace retention. [Full scope](chatbot/OBSERVABILITY.md#valores-de-cada-llamada).
 
-Cada paso de Vault incluye **Cómo decide Vault / How Vault decides**, un desplegable independiente de los valores sensibles. Consulta la auditoría correlacionada para mostrar la identidad, el actor OBO, las políticas que concedieron acceso y el RAR registrado. Distingue OAuth, OBO, token nativo, login y claves públicas; si faltan eventos o no identifican la causa de una denegación, lo indica sin reconstruir políticas históricas con la configuración actual. [Datos disponibles y límites](chatbot/OBSERVABILITY.md#cómo-decide-vault).
+Each Vault step includes **Cómo decide Vault / How Vault decides**, a drop-down independent of the sensitive values. It queries the correlated audit log to show the identity, the OBO actor, the policies that granted access and the recorded RAR. It distinguishes OAuth, OBO, native token, login and public keys; if events are missing or do not identify the cause of a denial, it says so instead of reconstructing historical policies from the current configuration. [Available data and limits](chatbot/OBSERVABILITY.md#cómo-decide-vault).
 
-![Lógica y evidencia de una decisión de Vault](docs/screenshots/current/vault-decision.jpg)
+![Logic and evidence of a Vault decision](docs/screenshots/current/vault-decision.jpg)
 
-**EN / ES** cambia títulos, explicaciones, formatos y paginación según la preferencia de Lumen; los valores originales nunca se traducen. El idioma inicial procede del navegador, salvo elección manual guardada. Grafana conserva su propio idioma. [Comprobación bilingüe](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües) · [Evidencia del 20/10](chatbot/docs/language-verification.json).
+**EN / ES** switches titles, explanations, formats and pagination according to the Lumen preference; original values are never translated. The initial language comes from the browser unless a manual choice has been saved. Grafana keeps its own language. [Bilingual check](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües) · [Evidence from October 20](chatbot/docs/language-verification.json).
 
 - Chat: <http://localhost:8088>
 - Dashboard: <http://localhost:3000/d/lumen-iam>
-- Consultar la contraseña de Grafana en Vault UI: namespace `verify` → `secrets` → `chatbot/observability`. No pegarla en una celda del notebook.
+- Look up the Grafana password in the Vault UI: namespace `verify` → `secrets` → `chatbot/observability`. Do not paste it into a notebook cell.
+
+`./demo.sh start` keeps the Grafana, Loki and Tempo port-forwards running with `launchd`. If you run this notebook without the launcher and the next check cannot connect to port 3000, open them in another terminal with `bash chatbot/scripts/observability-forward.sh`.
 MD
 cell code <<'CODE'
 %%bash
@@ -80,80 +82,80 @@ curl -fsS http://127.0.0.1:3100/ready
 curl -fsS http://127.0.0.1:3200/ready
 CODE
 cell markdown <<'MD'
-## 4. Recorrido gráfico por usuario
+## 4. Visual walkthrough per user
 
-En IBM Verify seleccionar **Cloud Directory**. Contraseñas en `verify/secrets/chatbot/users/{reader,writer,supervisor}`.
+In IBM Verify select **Cloud Directory**. Passwords are in `verify/secrets/chatbot/users/{reader,writer,supervisor}`.
 
-| Acción | Lector | Gestor | Supervisor |
+| Action | Reader | Writer | Supervisor |
 |---|---|---|---|
-| Catálogo/inventario/bandeja enmascarada | Sí | Sí | Sí |
-| Guardar solicitud de cinco pasos | No | Sí, revisión y confirmación | No |
-| Revelar perfil, DNI e IBAN | No, 403 | No, 403 | Sí, Transit/Transform |
-| Obtener rol Vault RW | 403 | 200 | 403 |
-| Secreto administrativo | 403 | 403 | 403 |
-| Búsqueda pública | Agente autónomo Tavily | Agente autónomo Tavily | Agente autónomo Tavily |
+| Catalog/inventory/masked inbox | Yes | Yes | Yes |
+| Save five-step application | No | Yes, with review and confirmation | No |
+| Reveal profile, DNI and IBAN | No, 403 | No, 403 | Yes, Transit/Transform |
+| Obtain Vault RW role | 403 | 200 | 403 |
+| Administrative secret | 403 | 403 | 403 |
+| Public search | Autonomous Tavily agent | Autonomous Tavily agent | Autonomous Tavily agent |
 
-1. Lector: consultar catálogo e inventario; «Da el siguiente paso» bloquea localmente sin llamar a Vault.
-2. «Comprobar límites en Vault» muestra nueve peticiones OBO reales: RO/RW/admin, Transit encrypt/decrypt y Transform encode/decode de DNI e IBAN. [Matriz y capturas actualizadas](docs/PERMISSION_PROBES.md).
-3. Gestor: pedir al agente preparar Luz Noche, continuar al formulario, aceptar sugerencias ficticias con Tab, revisar y guardar. «Solicitudes» muestra la bandeja enmascarada compartida.
-4. Lector y gestor no pueden revelar. Supervisor recupera el mismo registro, pero no obtiene SQL RW.
-5. «Una mirada más amplia» usa Client Credentials → Agent Registry → Vault/Tavily.
+1. Reader: browse the catalog and inventory; «Take the next step» blocks locally without calling Vault.
+2. «Check limits in Vault» shows nine real OBO requests: RO/RW/admin, Transit encrypt/decrypt and Transform encode/decode of DNI and IBAN. [Updated matrix and screenshots](docs/PERMISSION_PROBES.md).
+3. Writer: ask the agent to prepare Luz Noche, continue to the form, accept fictitious suggestions with Tab, review and save. «Applications» shows the shared masked inbox.
+4. Reader and writer cannot reveal. Supervisor retrieves the same record but does not obtain SQL RW.
+5. «A wider perspective» uses Client Credentials → Agent Registry → Vault/Tavily.
 
-[Resultados y capturas de la reconstrucción real](docs/E2E_OPENAI_VERIFICATION.md).
+[Results and screenshots from the real rebuild](docs/E2E_OPENAI_VERIFICATION.md).
 
-![Lector: bloqueo local](docs/screenshots/current/reader-write-denied.jpg)
-![Gestor: solicitud guardada](docs/screenshots/current/writer-save-success.jpg)
+![Reader: local block](docs/screenshots/current/reader-write-denied.jpg)
+![Writer: application saved](docs/screenshots/current/writer-save-success.jpg)
 
 MD
 cell markdown <<'MD'
-## 5. Del chat al audit log y a la traza
+## 5. From the chat to the audit log and the trace
 
-Copiar **Trace ID** del panel Actividad y pegarlo en el dashboard. Cada petición a Vault produce `request` y `response`, con el mismo `request.id`. El header `traceparent` contiene el `trace_id` y `span_id` de `vault.read`, también para las respuestas 403.
+Copy the **Trace ID** from the Activity panel and paste it into the dashboard. Each Vault request produces a `request` and a `response` with the same `request.id`. The `traceparent` header contains the `trace_id` and `span_id` of `vault.read`, also for 403 responses.
 
-En un log: menú → **Show log details** → campo **TraceID** → **Abrir traza**. En Tempo: abrir el span `vault.read` → **Related logs**. El árbol muestra `deepagents.run`, llamadas `xai.chat`, `openai.chat` o `anthropic.chat`, herramientas, STS, Vault y consultas SQL o Tavily. OpenAI y Claude añaden `spiffe.mint_jwt_svid` y su intercambio `openai.token_exchange` o `anthropic.token_exchange`. El login OIDC genera una traza aparte, con usuario y rol, una vez validada su firma.
+In a log: menu → **Show log details** → **TraceID** field → **Abrir traza**. In Tempo: open the `vault.read` span → **Related logs**. The tree shows `deepagents.run`, `xai.chat`, `openai.chat` or `anthropic.chat` calls, tools, STS, Vault and SQL or Tavily queries. OpenAI and Claude add `spiffe.mint_jwt_svid` and their `openai.token_exchange` or `anthropic.token_exchange` exchange. The OIDC login generates a separate trace, with user and role, once its signature has been validated.
 
-![Auditoría actual del Supervisor](docs/screenshots/current/grafana-audit.jpg)
-![OpenAI, SPIFFE y catálogo OBO en Tempo](docs/screenshots/current/grafana-openai-trace.jpg)
+![Current Supervisor audit](docs/screenshots/current/grafana-audit.jpg)
+![OpenAI, SPIFFE and OBO catalog in Tempo](docs/screenshots/current/grafana-openai-trace.jpg)
 
-Esto mide llamadas desde el chatbot: no instrumenta servidores internos de xAI/OpenAI, Verify, Vault o Tavily ni registra el razonamiento privado del modelo. El audit log de Vault acredita emisión/denegación de credenciales; las sentencias SQL se observan mediante spans cliente. Para auditoría independiente de SQL se necesita la auditoría propia de MySQL.
+This measures calls made from the chatbot: it does not instrument the internal servers of xAI/OpenAI, Verify, Vault or Tavily, nor does it record the model's private reasoning. The Vault audit log attests to credential issuance/denial; SQL statements are observed through client spans. Independent SQL auditing requires MySQL's own audit facility.
 MD
 cell code <<'CODE'
 %%bash
 set -euo pipefail
-# Pegar un Trace ID reciente de la interfaz.
+# Paste a recent Trace ID from the interface.
 TRACE_ID=''
-[ -n "$TRACE_ID" ] || { echo 'Pega un Trace ID reciente y repite la celda.'; exit 0; }
+[ -n "$TRACE_ID" ] || { echo 'Paste a recent Trace ID and rerun the cell.'; exit 0; }
 curl -fsS -G http://127.0.0.1:3100/loki/api/v1/query_range \
   --data-urlencode "query={service=\"vault-audit\"} |= \"$TRACE_ID\"" \
   --data-urlencode since=24h --data-urlencode limit=100 \
   | jq '[.data.result[].values[][1]|fromjson|{time,type,request_id:.request.id,path:.request.path,allowed:.auth.policy_results.allowed,policies:.auth.policies,actor:.auth.metadata.actor_entity_name}]|sort_by(.time)'
 CODE
 cell markdown <<'MD'
-## 6. Verificar correlación y modo de captura
+## 6. Verify correlation and capture mode
 
-El script consulta Tempo y Loki y comprueba los pares con el mismo `request.id` y `traceparent`. Prefiere la copia raw cuando existe y verifica igualdad de JWT y respuestas con el span; para registros protegidos comprueba HMAC. Exporta solo metadatos, booleanos y tamaños, nunca credenciales.
+The script queries Tempo and Loki and checks the pairs with the same `request.id` and `traceparent`. It prefers the raw copy when available and verifies that the JWTs and responses match the span; for protected records it checks the HMAC. It exports only metadata, booleans and sizes, never credentials.
 MD
 cell code <<'CODE'
 %%bash
 set -euo pipefail
 TRACE_ID=''
-[ -n "$TRACE_ID" ] || { echo 'Pega un Trace ID reciente y repite la celda.'; exit 0; }
+[ -n "$TRACE_ID" ] || { echo 'Paste a recent Trace ID and rerun the cell.'; exit 0; }
 bash chatbot/scripts/verify-observability.sh "$TRACE_ID"
 cd chatbot
 /tmp/vault-chatbot-venv/bin/python -m pytest -q tests
 CODE
 cell markdown <<'MD'
-## 7. Consultar mensajes y herramientas del LLM
+## 7. Query the LLM messages and tools
 
-Usar el ID de una consulta nueva. El informe end-to-end compara los campos capturados con Tempo y comprueba que los datos completos del formulario no se envían al modelo. El notebook se distribuye sin salidas; la celda siguiente muestra el contenido cuando se ejecuta.
+Use the ID of a new query. The end-to-end report compares the captured fields with Tempo and checks that the full form data is not sent to the model. The notebook is distributed without outputs; the next cell shows the content when it runs.
 
-[Captura histórica: Texto de entrada en el visor Lumen](docs/runs/20261014T162141Z/screenshots/25-model-input.jpg)
+[Historical screenshot: Input text in the Lumen viewer](docs/runs/20261014T162141Z/screenshots/25-model-input.jpg)
 MD
 cell code <<'CODE'
 %%bash
 set -euo pipefail
 TRACE_ID=''
-[ -n "$TRACE_ID" ] || { echo 'Pega un Trace ID reciente y repite la celda.'; exit 0; }
+[ -n "$TRACE_ID" ] || { echo 'Paste a recent Trace ID and rerun the cell.'; exit 0; }
 curl -fsS "http://127.0.0.1:3200/api/traces/$TRACE_ID" | jq '
   [.batches[]?.scopeSpans[]?.spans[]?
    | select(.name == "xai.chat" or .name == "openai.chat" or .name == "anthropic.chat" or (.name | startswith("tool.")))
@@ -161,30 +163,30 @@ curl -fsS "http://127.0.0.1:3200/api/traces/$TRACE_ID" | jq '
        | select(.key | test("^(gen_ai\\.(input.messages|output.messages|tool.definitions|tool.call.arguments|tool.call.result)|lumen\\.(user.message|model.parameters))$"))
        | {field:.key,content:(.value.stringValue|fromjson)}]}]'
 CODE
-awk '/^## 8\. Intercambios completos/{copy=1} copy' chatbot/OBSERVABILITY.md \
+awk '/^## 8\. /{copy=1} copy' chatbot/OBSERVABILITY.md \
   | sed 's|](docs/|](chatbot/docs/|g; s|](scripts/|](chatbot/scripts/|g; s|](tests/|](chatbot/tests/|g; s|](../8_Lumen_|](8_Lumen_|g; s|](../docs/|](docs/|g' | cell markdown
 cell code <<'CODE'
 %%bash
 set -euo pipefail
-# Muestra deliberadamente JWT y respuestas en claro. No guardar estas salidas en el repositorio.
+# Deliberately shows JWTs and responses in clear text. Do not save these outputs to the repository.
 TRACE_ID=''
-[ -n "$TRACE_ID" ] || { echo 'Pega un Trace ID reciente y repite la celda.'; exit 0; }
+[ -n "$TRACE_ID" ] || { echo 'Paste a recent Trace ID and rerun the cell.'; exit 0; }
 curl -fsS "http://127.0.0.1:3200/api/traces/$TRACE_ID" | jq '
   [.batches[]?.scopeSpans[]?.spans[]? | select(.name=="vault.read" or .name=="vault.write") |
    {name,attributes:[.attributes[]? | select(.key | test("^vault\\.(http\\.(request|response)|auth\\.jwt(\\.decoded)?)$")) |
       {field:.key,content:(.value.stringValue|fromjson)}]}]'
 CODE
 cell markdown <<'MD'
-## Alcance y operación
+## Scope and operation
 
-- Se capturan todas las peticiones auditables posteriores a la activación del dispositivo, incluyendo las administrativas. Algunas rutas de estado/health no generan auditoría por diseño. Las acciones locales bloqueadas y el tráfico hacia otros servicios no son peticiones a Vault.
-- Grafana es una consola del operador; sus credenciales no se entregan a los usuarios del chatbot. Loki/Tempo son ClusterIP sin autenticación propia, con port-forward localhost. Los campos del modelo/herramientas ocultan credenciales; el modo `LUMEN_TRACE_VAULT_RAW=1` conserva expresamente los JWT y respuestas de Vault en claro.
-- Cada acción del chat tiene su propia traza. Las búsquedas externas usan temas públicos predefinidos. No se envían datos privados de MySQL a Tavily.
-- `spans.jsonl` local en `/tmp/lumen-telemetry`, directorio 700/archivo 600; Tempo conserva trazas durante 7 días. Este archivo auxiliar no rota y conviene eliminarlo al finalizar el laboratorio.
-- Alloy recoge stdout; una caída prolongada o rotación de logs del contenedor puede perder eventos pendientes. Esta configuración no es almacenamiento de auditoría inmutable de producción. Para ese objetivo: sink duradero redundante, retención/rotación y almacenamiento externo.
-- Si se cambian ConfigMaps de Loki/Tempo/Alloy/datasources, reiniciar solo el deployment afectado. Los dashboards de Grafana se recargan automáticamente. Repetir despliegue no reinicia servicios.
+- All auditable requests after the device is enabled are captured, including administrative ones. Some status/health paths do not generate audit entries by design. Blocked local actions and traffic to other services are not Vault requests.
+- Grafana is an operator console; its credentials are not given to chatbot users. Loki/Tempo are ClusterIP services without their own authentication, reached through localhost port-forwards. The model/tool fields redact credentials; `LUMEN_TRACE_VAULT_RAW=1` mode deliberately keeps Vault JWTs and responses in clear text.
+- Each chat action has its own trace. External searches use predefined public topics. No private MySQL data is sent to Tavily.
+- Local `spans.jsonl` in `/tmp/lumen-telemetry`, directory 700/file 600; Tempo keeps traces for 7 days. This auxiliary file is not rotated and should be deleted at the end of the lab.
+- Alloy collects stdout; a prolonged outage or container log rotation can lose pending events. This configuration is not immutable production audit storage. For that goal: a redundant durable sink, retention/rotation and external storage.
+- If you change the Loki/Tempo/Alloy/datasource ConfigMaps, restart only the affected deployment. Grafana dashboards reload automatically. Repeating the deployment does not restart services.
 
-Fuentes: [Auditoría Vault](https://developer.hashicorp.com/vault/docs/audit), [Headers de auditoría](https://developer.hashicorp.com/vault/api-docs/system/config-auditing), [OpenTelemetry Python](https://opentelemetry.io/docs/languages/python/instrumentation/), [Correlación Tempo/Loki](https://grafana.com/docs/grafana/latest/datasources/tempo/configure-tempo-data-source/configure-trace-to-logs/), [Alloy Kubernetes](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.kubernetes/).
+Sources: [Vault auditing](https://developer.hashicorp.com/vault/docs/audit), [Audit headers](https://developer.hashicorp.com/vault/api-docs/system/config-auditing), [OpenTelemetry Python](https://opentelemetry.io/docs/languages/python/instrumentation/), [Tempo/Loki correlation](https://grafana.com/docs/grafana/latest/datasources/tempo/configure-tempo-data-source/configure-trace-to-logs/), [Alloy Kubernetes](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.kubernetes/).
 MD
 jq -n --slurpfile cells "$BUILD_DIR/cells.json" '{cells:$cells[0],metadata:{kernelspec:{display_name:"Python 3 (Bash cells)",language:"python",name:"python3"},language_info:{name:"python",version:"3.12"}},nbformat:4,nbformat_minor:4}' > 7_Lumen_Observability.ipynb
-printf 'Creado 7_Lumen_Observability.ipynb\n'
+printf 'Created 7_Lumen_Observability.ipynb\n'

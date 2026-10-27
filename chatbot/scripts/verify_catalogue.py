@@ -73,7 +73,7 @@ async def main():
     report = {"checked_at": datetime.now(timezone.utc).isoformat(), "all_passed": True,
               "checks": checks, "turns": turns, "stored_requests": 0}
     destination.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
-    print(f"Verificación real completada. Informe: {destination}")
+    print(f"Live verification completed. Report: {destination}")
 
 
 asyncio.run(main())

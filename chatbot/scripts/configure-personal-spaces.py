@@ -1,5 +1,4 @@
 """Add isolated demo KV spaces without rewriting business ACLs or credentials."""
-import json
 import os
 from pathlib import Path
 import ssl
@@ -24,20 +23,20 @@ def configure(client):
 
     mount = request('GET', 'sys/mounts')['secrets/']
     if mount['type'] != 'kv' or mount.get('options', {}).get('version') != '2':
-        raise RuntimeError('Se requiere el mount secrets KV v2 existente.')
+        raise RuntimeError('The existing secrets KV v2 mount is required.')
     directory = request('GET', 'secrets/data/chatbot/directory')['data']['users']
     users = []
     for role in ('reader', 'writer', 'supervisor'):
         entries = [entry for entry in directory if entry['username'] == 'lumen-' + role]
         if len(entries) != 1:
-            raise RuntimeError('Usuario ausente o duplicado en el directorio de la demo.')
+            raise RuntimeError('Missing or duplicate user in the demo directory.')
         entry = entries[0]
         subject = entry['user_id']
         if not isinstance(subject, str) or not subject.isalnum():
-            raise RuntimeError('Identificador de usuario inesperado.')
+            raise RuntimeError('Unexpected user identifier.')
         entity = request('GET', 'identity/entity/name/chatbot-human-' + subject)
         if entity.get('disabled') or entity.get('external_id') not in (None, subject):
-            raise RuntimeError('Entidad humana deshabilitada o no coincidente.')
+            raise RuntimeError('Human entity disabled or mismatched.')
         users.append(dict(subject=subject, entity_id=entity['id'], name=entry['username'], role=role))
     registrations = []
     for suffix in ('oidc', 'task-read', 'task-write', 'task-reveal'):
@@ -69,7 +68,7 @@ def configure(client):
     request('POST', 'secrets/data/chatbot/personal-spaces', {'data': config})
     request('PUT', 'sys/policies/acl/chatbot-bootstrap', {
         'policy': (ROOT / 'policies/bootstrap.hcl').read_text()})
-    print('Espacios personales preparados; datos existentes conservados. Namespace: verify.')
+    print('Personal spaces ready; existing data preserved. Namespace: verify.')
 
 
 if __name__ == '__main__':

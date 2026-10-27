@@ -1,0 +1,10 @@
+{
+  "all_passed": true,
+  "namespaces_removed": 3,
+  "volumes_removed": 10,
+  "verify_resources_removed": 17,
+  "remaining_verify_resources": 0,
+  "xai_leases_revoked_before_removal": true,
+  "local_runtime_stopped": true,
+  "reinstalled": false
+}

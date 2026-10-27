@@ -2,7 +2,11 @@
 source "$(dirname "$0")/common.sh"
 load_inputs
 VSTATE="$LUMEN_STATE_DIR/vault"
-if ! minikube status -p workshop -o json 2>/dev/null | jq -e '.Host=="Running" and .APIServer=="Running"' >/dev/null; then
+minikube_status=$(minikube status -p workshop -o json 2>/dev/null || true)
+if [ "$(jq -r '.Host? // empty' <<<"$minikube_status" 2>/dev/null)" = Nonexistent ]; then
+  fail 'The minikube profile workshop exists but its container is gone. Check that nothing else uses it, then run: minikube delete -p workshop'
+fi
+if ! jq -e '.Host=="Running" and .APIServer=="Running"' <<<"$minikube_status" >/dev/null 2>&1; then
   minikube start -p workshop --driver="${MINIKUBE_DRIVER:-podman}" --memory="${MINIKUBE_MEMORY:-8192}" --cpus="${MINIKUBE_CPUS:-4}"
 fi
 # A VM resumed after macOS sleep can lag behind the host. Check before issuing
@@ -11,17 +15,19 @@ node_epoch=$(minikube ssh -p workshop -- date -u +%s </dev/null | tr -d '\r\n')
 [[ "$node_epoch" =~ ^[0-9]+$ ]] || fail 'No se pudo comprobar el reloj de Minikube'
 clock_skew=$(( $(date -u +%s) - node_epoch ))
 if [ "$clock_skew" -gt 60 ] || [ "$clock_skew" -lt -60 ]; then
-  fail "El reloj de Minikube difiere ${clock_skew}s del host. Sincroniza la VM antes de continuar; consulta Reloj de la VM en README.md."
+  fail "El reloj de Minikube difiere ${clock_skew}s del host. Sincroniza la VM antes de continuar; consulta Reloj de la VM en docs/OPERACION.md."
 fi
 arch=$("${K[@]}" get nodes -o json | jq -er '.items[0].status.nodeInfo.architecture')
 case "$arch" in amd64|arm64) ;; *) fail "Arquitectura no soportada: $arch";; esac
 image_repo=${VAULT_IMAGE_REPOSITORY:-josemerchan/vault-xai}
-image_tag=${VAULT_IMAGE_TAG:-2.1.2-ent}
+source "$DEMO_ROOT/deploy/vault-image.conf"
+image_tag=${VAULT_IMAGE_TAG:-$VAULT_IMAGE_VERSION-ent}
 
 # Adopt the previous notebooks' keys before doing anything to an existing cluster.
 if "${K[@]}" -n vault get statefulset vault >/dev/null 2>&1 && [ ! -s "$VSTATE/cluster-keys.json" ] && [ -s /tmp/vault/cluster-keys.json ]; then
   cp /tmp/vault/cluster-keys.json "$VSTATE/cluster-keys.json"
-  chmod 600 "$VSTATE/cluster-keys.json" /tmp/vault/cluster-keys.json /tmp/vault/config.env
+  chmod 600 "$VSTATE/cluster-keys.json" /tmp/vault/cluster-keys.json
+  [ ! -f /tmp/vault/config.env ] || chmod 600 /tmp/vault/config.env
 fi
 if ! "${K[@]}" -n vault get statefulset vault >/dev/null 2>&1; then
   # Kubernetes pulls the published multi-architecture image directly from Docker Hub.
@@ -63,7 +69,8 @@ fi
 "${K[@]}" -n vault wait --for=create pod/vault-1 --timeout=450s
 "${K[@]}" -n vault wait --for=create pod/vault-2 --timeout=450s
 "${K[@]}" -n vault wait --for=jsonpath='{.status.phase}'=Running pod/vault-0 pod/vault-1 pod/vault-2 --timeout=450s
-if [ "${LUMEN_SELECTED_PROVIDER:-xai}" = xai ] && [ "${LUMEN_PROVIDER_OVERRIDE:-}" != openai ]; then
+# start and verify always configure the xAI engine, whatever the initial provider.
+if [ "${LUMEN_PREPARE_OPENAI:-0}" != 1 ]; then
   "${K[@]}" -n vault exec vault-0 -- test -x /vault/plugins/vault-plugin-secrets-xai || fail 'La imagen existente no incluye el plugin xAI; no se reemplaza automáticamente.'
 fi
 "${K[@]}" -n vault get secret vault-ha-tls -o json | jq -r '.data["vault.ca"]|@base64d' > "$VSTATE/vault.ca"
@@ -82,18 +89,22 @@ for pod in vault-0 vault-1 vault-2; do
   done
   "${K[@]}" -n vault exec "$pod" -- vault status -format=json | jq -e '.initialized and (.sealed|not)' >/dev/null
 done
+root_token=$(jq -er .root_token "$VSTATE/cluster-keys.json")
 {
   printf 'VAULT_ADDR=%q\n' https://127.0.0.1:8443
   printf 'VAULT_CACERT=%q\n' "$VSTATE/vault.ca"
-  printf 'VAULT_TOKEN=%q\n' "$(jq -er .root_token "$VSTATE/cluster-keys.json")"
+  printf 'VAULT_TOKEN=%q\n' "$root_token"
 } > "$VAULT_ENV_FILE"
+unset root_token
 chmod 600 "$VAULT_ENV_FILE" "$VSTATE/cluster-keys.json"
 start_forward vault vault pod/vault-0 8443 8200
 load_vault
 vault status -format=json | jq -e '.initialized and (.sealed|not)' >/dev/null
 vault read -format=json sys/license/status | jq -e '.data.autoloaded.features | index("Agentic IAM")!=null and index("KMIP")!=null and index("Transform Secrets Engine")!=null' >/dev/null
 # Preserve notebook compatibility; authoritative recovery state is outside /tmp.
+[ ! -L /tmp/vault ] || fail '/tmp/vault es un enlace; no se copia la configuración de Vault'
 mkdir -p /tmp/vault
-cp "$VAULT_ENV_FILE" /tmp/vault/config.env
-chmod 600 /tmp/vault/config.env
+[ "$(stat -f %u /tmp/vault)" = "$(id -u)" ] || fail '/tmp/vault pertenece a otro usuario; no se copia la configuración de Vault'
+chmod 700 /tmp/vault
+install -m 600 "$VAULT_ENV_FILE" /tmp/vault/config.env
 echo 'Vault disponible, claves persistidas y licencia verificada.'

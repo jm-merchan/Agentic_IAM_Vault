@@ -64,7 +64,7 @@ La [guía de comprobación bilingüe](../docs/manual/10-aplicacion.md#idioma-y-c
 
 ## Identidades y flujos del agente
 
-Este diagrama muestra la rama xAI. La [rama OpenAI SPIFFE](../docs/OPENAI_SPIFFE.md#flujo-de-una-consulta) sustituye solo la obtención de la credencial del modelo; conserva OIDC, OBO y las herramientas. El banner permite elegir OpenAI, xAI o Claude para la siguiente consulta, sin reiniciar y conservando la conversación. Cada sesión tiene su propia selección. Los modelos básicos por defecto son `gpt-4.1-nano`, `grok-4.3` y `claude-haiku-5-5`.
+Este diagrama muestra la rama xAI. La [rama OpenAI SPIFFE](../docs/OPENAI_SPIFFE.md#flujo-de-una-consulta) sustituye solo la obtención de la credencial del modelo; conserva OIDC, OBO y las herramientas. El banner permite elegir OpenAI, xAI o Claude para la siguiente consulta, sin reiniciar y conservando la conversación. Cada sesión tiene su propia selección. Los modelos básicos por defecto son `gpt-5.6-luna`, `grok-4.3` y `claude-haiku-5-5`.
 
 ```mermaid
 sequenceDiagram
@@ -159,8 +159,9 @@ El entorno Python es `/tmp/vault-chatbot-venv`, recreable con `uv` y [requiremen
 | `vault-chatbot-contract` | CIBA exclusivo para la confirmación del Validador |
 | Agente `chatbot-oidc` | Techo OBO de datos, protección, espacio personal y PDFs propios; RAR obligatorio |
 | Agente `chatbot-research` | Solo `secrets/data/tavily`; RAR opcional para Client Credentials |
-| Agente `chatbot-xai` | RAR obligatorio: `read` en `xai/creds/lumen` y en el registro de autorización `secrets/data/chatbot/xai-access`; deny administrativo en su entidad |
+| Agente `chatbot-xai` | RAR obligatorio: `read` en `xai/creds/lumen` y en el registro de autorización `secrets/data/chatbot/xai-access`; su entidad añade `lumen-block-xai`, que solo deniega esas rutas mientras el bloqueo `xai` está activo |
 | Agente `chatbot-openai` | RAR obligatorio: `update` en `spiffe/role/lumen-openai/mintjwt`, audiencia OpenAI obligatoria |
+| Agente `chatbot-anthropic` | RAR obligatorio: `update` en `spiffe/role/lumen-anthropic/mintjwt`, audiencia Claude obligatoria; deny explícito en `secrets/data/verify-admin` |
 | `database/config/chatbot-mysql` | Administrador MySQL propio; contraseña rotada por Vault |
 | `database/roles/chatbot-readonly` | SELECT; TTL 120 s, máximo 300 s |
 | `database/roles/chatbot-readwrite` | SELECT/INSERT/UPDATE/DELETE; mismo TTL |
@@ -282,7 +283,7 @@ La revisión del 22/10 comprueba los temas claro/oscuro, ES/EN y el formulario a
 ## Verificación
 
 Las pruebas locales se ejecutan desde la raíz, con el entorno de
-`scripts/install.sh` ya preparado:
+`chatbot/scripts/install.sh` ya preparado:
 
 ```bash
 /tmp/vault-chatbot-venv/bin/python -m pytest -q

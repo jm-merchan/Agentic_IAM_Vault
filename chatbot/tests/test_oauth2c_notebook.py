@@ -5,7 +5,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
-import re
 import shutil
 import socket
 import subprocess
@@ -173,6 +172,8 @@ def lab(tmp_path):
     helper_dir = root / "verify/scripts"
     helper_dir.mkdir(parents=True)
     shutil.copy(ROOT / "verify/scripts/oauth2c-common.sh", helper_dir)
+    (root / "scripts/demo").mkdir(parents=True)
+    shutil.copy(ROOT / "scripts/demo/env-file.sh", root / "scripts/demo")
     state = tmp_path / "private state"
     (state / "vault").mkdir(parents=True)
     (state / "vault/config.env").write_text(
@@ -399,5 +400,5 @@ def test_occupied_callback_port_is_detected_before_modifying_verify(lab):
         listener.bind(("127.0.0.1", 9876))
         listener.listen()
         result = run(lab, "callback-add", success=False)
-    assert "9876 ocupado" in result.stderr
+    assert "9876 is in use" in result.stderr
     assert not lab.server.calls

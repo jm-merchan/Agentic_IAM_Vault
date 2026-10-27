@@ -1,126 +1,126 @@
-# 15 · Parámetros RAR: relacionar reglas, peticiones y decisiones de Vault
+# 15 · RAR parameters: relating rules, requests and Vault decisions
 
-Abrir **Laboratorio RAR** desde la barra lateral de Lumen o desde el panel
-**Agentes por tarea**. Es una página opcional: elegir un escenario no cambia
-la autorización del chat ni instala restricciones globales. Las llamadas solo
-se realizan al pulsar **Comparar peticiones reales**.
+Open **Laboratorio RAR** (*RAR laboratory*) from Lumen's sidebar or from the
+**Agentes por tarea** (*Task agents*) panel. It is an optional page: choosing a scenario does not change
+the chat's authorization or install global restrictions. Calls are
+only made when you press **Comparar peticiones reales** (*Compare real requests*).
 
-## Qué se compara
+## What is compared
 
-Cada caso envía el mismo cuerpo a la misma ruta con el mismo usuario y agente:
+Each case sends the same body to the same path with the same user and agent:
 
-1. **Control sin parámetros:** token OBO con ruta exacta y capacidad `update`.
-2. **Con parámetros RAR:** otro token OBO para esa ruta y capacidad, añadiendo
-   las restricciones del escenario.
+1. **Control without parameters:** OBO token with the exact path and the `update` capability.
+2. **With RAR parameters:** another OBO token for that path and capability, adding
+   the scenario's restrictions.
 
-Los dos tokens se obtienen de Verify. Lumen comprueba firma, issuer, caducidad,
-usuario, actor y coincidencia exacta de `authorization_details`, incluidos los
-parámetros. Si Verify omite o cambia una restricción, no se envía ese token a
-Vault. Vault evalúa los permisos de usuario, el techo del agente y el RAR.
+Both tokens are obtained from Verify. Lumen checks the signature, issuer, expiration,
+user, actor and the exact match of `authorization_details`, including the
+parameters. If Verify omits or changes a restriction, that token is not sent to
+Vault. Vault evaluates the user permissions, the agent ceiling and the RAR.
 
-La tabla presenta resultados reales, no una simulación de políticas:
+The table presents real results, not a policy simulation:
 
-| Control | Con restricciones | Interpretación |
+| Control | With restrictions | Interpretation |
 |---|---|---|
-| 200 | 200 | La petición ha sido admitida con las restricciones. |
-| 200 | 403 | La comparación demuestra una denegación al añadir el RAR. |
-| 403 | 403 | El acceso ya falla sin parámetros; revisar usuario, techo y bloqueos. No atribuir el resultado a la regla RAR. |
-| 200 | 200, cuando se esperaba denegación | La restricción no se ha aplicado como se esperaba; se señala la discrepancia. |
-| Error de Verify, conexión o motor | Cualquier resultado | No concluyente; no se cuenta como una denegación RAR demostrada. |
+| 200 | 200 | The request was accepted with the restrictions. |
+| 200 | 403 | The comparison demonstrates a denial when the RAR is added. |
+| 403 | 403 | Access already fails without parameters; review the user, ceiling and blocks. Do not attribute the result to the RAR rule. |
+| 200 | 200, when a denial was expected | The restriction was not enforced as expected; the discrepancy is flagged. |
+| Verify, connection or engine error | Any result | Inconclusive; it is not counted as a demonstrated RAR denial. |
 
-El control conserva las restricciones de ruta y capacidad: no utiliza un token
-administrativo ni modifica las ACL. Se cifran datos ficticios; Transform crea
-tokens de prueba. El escenario de revelado descifra dos perfiles sintéticos.
-No se modifican solicitudes ni filas de MySQL y no se llama al LLM.
+The control keeps the path and capability restrictions: it does not use an
+administrative token or modify the ACLs. Fictitious data is encrypted; Transform creates
+test tokens. The reveal scenario decrypts two synthetic profiles.
+No applications or MySQL rows are modified, and the LLM is not called.
 
-## Seis escenarios
+## Six scenarios
 
-| Escenario | Restricciones | Casos | Combinación recomendada |
+| Scenario | Restrictions | Cases | Recommended combination |
 |---|---|---|---|
-| Versión de cifrado permitida | `allowed_parameters` | Versión `"1"`, versión `"0"`, campo `context` extra y número `1` frente a cadena `"1"`. | Writer + Creación o Estándar |
-| Prohibir lotes | `denied_parameters: {"batch_input": []}` | Un dato permitido; un lote denegado. | Writer + Creación o Estándar |
-| Versión explícita | `required_parameters: ["key_version"]` | Presente, omitida y otro valor presente. | Writer + Creación o Estándar |
-| Combinación | Los tres campos | Cumplimiento, `deny` sobre un valor también permitido, parámetro omitido y valor fuera de la lista. | Writer + Creación o Estándar |
-| Transformación explícita | `required_parameters: ["transformation"]` | Nombre presente o deducible por el motor pero omitido en el cuerpo. | Writer + Creación o Estándar |
-| Un único perfil revelable | `allowed_parameters` sobre `ciphertext`, con `required_parameters` | Perfil aprobado frente a otro ciphertext válido. | Supervisor + Revelado o Estándar |
+| Allowed encryption version | `allowed_parameters` | Version `"1"`, version `"0"`, extra `context` field and number `1` versus string `"1"`. | Writer + Creación or Estándar |
+| Prohibit batches | `denied_parameters: {"batch_input": []}` | One allowed item; one denied batch. | Writer + Creación or Estándar |
+| Explicit version | `required_parameters: ["key_version"]` | Present, omitted and another value present. | Writer + Creación or Estándar |
+| Combination | All three fields | Compliance, `deny` on a value that is also allowed, omitted parameter and value outside the list. | Writer + Creación or Estándar |
+| Explicit transformation | `required_parameters: ["transformation"]` | Name present, or inferable by the engine but omitted from the body. | Writer + Creación or Estándar |
+| A single revealable profile | `allowed_parameters` on `ciphertext`, with `required_parameters` | Approved profile versus another valid ciphertext. | Supervisor + Revelado or Estándar |
 
-Los primeros cuatro escenarios usan `transit/encrypt/lumen-applications`; el
-quinto, `transform/encode/lumen-dni`; el sexto,
-`transit/decrypt/lumen-applications`. La UI muestra el cuerpo exacto de cada
-variante y el JSON de los tres campos, incluso cuando alguno no se utiliza.
+The first four scenarios use `transit/encrypt/lumen-applications`; the
+fifth, `transform/encode/lumen-dni`; the sixth,
+`transit/decrypt/lumen-applications`. The UI shows the exact body of each
+variant and the JSON of the three fields, even when one of them is not used.
 
-`[]` tiene significados distintos: en `allowed_parameters` admite cualquier
-valor de ese campo; en `denied_parameters` prohíbe el campo con cualquier valor.
-`required_parameters` exige presencia; por sí solo no exige un valor concreto.
-En el escenario combinado la denegación prevalece sobre el valor permitido.
+`[]` has different meanings: in `allowed_parameters` it admits any
+value for that field; in `denied_parameters` it prohibits the field with any value.
+`required_parameters` requires presence; on its own it does not require a specific value.
+In the combined scenario, the denial takes precedence over the allowed value.
 
-La prueba en **Vault 2.1.2+ent** observó que el número JSON `1` no coincidía con
-la cadena `"1"` de la lista permitida, aunque Transit aceptaba ambos en el control.
-No se normalizan los tipos en el cliente: la UI muestra el JSON exacto y el
-resultado real para poder detectar cambios de comportamiento entre versiones.
-Las restricciones actúan sobre parámetros de la petición; no se presenta este
-laboratorio como un filtro de filas SQL ni como una inspección recursiva de
-cualquier objeto JSON anidado.
+The test on **Vault 2.1.2+ent** observed that the JSON number `1` did not match
+the string `"1"` in the allowed list, even though Transit accepted both in the control.
+Types are not normalized on the client: the UI shows the exact JSON and the
+real result so that behavior changes between versions can be detected.
+The restrictions act on request parameters; this lab is not presented
+as an SQL row filter or as a recursive inspection of
+any nested JSON object.
 
-## Trazas y consola de peticiones
+## Traces and request console
 
-Cada fila ofrece **Ver control** y **Ver restricción**. El enlace selecciona la
-llamada correspondiente a Vault en la traza. Sus pasos conservan escenario,
-caso, fase, agente, HTTP y Request ID cuando el servidor lo devuelve.
+Each row offers **Ver control** (*View control*) and **Ver restricción** (*View restriction*). The link selects the
+corresponding Vault call in the trace. Its steps keep the scenario,
+case, phase, agent, HTTP status and Request ID when the server returns it.
 
-Debajo del diagrama se muestran el `authorization_details` de esa fase y el
-cuerpo sintético enviado a Vault. En el intercambio OBO se muestra el RAR
-validado; en la llamada a Vault, el claim presentado. Esta proyección no convierte
-la decodificación de un JWT en una validación de su firma.
+Below the diagram, the `authorization_details` of that phase and the
+synthetic body sent to Vault are shown. In the OBO exchange, the validated RAR is shown;
+in the Vault call, the presented claim. This projection does not turn
+decoding a JWT into validating its signature.
 
-**Ver valores sensibles** y **Abrir consola de peticiones** conservan la captura
-real: Basic del cliente, subject/actor tokens, JWT OBO, cabeceras, cuerpo y respuesta.
-La consola permite repetir esa petición con el token capturado; no lo renueva.
-Los tokens pueden haber caducado al repetirlos. Las trazas solo se abren desde
-la sesión que las generó. Los resultados del laboratorio permanecen al navegar
-o cambiar ES/EN dentro de esa sesión; al cambiar de agente se inicia otra sesión.
+**Ver valores sensibles** (*View sensitive values*) and **Abrir consola de peticiones** (*Open request console*) keep the
+real capture: the client's Basic credentials, subject/actor tokens, OBO JWT, headers, body and response.
+The console lets you repeat that request with the captured token; it does not renew it.
+The tokens may have expired by the time you repeat them. Traces can only be opened from
+the session that generated them. The lab results remain while navigating
+or switching ES/EN within that session; switching agents starts another session.
 
-## Preparación y repetición
+## Preparation and reruns
 
-`./demo.sh start` reconcilia el esquema mediante `configure-base.sh` y prepara
-los perfiles ficticios durante el registro de agentes. La instalación manual
-incorpora ambos pasos en los capítulos 03 y 05. Para añadirlo a una instalación
-existente, desde la raíz del proyecto:
+`./demo.sh start` reconciles the schema through `configure-base.sh` and prepares
+the fictitious profiles during agent registration. The manual installation
+includes both steps in chapters 03 and 05. To add it to an
+existing installation, from the project root:
 
 ```bash
 bash -c 'source scripts/demo/common.sh; load_inputs; bash chatbot/scripts/configure-rar-lab.sh'
 ```
 
-El esquema anterior conocido se amplía con tres propiedades opcionales. Se
-conservan ID, consentimiento, descripción y demás campos. Un esquema personalizado
-desconocido detiene la migración. No se cambian clientes OAuth, usuarios, ACL,
-techos ni versión de Vault. Repetir la preparación conserva los perfiles de prueba.
-También está disponible como paso `rar-parametros` del instalador guiado.
+The known previous schema is extended with three optional properties. The
+ID, consent, description and other fields are kept. An unknown custom
+schema stops the migration. OAuth clients, users, ACLs,
+ceilings and the Vault version are not changed. Repeating the preparation keeps the test profiles.
+It is also available as the `rar-parametros` step of the guided installer.
 
-Para cargar los cambios en Lumen, reiniciar únicamente la aplicación y sus
-túneles de observabilidad; el reinicio cierra las sesiones actuales:
+To load the changes into Lumen, restart only the application and its
+observability tunnels; the restart closes the current sessions:
 
 ```bash
 bash scripts/demo/start.sh
 ```
 
-Verificación reproducible con los usuarios ficticios existentes, login PKCE real,
-OBO y peticiones reales a Vault:
+Reproducible verification with the existing fictitious users, real PKCE login,
+OBO and real requests to Vault:
 
 ```bash
 bash chatbot/scripts/verify-rar-parameters.sh
 ```
 
-El informe [rar-parameters-verification.json](../../chatbot/docs/rar-parameters-verification.json)
-contiene códigos HTTP, combinación utilizada y referencias de trazas, sin tokens
-ni contraseñas. Incluye Writer + Creación, Supervisor + Revelado,
-Supervisor + Consulta y Writer + Estándar. Las trazas de esa prueba por script
-se conservan en el directorio privado de estado, separadas de las sesiones UI.
+The [rar-parameters-verification.json](../../chatbot/docs/rar-parameters-verification.json) report
+contains HTTP codes, the combination used and trace references, without tokens
+or passwords. It includes Writer + Creación, Supervisor + Revelado,
+Supervisor + Consulta and Writer + Estándar. The traces of that scripted test
+are kept in the private state directory, separate from the UI sessions.
 
-La [verificación de interfaz](../../chatbot/docs/rar-parameters-ui-verification.json)
-recoge pruebas en Chrome, cambio ES/EN, enlace al paso de Vault y adaptación a
-390 px. [Vista de reglas y resultados](../screenshots/current/rar-parameters.jpg)
-· [Vista de la traza](../screenshots/current/rar-trace.jpg).
+The [interface verification](../../chatbot/docs/rar-parameters-ui-verification.json)
+collects tests in Chrome, the ES/EN switch, the link to the Vault step and the layout at
+390 px. [Rules and results view](../screenshots/current/rar-parameters.jpg)
+· [Trace view](../screenshots/current/rar-trace.jpg).
 
-Referencias: [especificación RAR](https://developer.hashicorp.com/vault/ai/iam/reference/rar-type-specification),
-[evaluación de restricciones](https://developer.hashicorp.com/vault/ai/iam/concepts/rar/enforcement).
+References: [RAR specification](https://developer.hashicorp.com/vault/ai/iam/reference/rar-type-specification),
+[restriction enforcement](https://developer.hashicorp.com/vault/ai/iam/concepts/rar/enforcement).

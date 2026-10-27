@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import time
 from typing import Literal
 from deepagents import create_deep_agent, HarnessProfile, register_harness_profile, FilesystemPermission
@@ -40,7 +41,10 @@ def make_model(config):
         model = CapturedChatXAI(http_async_client=model_http_client(), model=model_name, api_key=config['api_key'], timeout=60, max_retries=1,
                         max_tokens=2000, reasoning_effort='low')
     elif provider == 'openai':
-        model = CapturedChatOpenAI(http_async_client=model_http_client(), model=model_name, api_key=config['api_key'], timeout=60, max_retries=1)
+        # Chat Completions rejects function tools on GPT-5.x unless reasoning is disabled.
+        options = {'reasoning_effort': 'none'} if re.match(r'gpt-5\.\d', model_name) else {}
+        model = CapturedChatOpenAI(http_async_client=model_http_client(), model=model_name, api_key=config['api_key'], timeout=60, max_retries=1,
+                                   **options)
     elif provider == 'anthropic':
         if config.get('credential_source') != 'vault_spiffe':
             raise AccessDenied('Claude requiere una credencial federada de Vault SPIFFE.')

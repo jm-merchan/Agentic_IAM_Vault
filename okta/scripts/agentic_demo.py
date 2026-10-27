@@ -7,7 +7,6 @@ import hashlib
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
-from pathlib import Path
 import secrets
 import ssl
 import sys
@@ -114,7 +113,7 @@ def login(config):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
-            self.wfile.write(b'<html><head><script>history.replaceState({},"","/callback")</script></head><body><h1>Callback recibido</h1><p>Vuelve al notebook para comprobar el resultado del intercambio.</p></body></html>')
+            self.wfile.write(b'<html><head><script>history.replaceState({},"","/callback")</script></head><body><h1>Callback received</h1><p>Return to the notebook to check the exchange result.</p></body></html>')
 
     server = HTTPServer(("127.0.0.1", 9876), Callback)
     server.timeout = 1
@@ -124,7 +123,7 @@ def login(config):
         "redirect_uri": config["redirect_uri"], "state": state,
         "code_challenge_method": "S256", "code_challenge": challenge,
     })
-    print("Abre esta URL en Chrome y completa el inicio de sesión:\n" + url, flush=True)
+    print("Open this URL in Chrome and complete the sign-in:\n" + url, flush=True)
     deadline = time.monotonic() + 600
     try:
         while not result and time.monotonic() < deadline:

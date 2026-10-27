@@ -12,7 +12,7 @@ printf '[]' > "$TMP_WORK/entitlements.json"
 for group in chatbot-readers chatbot-writers chatbot-supervisors; do
   api GET /v2.0/Groups "$TMP_WORK/group.json" --header 'Accept: application/scim+json' --get --data-urlencode "filter=displayName eq \"$group\""
   gid=$(jq -er --arg group "$group" '.Resources |
-    if length==1 and .[0].displayName==$group then .[0].id else error("Grupo ausente o duplicado") end' "$TMP_WORK/group.json")
+    if length==1 and .[0].displayName==$group then .[0].id else error("Missing or duplicate group") end' "$TMP_WORK/group.json")
   jq --arg gid "$gid" '.+[{assignee:{subjectId:$gid,subjectType:"group"},grantType:"BRT"}]' \
     "$TMP_WORK/entitlements.json" > "$TMP_WORK/next.json"
   mv "$TMP_WORK/next.json" "$TMP_WORK/entitlements.json"
@@ -83,7 +83,7 @@ for task in read write reveal; do
     # Check ownership, then reconcile that same alias ID through its write API.
     jq -e --arg id "$alias_id" --arg entity "$entity" \
       'any(.data.aliases[]; .id==$id and .canonical_id==$entity)' "$TMP_WORK/entity.json" >/dev/null ||
-      fail "El alias existente de $agent pertenece a otra entidad."
+      fail "The existing alias for $agent belongs to another entity."
     vault write "identity/entity-alias/id/$alias_id" name="$agent" canonical_id="$entity" \
       issuer="$TENANT/oauth2" external_id="$cid" >/dev/null
   fi
