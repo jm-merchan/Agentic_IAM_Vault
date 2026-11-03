@@ -17,7 +17,7 @@ Observability reference; `./demo.sh` includes these stages. **Bash** provisionin
 
 [Walkthrough guide with screenshots](chatbot/OBSERVABILITY.md) · [Executed verification](chatbot/docs/observability-verification.json)
 
-Vault had no auditing enabled when this extension started. Evidence exists only from its activation onward; earlier requests are not reconstructed. The current configuration keeps `lumen-stdout/` with HMAC and adds `lumen-agent-raw/`, filtered to four read paths, and `lumen-protection-raw/`, filtered to six Transit/Transform paths in `verify`, without HMAC; `lumen-xai-raw/` covers `xai/creds/lumen`. Full JWTs, bodies and responses also appear in `vault.read` and `vault.write` (notebook 8).
+Vault had no auditing enabled when this extension started. Evidence exists only from its activation onward; earlier requests are not reconstructed. The current configuration keeps `lumen-stdout/` with HMAC and five filtered raw devices, detailed below, for selected agent, protection, xAI and SPIFFE paths. The application can capture full JWTs, bodies and responses when its Vault raw recorder is enabled (notebook 8). The revocation lab records metadata only for its Vault calls and never captures its native operator bearer; revocation and contract routes use the protected audit output.
 MD
 cell markdown <<'MD'
 ## 1. Enable auditing and correlation

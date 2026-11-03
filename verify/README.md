@@ -1,6 +1,15 @@
 # IBM Verify + Vault Agentic IAM
 
-**Contratación con CIBA:** Writer formaliza un borrador propio tras la confirmación de Validador en Verify. Vault entrega una credencial SQL de EXECUTE y MySQL registra el contrato; después Writer descarga su PDF mediante OBO. [Preparación, límites y verificación](../docs/manual/17-contratacion-ciba.md).
+**Contratación con CIBA:** habilitada por defecto al aprovisionar la extensión.
+Writer formaliza un borrador propio tras la confirmación de Validador en Verify.
+El access JWT OAuth de esa aprobación autoriza Vault directamente; Vault entrega
+una credencial SQL de EXECUTE y MySQL registra el contrato. Writer descarga su PDF
+mediante OBO. [Preparación, límites y verificación](../docs/manual/17-contratacion-ciba.md).
+
+El [lab de revocación OAuth](../docs/manual/18-revocacion-oauth.md) permite comparar
+acceso delegado y directo en la UI o por API. Bloquea A en Vault por `issuer/jti`
+sin revocarlo en Verify; B sigue funcionando. El operador nativo de ese lab está
+separado de los JWT OAuth usados para datos y de la limpieza CIBA.
 
 > Este documento conserva el ejercicio base `verify-agent` y su bootstrap por UI. Para desplegar **Lumen completo**, usar [`./demo.sh`](../README.md): no requiere la sesión `verify-human-session` ni ejecutar este notebook. La configuración RAR/perfil compartida se prepara con `scripts/configure-base.sh`. Los resultados y capturas siguientes corresponden a sus fechas de ejecución. La retirada completa del 14/10/2026 eliminó aquel estado de Vault; `start` recrea las identidades de Lumen, no `verify-agent`. El [informe end-to-end](../docs/E2E_VERIFICATION.md) acredita aquella ejecución; el alcance de revisiones posteriores se recoge en [VALIDACION](../docs/manual/VALIDACION.md).
 

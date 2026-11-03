@@ -295,8 +295,10 @@ def test_complete_notebook_with_real_oauth2c(lab):
     run(lab, "vault-positive")
     run(lab, "vault-negative")
     run(lab, "autonomous")
-    refresh = run(lab, "refresh")
-    assert "omitido" in refresh.stdout
+    calls_before_refresh = len(lab.server.calls)
+    run(lab, "refresh")
+    assert len(lab.server.calls) == calls_before_refresh
+    assert not (lab.private / "refreshed.json").exists()
     inspected = run(lab, "inspect")
     assert "synthetic-password" in inspected.stdout
     assert "access_token" in inspected.stdout
@@ -373,7 +375,8 @@ def test_non_authorization_failure_is_not_reported_as_denial(lab):
         "human", **{"actor-token": {"sub": "oidc"}})}))
     lab.env["VAULT_DENIED_ERROR"] = "TLS handshake timeout"
     result = run(lab, "vault-negative", success=False)
-    assert "no fue la denegación 403" in result.stderr
+    assert "403" in result.stderr
+    assert "OK:" not in result.stdout
 
 
 def test_missing_credential_stops_before_oauth(lab):

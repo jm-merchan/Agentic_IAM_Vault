@@ -1,0 +1,148 @@
+{
+  "checked_at": "2026-11-03T14:05:18.545479+00:00",
+  "scope": "Documentation consistency, local tests, generation and read-only readiness. No provisioning, inference, CIBA approval, revocation or browser walkthrough repeated.",
+  "python_suite": {
+    "passed": 653,
+    "subtests_passed": 2,
+    "duration_seconds": 215.62,
+    "after_final_regeneration_and_test_updates": true
+  },
+  "javascript_suite": {
+    "passed": 15
+  },
+  "notebook_generation": {
+    "generators": [
+      "scripts/build-core-notebooks.sh",
+      "chatbot/scripts/build-notebook.sh",
+      "chatbot/scripts/build-observability-notebook.sh",
+      "chatbot/scripts/build-protection-notebook.sh",
+      "chatbot/scripts/build-openai-notebook.sh",
+      "verify/scripts/build-notebook.sh",
+      "verify/scripts/build-oauth2c-notebook.sh"
+    ],
+    "notebooks": [
+      {
+        "path": "10_OAuth2c_Verify_Vault.ipynb",
+        "matches_generator": true,
+        "sha256": "3ed5117a9597283e36b80fdebfba842b4613cb02a0a20d2ff1f8a57f18355b33"
+      },
+      {
+        "path": "1_Deploy_Vault_minikube.ipynb",
+        "matches_generator": true,
+        "sha256": "e66c51c10e81c6a03f7ad975619317c949802bcabdcc0885cd81360d468bc29f"
+      },
+      {
+        "path": "2_vault-demo-kmip-mysql.ipynb",
+        "matches_generator": true,
+        "sha256": "dee04637c71db1e3779c84dd7f590e3e445e5ccdcb744098dd28dd5403d522ea"
+      },
+      {
+        "path": "3_Database_Secret_Engine.ipynb",
+        "matches_generator": true,
+        "sha256": "be72d8f6dc0f3cd0daced2d1774e438faf84385a4b523ce636b3cc54a96e172c"
+      },
+      {
+        "path": "4_XAI_Secret_Engine.ipynb",
+        "matches_generator": true,
+        "sha256": "a226b1d80b9e803a9315550598371ab4d1c72d3661c983b16ba42ef0fcbf574a"
+      },
+      {
+        "path": "6_Lumen_Chatbot_Vault_IAM.ipynb",
+        "matches_generator": true,
+        "sha256": "8d6a45c85f0ae374599f6004871eda68f53dab131ae7903920bec51b521f3486"
+      },
+      {
+        "path": "7_Lumen_Observability.ipynb",
+        "matches_generator": true,
+        "sha256": "687cb323ba8a194ab4b60c8e9e405da9d839644a64de26ef0600e1e201962c71"
+      },
+      {
+        "path": "8_Lumen_Protected_Applications.ipynb",
+        "matches_generator": true,
+        "sha256": "d2cfc971a69a88d333747aa9835daa46ea5acb756b1adc201acff25233d98b15"
+      },
+      {
+        "path": "9_OpenAI_Vault_SPIFFE.ipynb",
+        "matches_generator": true,
+        "sha256": "8a6bc88f87a1dfb51978f4b83df9aba43ba1e2c0ee503efd1849ffd5e817174d"
+      },
+      {
+        "path": "verify/5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb",
+        "matches_generator": true,
+        "sha256": "9c8cb77f2ba966dbc39dbc6e65d972bd1ed4927f142ce4b5483a61d0256692b1"
+      }
+    ],
+    "all_passed": true
+  },
+  "manual_startup": {
+    "passed": true,
+    "scope": "Execute the documented operator commands against a synthetic Vault CLI; no real credentials or network calls",
+    "manual_startup_block_preserved": 4,
+    "operator_policy_matches_template": true,
+    "operator_token_exported": true
+  },
+  "runtime": {
+    "cwd": "/Users/jose/.local/state/lumen-vault-demo/runtime/chatbot",
+    "files_checked": 59,
+    "all_match": true
+  },
+  "readiness": {
+    "lumen": {
+      "status": 200,
+      "ok": true
+    },
+    "grafana": {
+      "status": 200,
+      "ok": true
+    },
+    "loki": {
+      "status": 200,
+      "ok": true
+    },
+    "tempo": {
+      "status": 200,
+      "ok": true
+    },
+    "vault": {
+      "status": 200,
+      "ok": true,
+      "version": "2.2.0+ent",
+      "sealed": false
+    }
+  },
+  "ciba_enabled": true,
+  "oauth_revocation_lab_available": true,
+  "presentation": {
+    "path": "output/Lumen_Vault_Use_Cases_Detailed.pptx",
+    "slides": 42,
+    "notes": 42,
+    "stale_instruction_flags": [],
+    "sha256": "50857fd9ccf3c01ddb82976a976c150b6848ec4eb70b75c84fcd18370fdeaee3",
+    "edited": false,
+    "rendered": false
+  },
+  "report_links_checked": 9,
+  "report_link_errors": [],
+  "all_passed": true,
+  "intermediate_regression": {
+    "passed": 86,
+    "failed": 2,
+    "cause": "Two assertions expected Spanish messages after regeneration from an English generator.",
+    "resolution": "Assert skipped-refresh side effects and a failed, non-successful denial check independently of the translated sentences."
+  },
+  "completed_at": "2026-11-03T14:11:35.147047+00:00",
+  "static_validation": {
+    "checked_at": "2026-11-03T14:11:39.838843+00:00",
+    "documents": 40,
+    "bash_blocks": 290,
+    "shell_scripts": 94,
+    "local_links": 775,
+    "python_files": 100,
+    "notebooks": 11,
+    "bash_cells": 75,
+    "current_screenshots": 46,
+    "errors": [],
+    "all_passed": true,
+    "scope": "Static syntax, local links/anchors, notebook Markdown and screenshot provenance only. No provisioning, credentials issuance, inference, revocation or deletion."
+  }
+}

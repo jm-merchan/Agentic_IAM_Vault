@@ -12,6 +12,7 @@ The container engine must be running. Reserve 4 CPUs and 8 GiB for Minikube and 
 |---|---|
 | Vault Enterprise | License with Agentic IAM, KMIP and Transform |
 | IBM Verify | Active tenant; URL in `VERIFY_TENANT` and an administrative API client (steps below) |
+| CIBA contracting | Tenant support for the CIBA grant and a separate human Validator with a working Verify authentication method; select that account in [17](17-contratacion-ciba.md) |
 | Oracle Container Registry | Account with access enabled to MySQL Enterprise; accept the applicable terms beforehand |
 | ripgrep (`rg`) | Required on the Bash PATH (`brew install ripgrep`). The binary embedded in Cursor/VS Code does not count |
 | Tavily | API key for energy searches |
@@ -25,6 +26,13 @@ The container engine must be running. Reserve 4 CPUs and 8 GiB for Minikube and 
 ### Administrative API client in IBM Verify
 
 This client is the **provisioning bootstrap**: chapter [03](03-verify.md) uses it with Client Credentials to create the OIDC/STS applications, the RAR type, and the Lumen users and groups. It is not the human login app nor the OBO STS; the lab creates those later. The running agents do **not** receive these permissions.
+
+Contracting is enabled by default after chapter 17 is provisioned. This does not
+replace the Validator's authentication and consent. Without a previous selection,
+the installer creates `lumen-validator` with an `@example.invalid` email; select a
+real account or configure its authentication method before demonstrating CIBA.
+The prerequisite check does not prove the tenant's CIBA grant or a working
+Validator approval channel; the live test in chapter 17 checks the complete flow.
 
 1. Go to the tenant administration console. Typical URL: `https://<tenant>.verify.ibm.com/ui/admin` (or the **Admin** link from the portal). You need a tenant administrator user.
 2. Open **Security → API access → API clients**. In the Spanish UI it usually appears as **Seguridad → Acceso de API** (sometimes under Configuration). IBM guide: [Creating API clients](https://www.ibm.com/docs/en/security-verify?topic=access-creating-api-clients).

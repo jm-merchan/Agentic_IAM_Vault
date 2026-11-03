@@ -1,0 +1,238 @@
+[
+  {
+    "path": "app/__init__.py",
+    "matches": true
+  },
+  {
+    "path": "app/agent.py",
+    "matches": true
+  },
+  {
+    "path": "app/agent_details.py",
+    "matches": true
+  },
+  {
+    "path": "app/anthropic_model.py",
+    "matches": true
+  },
+  {
+    "path": "app/application_pdf.py",
+    "matches": true
+  },
+  {
+    "path": "app/application_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/applications.py",
+    "matches": true
+  },
+  {
+    "path": "app/catalogue.py",
+    "matches": true
+  },
+  {
+    "path": "app/contract_oauth.py",
+    "matches": true
+  },
+  {
+    "path": "app/contracts.py",
+    "matches": true
+  },
+  {
+    "path": "app/contracts_http.py",
+    "matches": true
+  },
+  {
+    "path": "app/contracts_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/guardrails.py",
+    "matches": true
+  },
+  {
+    "path": "app/http_capture.py",
+    "matches": true
+  },
+  {
+    "path": "app/i18n.py",
+    "matches": true
+  },
+  {
+    "path": "app/lab_capture.py",
+    "matches": true
+  },
+  {
+    "path": "app/live_call_flow.js",
+    "matches": true
+  },
+  {
+    "path": "app/live_call_flow_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/main.py",
+    "matches": true
+  },
+  {
+    "path": "app/model_config.py",
+    "matches": true
+  },
+  {
+    "path": "app/oauth_revocation_lab.py",
+    "matches": true
+  },
+  {
+    "path": "app/oauth_revocation_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/permission_matrix.py",
+    "matches": true
+  },
+  {
+    "path": "app/personal_spaces.py",
+    "matches": true
+  },
+  {
+    "path": "app/personal_spaces_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/rar.py",
+    "matches": true
+  },
+  {
+    "path": "app/rar_lab.py",
+    "matches": true
+  },
+  {
+    "path": "app/rar_lab_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/request_workbench.py",
+    "matches": true
+  },
+  {
+    "path": "app/security.py",
+    "matches": true
+  },
+  {
+    "path": "app/services.py",
+    "matches": true
+  },
+  {
+    "path": "app/spiffe.py",
+    "matches": true
+  },
+  {
+    "path": "app/task_agent_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/task_agents.py",
+    "matches": true
+  },
+  {
+    "path": "app/telemetry.py",
+    "matches": true
+  },
+  {
+    "path": "app/trace_content.py",
+    "matches": true
+  },
+  {
+    "path": "app/trace_flow.js",
+    "matches": true
+  },
+  {
+    "path": "app/trace_flow.py",
+    "matches": true
+  },
+  {
+    "path": "app/trace_flow_ui.py",
+    "matches": true
+  },
+  {
+    "path": "app/trace_inspection.py",
+    "matches": true
+  },
+  {
+    "path": "app/trace_links.py",
+    "matches": true
+  },
+  {
+    "path": "app/translations_en.json",
+    "matches": true
+  },
+  {
+    "path": "app/vault_clock.py",
+    "matches": true
+  },
+  {
+    "path": "app/vault_decision.py",
+    "matches": true
+  },
+  {
+    "path": "app/verification.py",
+    "matches": true
+  },
+  {
+    "path": "static/favicon.svg",
+    "matches": true
+  },
+  {
+    "path": "static/live_call_flow.css",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/LICENSE-devicon",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/LICENSE-lobe-icons",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/README.md",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/anthropic.svg",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/mysql.svg",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/openai.svg",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/tavily.svg",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/vault.svg",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/verify.png",
+    "matches": true
+  },
+  {
+    "path": "static/service-icons/xai.svg",
+    "matches": true
+  },
+  {
+    "path": "static/style.css",
+    "matches": true
+  },
+  {
+    "path": "static/trace_flow.css",
+    "matches": true
+  }
+]

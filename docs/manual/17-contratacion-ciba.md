@@ -1,7 +1,7 @@
 # 17 · Contract a draft with CIBA
 
 Saved applications are **drafts**. Writer can finalize one of their own
-with **Contratar** (*Finalize contract*), using Estándar or Creación de solicitudes. The Validator confirms
+with **Contratar** (*Finalize contract*), using Modo actual (*Current mode*, called Estándar in earlier instructions) or Creación de solicitudes. The Validator confirms
 in IBM Verify. Lumen presents the resulting **OAuth access JWT directly to Vault**;
 only then is the protected status written to MySQL. The owning
 Writer can download the PDF contract, also in later sessions.
@@ -66,7 +66,7 @@ contracting button: use Writer and one of Writer's own drafts.
 
 ## Verification in the interface
 
-1. Sign in as **Writer + Estándar** or **Writer + Creación de solicitudes**.
+1. Sign in as **Writer + Modo actual** or **Writer + Creación de solicitudes**.
 2. Create an application with the fictitious data and press **Guardar borrador** (*Save draft*).
 3. Open **Solicitudes** (*Applications*). Only your drafts show **Contratar**.
 4. Press **Contratar**. The window shows the Validator, the reference and the message
@@ -211,6 +211,10 @@ fictitious. The content is not sent to the LLM.
   `auth/token/revoke` with the full JWT in `token`. The ACL requires that parameter
   and accepts JWT-shaped targets (`eyJ*`), excluding native Vault token targets.
   An actor holding another full JWT could target it too; this is not a self-only API.
+  The separate [revocation lab](18-revocacion-oauth.md) demonstrates the other API:
+  `auth/token/revoke-oauth` with `issuer`, `unique_id` (`jti`) and duration `exp`,
+  authenticated by an operator rather than the target JWT. Both block future use
+  in Vault; the contracting application continues to use the full-JWT endpoint.
 - The `database-read`, `database-write` and `decrypt` blocks also limit
   the CIBA operation. The database block commands also revoke
   the corresponding SQL leases. Editing only an ACL does not revoke an SQL credential

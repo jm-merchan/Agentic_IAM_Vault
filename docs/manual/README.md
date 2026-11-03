@@ -6,8 +6,9 @@ La ampliación [14 · Agentes por tarea](14-agentes-por-tarea.md) añade identid
 
 [16 · Espacios personales](16-espacios-personales.md) añade KV por identidad humana, pruebas de aislamiento y techos de lectura/escritura por agente.
 
-[17 · Contratación CIBA](17-contratacion-ciba.md) incorpora confirmación del Validador,
-formalización en MySQL y descarga del contrato por su propietario. La
+[17 · Contratación CIBA](17-contratacion-ciba.md) queda habilitada por defecto tras
+aprovisionarla. El access JWT de Verify autoriza Vault directamente; Validador
+confirma antes de formalizar en MySQL y el propietario descarga el PDF por OBO. La
 [revisión local del 22/10](../WORKSPACE_REVIEW.md#revisión-del-22-de-octubre-de-2026)
 incluye sus errores y concurrencia, la reanudación de usuarios y la validación
 de README, scripts y notebooks. Después se completó la
@@ -17,11 +18,12 @@ El **23/10** se repitió la [retirada e instalación manual por bloques](../runs
 con recursos nuevos y CIBA aprobado. Esa ejecución documenta la recuperación de
 Vault sellado, los PV atascados tras reiniciar Minikube y las correcciones de sesión Bash.
 
-[18 · Revocación OAuth por API](18-revocacion-oauth.md) demuestra `auth/token/revoke-oauth`
-con acceso delegado y directo: JWT A permitido, revocado y denegado antes de caducar,
-mientras un JWT B de control sigue funcionando.
+[18 · Revocación OAuth en UI y API](18-revocacion-oauth.md) demuestra
+`auth/token/revoke-oauth` con acceso delegado y directo: crear A/B, bloquear A y
+repetir el acceso. A recibe 403 antes de caducar mientras B conserva 200. Está en
+`/laboratorio-revocacion`; el runner CLI permite además una prueba manual con curl.
 
-Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Revisadas el **23 de octubre de 2026** durante la instalación manual; las capturas de interfaz conservan la fecha de su comprobación anterior. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
+Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. La [revisión de coherencia del 3 de noviembre de 2026](../runs/20261103-documentation-consistency/README.md) contrasta las guías con el código tras CIBA OAuth, el nuevo lab y el diagnóstico de reloj. La instalación manual completa del 23 de octubre y las capturas conservan su fecha; esta revisión no repite aquella instalación. El alcance de cada comprobación se distingue en [VALIDACION](VALIDACION.md).
 
 ## Prerrequisitos y orden
 
@@ -55,7 +57,7 @@ Prepara antes las entradas de [00 · Entorno y credenciales](00-entorno.md). No 
 | 15 | [Parámetros RAR](15-parametros-rar.md) | Seis escenarios con reglas, cuerpos, resultados HTTP y trazas correlacionadas |
 | 16 | [Espacios personales](16-espacios-personales.md) | KV por usuario, políticas centrales, acceso cruzado y trazas |
 | 17 | [Contratación CIBA](17-contratacion-ciba.md) | Writer, confirmación de Validador, credencial SQL limitada y PDF tras commit |
-| 18 | [Revocación OAuth por API](18-revocacion-oauth.md) | OBO y Client Credentials, revocación por issuer/jti, control antes de expirar y leases SQL |
+| 18 | [Revocación OAuth en UI y API](18-revocacion-oauth.md) | OBO y Client Credentials, bloqueo por issuer/jti, A=403/B=200 antes de caducar y leases SQL |
 
 Completa 00–05, prepara **los tres proveedores en 06–08** y continúa con 09–10. Cada capítulo genera un perfil JSON privado; el capítulo 10 los publica juntos en `secrets/chatbot/model`, sin que el último proveedor borre los anteriores. La aplicación carga las tres identidades al arrancar y el usuario cambia de proveedor en el banner. `LUMEN_MODEL_PROVIDER=auto` solo fija OpenAI como selección inicial. Los capítulos 11–12 explican OBO y los bloqueos independientemente del LLM.
 

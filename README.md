@@ -13,7 +13,7 @@ are for testing; no action signs up for an energy supply service.
 [Verify](#verification) · [Operate or remove](#operations) ·
 [Step-by-step manual](docs/manual/README.md)
 
-![Current Lumen interface](docs/screenshots/current/home.jpg)
+![Lumen interface · capture from October 22, 2026](docs/screenshots/current/home.jpg)
 
 <a id="qué-demuestra"></a>
 
@@ -25,6 +25,7 @@ are for testing; no action signs up for an energy supply service.
 | Protect personal data | Transit encrypts data, and Transform tokenizes national ID numbers (DNI) and IBANs. Authorized profiles can retrieve them. |
 | Switch models | OpenAI and Claude use SPIFFE identities issued by Vault; xAI receives dynamic keys. Users can switch providers without losing the conversation. |
 | Create a contract with approval | A Validator confirms in Verify through CIBA. Its OAuth access JWT authorizes Vault directly through the `chatbot-contract` actor and RAR. MySQL records the contract and its owner can download the PDF. |
+| Revoke one OAuth token | In the UI lab, block JWT A through `auth/token/revoke-oauth`; the same A receives 403 before expiry while control JWT B retains 200. Both delegated OBO and direct access are available. |
 | Inspect an operation | Lumen traces and Grafana/Tempo/Loki show the exchanges and authorization results. |
 
 The application is built with NiceGUI and LangChain Deep Agents. MySQL Enterprise
@@ -47,7 +48,7 @@ if you choose to synchronize Claude through its administrative API.
 
 | External service | What you need to prepare |
 |---|---|
-| IBM Verify | A tenant and an administrative API client with the permissions listed in [00 · Environment](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). |
+| IBM Verify | A tenant and an administrative API client with the permissions listed in [00 · Environment](docs/manual/00-entorno.md#cliente-api-administrativo-en-ibm-verify). Contracting also needs CIBA support and a separate Validator with a working authentication method. |
 | Vault Enterprise | A license covering Agentic IAM, KMIP, and Transform. |
 | Oracle Container Registry | An account with access to the MySQL Enterprise image. |
 | OpenAI | An organization with API access, quota, and an administrative key to set up the project, service account, and federation. |
@@ -181,6 +182,8 @@ sessions. [Startup details](docs/OPERACION.md#qué-configura-el-arranque).
 Open **[http://localhost:8088](http://localhost:8088)**, click **Sign in with Verify**,
 and choose **Cloud Directory**. Use `localhost`, because the OIDC callback is
 configured with that hostname. The initial passwords are the ones you chose in `.env`.
+For a reused installation, retrieve the [current demo-user password from Vault](docs/OPERACION.md#demo-user-passwords);
+editing `.env` does not replace an already managed user's saved credential.
 
 | User | Main workflow |
 |---|---|
@@ -205,6 +208,15 @@ Additional workflows have their own guides:
 - [Personal spaces](docs/manual/16-espacios-personales.md): verify KV isolation between users.
 - [CIBA contracting](docs/manual/17-contratacion-ciba.md): enabled by default after provisioning; Writer finalizes their own draft after Validator approval. [Direct OAuth migration verified on November 3](docs/CIBA_OAUTH_VERIFICATION.md).
 - [OAuth revocation lab](docs/manual/18-revocacion-oauth.md): demonstrate delegated and direct JWT blocking in the UI at `/laboratorio-revocacion`, or through the CLI/API; verify A is rejected before expiry while B remains valid.
+
+For contracting, use **Writer + Current mode** or **Request creation**, then open
+one of Writer's own drafts in **Applications**. Provisioning enables CIBA by
+default; a fresh installation still needs a usable Validator selected as described
+in the guide. The generated `lumen-validator` placeholder cannot receive email OTP.
+
+For revocation, open **OAuth revocation** in the sidebar and use **Create tokens →
+Block token A → Retry access** in each mode. The lab only targets its own JWT pairs;
+it does not revoke your login or the issuer's tokens at other APIs.
 
 <a id="acceso-a-vault-y-grafana"></a>
 
@@ -246,8 +258,13 @@ unconfirmed. The [validation history](docs/manual/VALIDACION.md) preserves other
 runs with their dates and scope.
 
 The [October 27 manual and script validation](docs/runs/20261027T091528Z-manual-and-script/README.md)
-records two independent rebuilds, current test results, browser checks and the
+records two independent rebuilds, the test results at that date, browser checks and the
 fixes required after the English UI and OpenAI model changes.
+
+The [November 3 documentation review](docs/runs/20261103-documentation-consistency/README.md)
+aligns the guides and generated notebooks with CIBA enabled by default, the UI/API
+revocation lab and the clock diagnostic. It links the separate live evidence for
+those features and records which checks were repeated during the review.
 
 <a id="operación"></a>
 
@@ -265,6 +282,8 @@ fixes required after the English UI and OpenAI model changes.
 The block targets are `xai`, `database-read`, `database-write`, and `decrypt`.
 [Behavior and scope](docs/ACCESS_BLOCKS.md). For logs, keys, rotation, upgrades,
 and clock issues, see the [operations guide](docs/OPERACION.md).
+If a valid login receives 403 on a normally permitted path after macOS resumes,
+check [the VM clock](docs/OPERACION.md#reloj-de-la-vm) before changing policies.
 
 <a id="volver-a-empezar-desde-cero"></a>
 

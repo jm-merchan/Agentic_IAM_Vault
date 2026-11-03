@@ -137,3 +137,8 @@ Local sources: [block.sh](../../scripts/demo/block.sh), [access-controls.sh](../
 The Database and decryption blocks affect the OBO tools with any of the three models. Changing the provider does not change the user's permissions, the Vault policies or the agent's limits.
 
 The [CIBA contracting](17-contratacion-ciba.md) extension attaches these three blocks to the `chatbot-contract` actor ceiling. Finalization presents Verify's CIBA access JWT directly to Vault, which intersects the Validator's policy, that ceiling and the signed RAR. Blocking reads or writes also revokes `database/creds/chatbot-contract/`.
+
+For per-token blocking, use [18 · OAuth revocation](18-revocacion-oauth.md), available
+in the UI at `/laboratorio-revocacion` and through the CLI. It targets one JWT's
+issuer/jti without changing these resource policies. A 403 accompanied by a large
+[clock offset](../OPERACION.md#reloj-de-la-vm) must be diagnosed separately.

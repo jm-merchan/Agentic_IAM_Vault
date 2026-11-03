@@ -13,7 +13,7 @@ add_cell() {
 add_cell markdown <<'MD'
 # Lumen — chatbot with IBM Verify, Vault IAM and Deep Agents
 
-Python/NiceGUI interface and Deep Agents with OpenAI/xAI/Claude selection. This notebook details the xAI branch (`grok-4.3`) and its dynamic Vault keys; [chapter 10](docs/manual/10-aplicacion.md) prepares the shared catalog for all three providers. It keeps OIDC Authorization Code + PKCE, MySQL through OBO and Tavily search with a registered autonomous agent. **All provisioning uses Bash, curl, jq and Vault CLI**; the application and its tests use Python. This notebook orchestrates the versioned files in `chatbot/`, which must accompany it.
+Python/NiceGUI interface and Deep Agents with OpenAI/xAI/Claude selection. This notebook details the xAI branch (`grok-4.3`) and its dynamic Vault keys; [chapter 10](docs/manual/10-aplicacion.md) prepares the shared catalog for all three providers. It keeps OIDC Authorization Code + PKCE, MySQL through OBO and Tavily search with a registered autonomous agent. **Provisioning entry points use Bash, curl, jq and Vault CLI**; configuration helpers, the application and its tests use Python. This notebook orchestrates the versioned files in `chatbot/`, which must accompany it.
 
 The complete demo is installed with `./demo.sh`; this notebook is a stage-by-stage reference. Run it from the lab root. Do not copy passwords into cells. The notebook is delivered with empty outputs; the `chatbot/docs/*.json` reports record the real tests.
 
@@ -127,7 +127,13 @@ The next cell keeps running. Open **http://localhost:8088** in Chrome; use exact
 
 **Language:** Lumen detects the browser language and offers **EN / ES** at the top right. A saved choice takes precedence, persists across sign-ins and applies to the chat, forms, traces and subsequent answers. History and captured values remain in their original language. It requires no `.env` variables or identity changes. [Usage and maintenance](chatbot/README.md#idioma-español-e-inglés).
 
-The server listens only on loopback; it opens the MySQL port-forward 13306. It loads credentials with a five-minute Vault bootstrap token and revokes it immediately. The Python process never receives the root token.
+The server listens only on loopback; it opens the MySQL port-forward 13306. It loads credentials with a five-minute Vault bootstrap token and revokes it immediately. The Python process never receives the root token. Separate renewable native credentials provide read-only agent inspection and the revocation lab's issuer-limited operator; neither is an intermediate token for business-data access.
+
+**OAuth revocation lab:** open `/laboratorio-revocacion` from the sidebar. In delegated and direct modes, use **Create tokens → Block token A → Retry access**. The same A must receive 403 before expiry while B retains 200. The lab calls `auth/token/revoke-oauth` with a separate operator, not the target JWT. [UI, CLI and credential scopes](docs/manual/18-revocacion-oauth.md).
+
+**CIBA contracting:** provision [chapter 17](docs/manual/17-contratacion-ciba.md) and select a usable Validator. It is enabled by default after provisioning. Writer requests approval for their own draft; the approved access JWT authorizes Vault directly, and cleanup uses `auth/token/revoke` with the full JWT. This is separate from the revocation lab.
+
+After macOS resumes, a clock mismatch can produce a 403 before ACL evaluation. The runtime reports a specific diagnostic when HTTP Date and JWT timing support it. [Clock checks and recovery](docs/OPERACION.md#reloj-de-la-vm).
 
 `CHATBOT_VERIFY_ACCESS=1` runs real OBO tests when each login completes and writes reports without tokens. The inserts made by these tests are rolled back; the credentials expire in 120 s. Remove the variable for a normal run.
 MD

@@ -52,6 +52,13 @@ bash scripts/manual/paso-a-paso.sh ver agentes
 
 ## Reanudación y recursos existentes
 
+El paso `contratacion` aprovisiona CIBA habilitado por defecto; no confirma un
+contrato. Para demostrarlo, selecciona un Validador operativo y sigue
+[17 · CIBA](17-contratacion-ciba.md). El arranque de Lumen también prepara el
+operador de [18 · Revocación OAuth](18-revocacion-oauth.md): abre el lab en la UI
+para probar los modos delegado y directo. La aprobación CIBA y los pasos del lab
+son demostraciones separadas, no resultados implícitos del instalador.
+
 Los pasos de Verify obtienen un token administrativo nuevo en cada ejecución. Las aplicaciones se buscan por nombre antes de crear; los nombres ambiguos detienen el paso. Si hay varios `vault-chatbot-sts`, se utiliza el `client_id` guardado en `verify/secrets/chatbot/sts` únicamente cuando coincide con uno de ellos en el inventario actual. No se borra ningún duplicado ni se elige el primero arbitrariamente.
 
 Los usuarios se buscan antes del POST. Una cuenta existente conserva su contraseña si no está pendiente de activación; se completa su `user_id` en Vault y se añade al grupo solo cuando falta. Una credencial ausente o incompatible detiene el paso antes de modificar usuarios. El registro de agentes comprueba primero que existen las credenciales de `oidc` y `research`.

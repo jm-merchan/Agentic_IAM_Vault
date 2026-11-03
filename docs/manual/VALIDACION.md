@@ -1,5 +1,30 @@
 # Validación actual e historial de reinstalación manual
 
+## Cambios funcionales y coherencia documental · 3 de noviembre de 2026
+
+La [revisión de coherencia](../runs/20261103-documentation-consistency/README.md)
+contrasta README, manuales, observabilidad, comandos de arranque y notebooks con
+el código tras los cambios siguientes:
+
+- CIBA usa el access JWT de Verify directamente en Vault. El
+  [informe de migración](../CIBA_OAUTH_VERIFICATION.md) registra 13 comprobaciones
+  reales con aprobación y consentimiento del Validador. El aprovisionamiento
+  actual lo habilita por defecto; la prueba no es una puerta de activación.
+- El [runner OAuth](../../chatbot/docs/oauth-revocation-verification.json) registra
+  20 comprobaciones con acceso OBO y directo. La
+  [verificación de la UI](../../chatbot/docs/oauth-revocation-ui-verification.json)
+  distingue el recorrido en Chrome de su prueba de controlador contra servicios
+  reales; el operador de UI y el temporal del CLI tienen alcances diferentes.
+- El [diagnóstico de Writer](../../chatbot/docs/writer-clock-verification.json)
+  conserva el 403 con un desfase de 2.005 s y la consulta posterior correcta con
+  Writer/Modo actual. Los relojes ya estaban alineados al inspeccionarlos; no se
+  cambiaron ACLs ni se indujo un nuevo desfase.
+
+Estas pruebas funcionales se ejecutaron antes de esta revisión documental.
+La revisión repite las comprobaciones locales y de coherencia indicadas en su
+informe; no acredita una reinstalación, inferencia o aprobación CIBA nueva.
+Las entradas de octubre y las capturas mantienen su fecha y alcance originales.
+
 ## Instalación manual y con demo.sh · 27 de octubre de 2026
 
 La [ejecución del 27 de octubre](../runs/20261027T091528Z-manual-and-script/README.md)

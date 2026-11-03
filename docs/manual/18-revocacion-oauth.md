@@ -1,4 +1,4 @@
-# 18 · Revoke OAuth JWTs through the Vault API
+# 18 · OAuth revocation lab in the UI and API
 
 This lab demonstrates **delegated OBO and direct Client Credentials access**.
 For each mode, token A succeeds, an operator revokes A by its issuer and unique
@@ -15,11 +15,16 @@ accepting new connections before its original lease expires.
 - Existing Writer/task agents, Verify STS, the `chatbot-xai` identity and its
   `chatbot/xai-access` authorization marker. The database-read and xAI blocks must
   allow normal operation. The lab leaves existing block settings untouched.
-- The Python runtime from [chapter 10](10-aplicacion.md#2-instalar-el-runtime),
-  a working MySQL port-forward on `127.0.0.1:13306`, and the generated administrative
-  connection in `$LUMEN_STATE_DIR/vault/config.env`.
+- The Python runtime from [chapter 10](10-aplicacion.md#2-instalar-el-runtime)
+  and a working MySQL port-forward on `127.0.0.1:13306`.
+- For the browser walkthrough: Lumen started with the operator described in
+  [chapter 10](10-aplicacion.md#3-crear-bootstrap-y-arrancar-sin-credenciales-administrativas),
+  and a demo user signed in through Verify. The browser user does not need Vault's
+  administrative token.
+- For provisioning or running the CLI: the generated administrative connection in
+  `$LUMEN_STATE_DIR/vault/config.env`.
 
-The runner creates fresh lab JWTs and a temporary operator policy/token for each
+The CLI runner creates fresh lab JWTs and a temporary operator policy/token for each
 mode. It changes no business ACL, OAuth profile, agent registration or Verify client.
 The direct branch reads a non-secret cache marker and performs no model call.
 No CIBA approval is required.
@@ -70,7 +75,7 @@ access, policy management and token creation. Test pairs were cleaned up.
 
 | Mode | JWT identity | Resource | Vault authorization |
 |---|---|---|---|
-| Delegated | `sub` = Writer; `actor-token.sub` = task-write client ID | `database/creds/chatbot-readonly` | Human policy ∩ actor ceiling ∩ RAR |
+| Delegated | UI: current human and agent; CLI: Writer and task-write | `database/creds/chatbot-readonly` | Human policy ∩ actor ceiling ∩ RAR |
 | Direct | `sub` = xAI client ID; no delegated actor | `secrets/data/chatbot/xai-access` | Agent entity policy ∩ RAR |
 
 ## 1. Run both modes
@@ -118,7 +123,7 @@ identifies the target without including its full JWT:
   For an already materialized JWT, Vault uses its actual expiry when discovered.
   [API reference](https://developer.hashicorp.com/vault/api-docs/auth/token#revoke-a-jwt-oauth).
 
-The operator receives a native Vault token with no default policy and a five-minute
+In the CLI runner, the operator receives a native Vault token with no default policy and a five-minute
 maximum TTL. Its temporary policy is limited to the exact issuer and A's `jti`:
 
 ```hcl
@@ -199,19 +204,25 @@ the same test tokens; cleanup revokes those tokens too.
 
 ## 4. Interpret the result
 
-| Check | Required result |
-|---|---|
-| A reads before revocation | HTTP 200 |
-| A reads after `revoke-oauth` | HTTP 403 with more than 30 seconds until JWT expiry |
-| A's signature and time claims | Still validate locally after revocation |
-| B, with the same identity and RAR | HTTP 200 |
-| Operator attempts to revoke B | HTTP 403 |
-| SQL login obtained through delegated A | Rejected before the original SQL lease expires |
-| SQL login obtained through delegated B | Still works |
+| Check | Required result | Where checked |
+|---|---|---|
+| A reads before revocation | HTTP 200 | UI and CLI; the UI also requires initial B=200 |
+| A reads after `revoke-oauth` | HTTP 403 with more than 30 seconds until JWT expiry | UI and CLI |
+| A's signature and time claims | Still validate locally after revocation | UI and CLI |
+| B, with the same identity and RAR | HTTP 200 | UI and CLI |
+| Operator attempts to revoke B | HTTP 403 | CLI only: its temporary policy confines it to A |
+| SQL login obtained through delegated A | Rejected before the original SQL lease expires | CLI required; UI checks while the lease still permits attribution |
+| SQL login obtained through delegated B | Still works | CLI; the UI checks B's Vault read only |
 
 Vault's denylist adds state to JWT acceptance. Revocation here affects **Vault**;
 the lab does not call Verify's revocation endpoint or establish the token's status
 at another API. It targets one `iss`/`jti` pair, not the entire user or agent.
+
+CIBA contracting uses `auth/token/revoke` with its full access JWT at completion;
+this lab demonstrates `auth/token/revoke-oauth` using a separate operator. Neither
+flow uses `revoke-self` for OAuth JWT cleanup. If a normally permitted request
+fails after the Mac resumes, check [the clocks](../OPERACION.md#reloj-de-la-vm)
+before interpreting a 403 as evidence of blocking.
 Existing SQL connections and already returned data are outside this test's scope.
 
 On **November 3, 2026 at 11:08 CET**, the combined live run passed **20 checks**.

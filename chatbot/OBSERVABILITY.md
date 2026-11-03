@@ -39,9 +39,11 @@ en el detalle o usa los informes de verificación.
 
 Abrir [Grafana](http://localhost:3000/d/lumen-iam), acceder como `lumen-admin` con la contraseña de `verify/secrets/chatbot/observability`, y pegar el **Trace ID** de Lumen en el filtro. Elegir `raw` para los intercambios del laboratorio o `hmac` para la copia protegida.
 
-Los filtros raw cubren SQL, Tavily, la prueba administrativa, Transit/Transform
-de solicitudes, SPIFFE y xAI. **KV personal y almacenamiento de contratos tienen
-auditoría HMAC**: selecciona `hmac` para ver sus decisiones. Que el cliente capture
+Los filtros raw cubren SQL RO/RW, Tavily, la prueba administrativa, Transit/Transform
+de solicitudes, SPIFFE y xAI. **KV personal, rutas de contratos y endpoints de
+revocación tienen auditoría HMAC**: selecciona `hmac` para ver sus decisiones.
+El rol `database/creds/chatbot-contract` y los motores `lumen-contracts` tampoco
+figuran en los filtros raw actuales. Que el cliente capture
 una petición raw en Tempo no implica que Vault la audite sin HMAC.
 
 ```logql
@@ -110,6 +112,32 @@ hay que revisar usuario, techo y bloqueos. Los fallos de emisión, conexión y
 motor se presentan como no concluyentes. Las trazas de las pruebas por script
 viven en el directorio privado `rar-parameters/traces`; las de la UI conservan
 el control de acceso de su sesión.
+
+### Revocación OAuth y fallo de reloj
+
+El [lab de revocación](../docs/manual/18-revocacion-oauth.md) ofrece OBO y Client
+Credentials en `/laboratorio-revocacion`. Las acciones
+`lumen.oauth_revocation.prepare`, `.block`, `.check` y `.clear` crean trazas de la
+sesión propietaria. El diagrama integrado muestra la última acción; la tabla
+conserva los enlaces a las anteriores. Los atributos `revocation.lab.token`,
+`.phase`, `.unique_id` y `.seconds_until_exp` permiten distinguir A/B, el bloqueo
+y la prueba previa a caducidad. Un 403 de A y un 200 de B son respuestas reales.
+
+Las llamadas a Vault de este lab registran metadatos, sin capturar JWT, credenciales
+SQL ni el bearer nativo del operador. El diagrama integrado desactiva los controles
+de inspección sensible y repetición; el panel de identidades muestra los claims
+permitidos y el JSON de bloqueo. La emisión OBO sigue los controles de captura
+habituales cuando el modo raw está habilitado. La auditoría de `revoke-oauth` se
+consulta en `hmac`, no en los filtros raw de las rutas de negocio.
+
+`vault.clock.offset_seconds` identifica un diagnóstico de reloj: una respuesta
+403 con HTTP Date desfasado más de 30 s y un JWT vigente en Lumen pero fuera de
+su ventana temporal en Vault. Es una observación distinta de la evaluación ACL.
+La aplicación indica sincronizar los relojes y no cambia políticas, no amplía el
+leeway y no reintenta la petición. [Comprobación y recuperación](../docs/OPERACION.md#reloj-de-la-vm).
+[Evidencia del Writer](docs/writer-clock-verification.json) y
+[verificación del lab](docs/oauth-revocation-ui-verification.json) conservan sus
+fechas y el alcance real de las pruebas.
 
 ### Idioma del visor
 
@@ -241,7 +269,9 @@ Los mensajes y resultados se conservan para explicar el flujo. Los filtros del L
 
 ## 8. Intercambios completos con Vault y JWT sin HMAC
 
-El modo raw solicitado para el laboratorio conserva en cada `vault.read` y `vault.write`:
+El modo raw solicitado para el laboratorio conserva estos campos en las llamadas
+que utilizan el capturador de Vault de la aplicación. El lab de revocación usa
+solo metadatos para sus llamadas a Vault y excluye siempre al operador:
 
 | Campo | Contenido |
 |---|---|

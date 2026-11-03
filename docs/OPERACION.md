@@ -41,7 +41,25 @@ Open http://localhost:3000 and sign in with the **`lumen-admin`** user. Retrieve
 
 Paste the password and open the [Lumen dashboard](http://localhost:3000/d/lumen-iam). The commands copy the credentials without showing them in the terminal; run each one right before you paste its value.
 
+### Demo-user passwords
+
+Use `lumen-reader`, `lumen-writer` or `lumen-supervisor` with Cloud Directory.
+The current managed passwords are in `secrets/chatbot/users/<role>`, namespace
+`verify`; on a reused installation they take precedence over new values typed
+in `.env`. For Writer, copy the password without printing it:
+
+```bash
+(
+  source "${LUMEN_STATE_DIR:-$HOME/.local/state/lumen-vault-demo}/vault/config.env"
+  export VAULT_ADDR VAULT_TOKEN VAULT_CACERT
+  vault kv get -namespace=verify -mount=secrets -field=password chatbot/users/writer | pbcopy
+)
+```
+
+Replace `writer` with `reader` or `supervisor` for the other accounts.
+
 <a id="reloj-de-la-vm"></a>
+<a id="vm-clock"></a>
 ## VM clock and OAuth failures after resume
 
 A suspended Mac can leave the Podman/Minikube clock behind the host. A Verify JWT
@@ -66,12 +84,34 @@ minikube -p workshop ssh -- date -u '+Minikube UTC: %Y-%m-%dT%H:%M:%SZ'
 ```
 
 If the VM differs, restore time synchronization in the VM that hosts Podman, then
-check again. The containers share that VM clock. The OAuth profile retains its
-15-second tolerance. New login sessions alone do not fix an incorrect VM clock.
+check again. Use `podman machine list` to identify that VM. For the default name:
+
+```bash
+PODMAN_VM=podman-machine-default
+podman machine ssh "$PODMAN_VM" sudo -n date -u -s "@$(date -u +%s)" </dev/null
+podman machine ssh "$PODMAN_VM" \
+  'if systemctl is-active --quiet chronyd; then sudo -n systemctl restart chronyd; fi' </dev/null
+```
+
+The containers share that VM clock. Recheck the times, then retry the operation;
+clock synchronization itself does not require rebuilding Vault or restarting Lumen.
+The OAuth profile retains its 15-second tolerance. New login sessions alone do
+not fix an incorrect VM clock. `caffeinate -i -m` can inhibit automatic idle sleep
+while presenting the demo.
+
+| Check | Scope |
+|---|---|
+| `./demo.sh start` | Stops when Minikube differs by more than 60 s, before certificates or initialization. |
+| Manual chapter [01](manual/01-vault.md) | Requires at most 5 s; synchronizes Podman and restarts an active `chronyd` when needed. Repeat after a pause or sleep. |
+| Runtime diagnostic | Examines an actual 403: HTTP Date differs by more than 30 s and the JWT is live on Lumen but outside its time window on Vault. |
+
 Lumen now distinguishes a 403 accompanied by a large HTTP Date offset and JWT
 validity mismatch from an ordinary permission denial. It records
 `vault.clock.offset_seconds` and displays a clock-synchronization message; it
 does not retry the request, change ACLs or relax token validation.
+[Observed Writer failure and successful recheck](../chatbot/docs/writer-clock-verification.json).
+The measured offset was recorded before this documentation review; it is not a
+new clock fault induced by the review.
 
 <a id="qué-configura-el-arranque"></a>
 ## What startup configures
@@ -183,7 +223,7 @@ The `chatbot-validators` group is identified by `externalId=lumen-demo:contract-
 
 It first stops Lumen and synchronously revokes the leases under `verify/xai/creds/lumen/`. It then deletes the Verify resources, stops the managed tunnels, removes MySQL/observability and finally Vault. If Verify, the revocation or the volume removal fails, it returns an error and keeps the recovery keys. It does not use `revoke-force` or remove finalizers to hide failures. If there are PVs with a `Retain` policy, they must be resolved before data is removed.
 
-After confirming the remote deletion, it deletes `vault/`, `mysql/`, `runtime/`, `vault-chatbot-storage/`, `services/`, `pids/`, `ngrok/` and `openai/` from the state directory. It removes the compatible key/connection copies in `/tmp/vault` only if they match this deployment, plus the local file `/tmp/lumen-telemetry/spans.jsonl`. It keeps sources, screenshots, historical reports, launcher logs and image/dependency caches. Therefore, "clean" means new operational resources; earlier reports remain historical evidence.
+After confirming the remote deletion, it deletes `vault/`, `mysql/`, `runtime/`, `vault-chatbot-storage/`, `services/`, `pids/`, `ngrok/`, `openai/`, `oauth2c/`, `claude/`, `contracts/`, `pdf-approval/` and `personal-spaces/` from the state directory. It removes the compatible key/connection copies in `/tmp/vault` only if they match this deployment, plus the local file `/tmp/lumen-telemetry/spans.jsonl`. Other evidence directories, including `oauth-revocation/`, are retained by the current removal script; interrupted CLI runs can leave private header files there until manually removed, even after the credentials expire. It keeps sources, screenshots, historical reports, launcher logs and image/dependency caches. Therefore, "clean" means new operational resources; earlier reports remain historical evidence.
 
 `remove` requires access to the `workshop` profile; if it is stopped, start it with `minikube start -p workshop`. If Vault exists and is already initialized, it must be unsealed and have its private bootstrap available to revoke the external keys. Verify administrative authentication comes directly from `.env`, so it does not depend on the secrets about to be deleted. `remove` can be repeated after a partial run or when the resources have already been removed.
 
@@ -196,8 +236,10 @@ With the external entries and federations in place, rebuild with:
 ```
 
 If Claude uses `console`, update the new JWKS in the issuer before its verification
-can pass. CIBA again requires its real test and enablement when
-the client is recreated. Follow [CIBA contracting](manual/17-contratacion-ciba.md).
+can pass. CIBA is enabled by default when provisioned. After recreating its client,
+select a usable Validator and repeat the live approval test before presenting the
+flow; that test records evidence and is not an activation gate.
+Follow [CIBA contracting](manual/17-contratacion-ciba.md).
 
 ## Private state and processes
 
@@ -237,15 +279,6 @@ If Vault is already initialized, its saved keys are required: the launcher reuse
 
 `bash scripts/import-env.sh` is an **optional migration from an already running lab**: it collects the Vault entries, `oracle.env` and `vault.hclic` without displaying them. It does not run when starting from scratch and does not import the root token; in a new installation the external credentials are filled in directly in `.env`. It does not overwrite a `.env` that already contains the integration.
 
-## VM clock
-
-After macOS sleeps, check that the Podman VM keeps the correct time. `start` detects drifts of more than 60 seconds before issuing certificates or initializing Vault; a drift can also invalidate JWTs. If you use Podman and its VM is behind the host, look up its name with `podman machine list`. For example, for `podman-machine-default`:
-
-```bash
-podman machine ssh podman-machine-default sudo -n date -u -s "@$(date -u +%s)" </dev/null
-./demo.sh start
-```
-
-The command syncs the VM clock with the host clock. It does not disable TLS validation or reinitialize Vault. During a long demo you can run `caffeinate -i -m` in another terminal to prevent automatic sleep.
-
-The Vault OAuth profile and the client apply a **15-second leeway** when validating JWT dates. This avoids rejecting freshly issued tokens because of small differences between Verify and the VM; it does not fix a clock that is several minutes behind. [Official `clock_skew_leeway` parameter](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server).
+The OAuth profile's [official `clock_skew_leeway` parameter](https://developer.hashicorp.com/vault/api-docs/system/config-oauth-resource-server)
+applies to JWT `exp`, `iat` and `nbf`. The demo uses 15 seconds; see
+[VM clock and recovery](#reloj-de-la-vm) for larger offsets.

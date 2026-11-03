@@ -1,5 +1,14 @@
 # Workspace review
 
+## Documentation consistency · November 3, 2026
+
+The [documentation review](runs/20261103-documentation-consistency/README.md)
+reconciles CIBA's default activation, direct OAuth cleanup, the delegated/direct
+revocation UI, the manual startup operator and the clock diagnostic. Generated
+notebooks follow the same source documents. Linked live evidence is distinguished
+from the local checks repeated during this review; the earlier runs below retain
+their original implementations and scope.
+
 ## CIBA direct OAuth migration · November 3, 2026
 
 [Live verification and scope](CIBA_OAUTH_VERIFICATION.md): CIBA's Verify access JWT

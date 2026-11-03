@@ -1,0 +1,64 @@
+{
+  "generators": [
+    "scripts/build-core-notebooks.sh",
+    "chatbot/scripts/build-notebook.sh",
+    "chatbot/scripts/build-observability-notebook.sh",
+    "chatbot/scripts/build-protection-notebook.sh",
+    "chatbot/scripts/build-openai-notebook.sh",
+    "verify/scripts/build-notebook.sh",
+    "verify/scripts/build-oauth2c-notebook.sh"
+  ],
+  "notebooks": [
+    {
+      "path": "10_OAuth2c_Verify_Vault.ipynb",
+      "matches_generator": true,
+      "sha256": "3ed5117a9597283e36b80fdebfba842b4613cb02a0a20d2ff1f8a57f18355b33"
+    },
+    {
+      "path": "1_Deploy_Vault_minikube.ipynb",
+      "matches_generator": true,
+      "sha256": "e66c51c10e81c6a03f7ad975619317c949802bcabdcc0885cd81360d468bc29f"
+    },
+    {
+      "path": "2_vault-demo-kmip-mysql.ipynb",
+      "matches_generator": true,
+      "sha256": "dee04637c71db1e3779c84dd7f590e3e445e5ccdcb744098dd28dd5403d522ea"
+    },
+    {
+      "path": "3_Database_Secret_Engine.ipynb",
+      "matches_generator": true,
+      "sha256": "be72d8f6dc0f3cd0daced2d1774e438faf84385a4b523ce636b3cc54a96e172c"
+    },
+    {
+      "path": "4_XAI_Secret_Engine.ipynb",
+      "matches_generator": true,
+      "sha256": "a226b1d80b9e803a9315550598371ab4d1c72d3661c983b16ba42ef0fcbf574a"
+    },
+    {
+      "path": "6_Lumen_Chatbot_Vault_IAM.ipynb",
+      "matches_generator": true,
+      "sha256": "8d6a45c85f0ae374599f6004871eda68f53dab131ae7903920bec51b521f3486"
+    },
+    {
+      "path": "7_Lumen_Observability.ipynb",
+      "matches_generator": true,
+      "sha256": "687cb323ba8a194ab4b60c8e9e405da9d839644a64de26ef0600e1e201962c71"
+    },
+    {
+      "path": "8_Lumen_Protected_Applications.ipynb",
+      "matches_generator": true,
+      "sha256": "d2cfc971a69a88d333747aa9835daa46ea5acb756b1adc201acff25233d98b15"
+    },
+    {
+      "path": "9_OpenAI_Vault_SPIFFE.ipynb",
+      "matches_generator": true,
+      "sha256": "8a6bc88f87a1dfb51978f4b83df9aba43ba1e2c0ee503efd1849ffd5e817174d"
+    },
+    {
+      "path": "verify/5_IBM_Verify_Vault_Agentic_IAM_Bash.ipynb",
+      "matches_generator": true,
+      "sha256": "9c8cb77f2ba966dbc39dbc6e65d972bd1ed4927f142ce4b5483a61d0256692b1"
+    }
+  ],
+  "all_passed": true
+}

@@ -59,5 +59,11 @@ The configured access lifetime is 120 s; independently rounded `iat` and `exp`
 can differ by 121 s. The [manual](manual/17-contratacion-ciba.md) describes these
 limits, the dedicated Validator requirement and the revocation API's scope.
 
-Reproduce with `bash chatbot/scripts/verify-contracts.sh`, complete the exact
-displayed approval and consent in Verify, then enable with the commands in the manual.
+Reproduce with `bash chatbot/scripts/verify-contracts.sh` and complete the exact
+displayed approval and consent in Verify. Current provisioning enables CIBA by
+default; the live test records end-to-end evidence. `--enable` is only needed
+to re-enable an explicitly disabled installation. Follow the [manual](manual/17-contratacion-ciba.md).
+
+The subsequent [UI revocation lab](manual/18-revocacion-oauth.md) uses a separate
+native operator and `auth/token/revoke-oauth` to target lab JWTs by issuer/jti.
+It does not change the CIBA cleanup flow recorded above.

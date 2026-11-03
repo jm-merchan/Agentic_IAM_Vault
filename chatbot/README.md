@@ -129,7 +129,7 @@ Los tres son usuarios **Cloud Directory**; elegir esa opción al entrar en Verif
 
 **No hay sincronización nativa automática del claim con políticas.** Ejecutar el script 05 después de cambiar miembros, reiniciar Lumen si cambia el mapa de grupos y pedir un nuevo login. Para revocar acceso, sincronizar Vault inmediatamente; los JWT duran hasta 600 s. Si un usuario pertenece al grupo de gestores además de otro grupo, obtiene RW y la unión de sus políticas de Vault.
 
-Los roles son permisos de **base de datos**, no seguridad por fila o columna. «Borradores anteriores» filtra `service_requests` por `subject_id`. La nueva bandeja «Solicitudes» muestra una proyección enmascarada compartida de `energy_applications` para comparar los tres perfiles sobre el mismo registro. Un cliente SQL RO podría leer ciphertext y tokens; necesita permisos independientes de Vault para recuperarlos en claro. El agente conversacional no expone SQL arbitrario. La UI crea solicitudes ficticias confirmadas; no hay contratación real.
+Los roles son permisos de **base de datos**, no seguridad por fila o columna. «Borradores anteriores» filtra `service_requests` por `subject_id`. La bandeja «Solicitudes» muestra una proyección enmascarada compartida de `energy_applications` para comparar los tres perfiles sobre el mismo registro. Un cliente SQL RO podría leer ciphertext y tokens; necesita permisos independientes de Vault para recuperarlos en claro. El agente conversacional no expone SQL arbitrario. Guardar crea un **borrador**; solo la aprobación CIBA permite formalizar el contrato ficticio. No hay contratación comercial.
 
 ## Instalación
 
@@ -189,6 +189,19 @@ Todos los caminos siguientes son KV v2, namespace `verify`, mount `secrets`:
 
 `run.sh` genera un token de bootstrap de cinco minutos que solo lee la configuración y los clientes OAuth del chatbot. El proceso Python carga esos datos y revoca el token. No hereda el token raíz. La política de bootstrap no lee MySQL, Tavily, el cliente administrativo, `secrets/xai`, `secrets/xai_mgmt` ni `xai/creds/lumen`. Los accesos OBO, autónomos y CIBA presentan el access JWT de Verify directamente a Vault. En CIBA, `sub` identifica al Validador y `actor-token.sub` al agente `chatbot-contract`. Vault aplica política del Validador ∩ techo del actor ∩ RAR, sin emitir un `client_token` intermedio. La vigencia OAuth configurada es de 120 s y la credencial SQL se revoca junto al JWT al terminar; [flujo y permisos](../docs/manual/17-contratacion-ciba.md#quién-autoriza-cada-paso), [validación real de OAuth](../docs/CIBA_OAUTH_VERIFICATION.md).
 
+El arranque prepara además dos credenciales nativas independientes: el inspector
+de metadatos y el operador del lab de revocación, ambos sin política `default` y
+con periodo renovable de una hora. Lumen los renueva y los revoca al apagarse
+normalmente. El operador solo puede usar `auth/token/revoke-oauth` para el issuer
+de Verify, además de renovarse y revocarse a sí mismo. No puede crear tokens,
+cambiar políticas ni leer datos de negocio. La aplicación limita sus destinos a
+las parejas del lab pertenecientes a la sesión y al agente actuales.
+
+CIBA queda habilitado por defecto al aprovisionar el capítulo 17; `--disable`
+permite desactivarlo expresamente. «Contratar» requiere Writer, un borrador propio,
+Modo actual o Creación de solicitudes y la posterior confirmación del Validador.
+La prueba real registra evidencia; no es un requisito para activar el botón.
+
 El catálogo de modelos es opcional si Vault responde 403/404. Una respuesta 429
 o un error de servidor detiene el arranque con un diagnóstico; no se interpreta
 como una instalación sin modelos. El bootstrap se revoca también si falla la carga.
@@ -216,6 +229,12 @@ El plugin actual no implementa renovación de leases: se obtiene **una clave nue
 El [script de verificación](scripts/verify-xai.sh) usa una clave desechable de 60 s: prueba inferencia real, denegaciones de acceso y rechazo tras la caducidad. El informe se guarda sin secretos en [xai-dynamic-verification.json](docs/xai-dynamic-verification.json). En Tempo, `model.credentials` incluye `vault.credential.cache_hit`, motivo de sustitución, ID de lease, tiempo restante e identidad del agente; `model.authorization` contiene la lectura que reautoriza la caché y `xai.chat` muestra la inferencia. Cada ejecución tiene una lectura de autorización en Vault; solo las que necesitan una clave nueva leen además `xai/creds/lumen`.
 
 Puedes bloquear cada recurso desde `./demo.sh block xai|database-read|database-write|decrypt` y restaurarlo con `unblock`. Consulta [comandos, políticas, revocación y recorrido visual](../docs/ACCESS_BLOCKS.md). RAR restringe cada JWT; las políticas `deny` permiten cambiar el acceso también para JWT ya emitidos. Los informes de ciclo de vida de abajo son anteriores a esta ampliación; la [verificación RAR/bloqueo](docs/xai-rar-block-verification.json) documenta la prueba nueva.
+
+El [lab de revocación OAuth](../docs/manual/18-revocacion-oauth.md) bloquea una
+pareja `issuer/jti` mediante la API, sin cambiar estas políticas. Abre
+`/laboratorio-revocacion` y repite **Crear tokens → Bloquear A → Repetir acceso**
+en los modos delegado y directo. La tabla exige A=403 y B=200 antes de caducar.
+La llamada API usa el operador separado; A y B son JWT de Verify.
 
 El ciclo histórico del 14/10 comprobó en Chrome tres consultas reales: emisión inicial, reutilización del mismo lease y sustitución por otro antes de caducar. [Ciclo de vida verificado](docs/xai-runtime-verification.json) · [Correlación Tempo/Loki](docs/xai-observability-verification.json). La suite incluye concurrencia, sustitución fallida, expiración, límite de ejecución y ausencia de retorno a la clave estática.
 
@@ -315,7 +334,7 @@ agentes, RAR y espacios personales tienen sus verificadores en las guías enlaza
 
 ## Límites y adaptación
 
-Es una demo con datos ficticios. La contratación CIBA simula una formalización; no contrata suministros ni realiza cobros. Los permisos SQL son de tabla, no seguridad por fila. El claim firmado y la sincronización de grupos de Vault son controles distintos. El perfil OAuth aplica `clock_skew_leeway=15` segundos, igual que el cliente; una VM con minutos de desfase debe sincronizarse antes de continuar.
+Es una demo con datos ficticios. La contratación CIBA simula una formalización; no contrata suministros ni realiza cobros. Los permisos SQL son de tabla, no seguridad por fila. El claim firmado y la sincronización de grupos de Vault son controles distintos. El perfil OAuth aplica `clock_skew_leeway=15` segundos, igual que el cliente; una VM con minutos de desfase debe sincronizarse antes de continuar. El [diagnóstico de reloj](../docs/OPERACION.md#reloj-de-la-vm) distingue un JWT fuera de su ventana temporal en Vault de un 403 ordinario, sin cambiar permisos ni tolerancias.
 
 El notebook base de Verify es un ejercicio histórico separado; `start` crea las identidades de Lumen sin depender de él. Tras `remove`, las antiguas trazas y secretos del cluster dejan de existir aunque sus capturas permanezcan como archivos históricos.
 

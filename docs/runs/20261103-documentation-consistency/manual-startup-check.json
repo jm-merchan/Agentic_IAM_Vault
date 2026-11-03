@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "scope": "Execute the documented operator commands against a synthetic Vault CLI; no real credentials or network calls",
+  "manual_startup_block_preserved": 4,
+  "operator_policy_matches_template": true,
+  "operator_token_exported": true
+}

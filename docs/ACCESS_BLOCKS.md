@@ -78,7 +78,25 @@ Before each run, `chatbot/xai-access` is read with that JWT. This entry contains
 
 `block xai` first installs the deny and synchronously revokes the `xai/creds/lumen/` leases. `unblock xai` changes the generation before removing the deny. That way, even if nobody sends a message during the block, a revoked key is not reused afterwards. A revocation failure returns an error and leaves the deny active; `revoke-force` is not used.
 
-In the Vault 2.1.2 of this image, `/sys/capabilities-self` rejected external JWTs during testing. That is why this version uses a real KV read to reauthorize the cache, instead of presenting a capabilities check as if it had worked.
+The historical Vault 2.1.2 test found that `/sys/capabilities-self` rejected external
+JWTs. The current 2.2 implementation still uses a real KV read to reauthorize the
+cache; the historical result is not presented as a new 2.2 capabilities test.
+
+## Revoke one OAuth JWT
+
+The policy blocks above affect the corresponding routes for all callers subject
+to those policies. The [OAuth revocation lab](manual/18-revocacion-oauth.md) instead
+targets one JWT through `auth/token/revoke-oauth`, leaving the policies in place.
+Open `/laboratorio-revocacion`, select delegated OBO or direct Client Credentials,
+and use **Create tokens → Block token A → Retry access**. A must change from 200 to
+403 before expiry while B retains 200. The UI uses a separate native operator;
+the CLI runner uses a temporary operator scoped to the exact target `jti`.
+
+The denylist is local to Vault; it does not revoke tokens at Verify or other APIs.
+CIBA contracting uses the full-JWT endpoint `auth/token/revoke` for its own cleanup.
+The [CIBA guide](manual/17-contratacion-ciba.md) explains that credential flow.
+For a 403 after macOS resumes, first compare [the clocks](OPERACION.md#reloj-de-la-vm);
+a time-validation failure is different from either an ACL block or token revocation.
 
 ## Walkthrough in the interface
 
@@ -103,7 +121,7 @@ The administrative root token is not blocked by these Lumen policies. The applic
 
 The [reinstallation run of 10/22](runs/20261022T122934Z-full-e2e/README.md)
 and the [later full review](runs/20261022T140230Z-workspace-review/README.md)
-record the results with the current installation. Check the date and scope
+record the results from those installations. Check the date and scope
 of each report before reusing a result.
 
 The [run of 10/15](runs/20261015-rar-blocks/summary.json) and its

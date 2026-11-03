@@ -72,6 +72,13 @@ CHATBOT_BOOTSTRAP_TOKEN=$(vault token create -format=json \
 vault policy write chatbot-agent-inspector "$LUMEN_ROOT/chatbot/policies/agent-inspector.hcl"
 export CHATBOT_AGENT_INSPECTOR_TOKEN
 CHATBOT_AGENT_INSPECTOR_TOKEN=$(vault token create -format=json -policy=chatbot-agent-inspector -no-default-policy -period=1h -display-name=lumen-agent-inspector | jq -er .auth.client_token)
+export CHATBOT_OAUTH_REVOKER_ISSUER
+CHATBOT_OAUTH_REVOKER_ISSUER=$(vault read -format=json sys/config/oauth-resource-server/verify | jq -er .data.issuer_id)
+/tmp/vault-chatbot-venv/bin/python -c 'import json,os,pathlib,sys; print(pathlib.Path(sys.argv[1]).read_text().replace("__VERIFY_ISSUER__", json.dumps(os.environ["CHATBOT_OAUTH_REVOKER_ISSUER"])))' \
+  "$LUMEN_ROOT/chatbot/policies/oauth-revoker.hcl" | vault policy write chatbot-oauth-revoker -
+export CHATBOT_OAUTH_REVOKER_TOKEN
+CHATBOT_OAUTH_REVOKER_TOKEN=$(vault token create -format=json -policy=chatbot-oauth-revoker -no-default-policy -period=1h -display-name=lumen-oauth-revocation-lab | jq -er .auth.client_token)
+unset CHATBOT_OAUTH_REVOKER_ISSUER
 unset VAULT_TOKEN
 unset VERIFY_ADMIN_CLIENT_SECRET XAI_MANAGEMENT_API_KEY XAI_TEAM_ID TAVILY_API_KEY
 unset OPENAI_ADMIN_API_KEY OPENAI_API_KEY NGROK_AUTHTOKEN
@@ -92,7 +99,23 @@ cd "$LUMEN_ROOT/chatbot"
 
 The app loads its configuration and revokes the bootstrap token in `load_config()`. Business operations use Verify JWTs, OBO or the SPIFFE identity, depending on the resource. The agent details card uses a separate read-only metadata token, renewed by Lumen and revoked on shutdown; [scope and links](14-agentes-por-tarea.md#identificar-al-agente-y-pivotar-a-vault). Do not reload `session.sh` inside the app process after clearing its variables.
 
+The third credential is a separate native operator for the
+[OAuth revocation lab](18-revocacion-oauth.md#demonstrate-it-in-lumens-ui).
+It can revoke OAuth JWTs only for the configured Verify issuer, renew itself and
+revoke itself. It cannot read business data, create tokens or change policies.
+The server restricts targets to the current session's lab pairs. This token has
+a renewable one-hour period; Lumen renews it every 20 minutes and revokes it on
+normal shutdown. If it is absent, the lab asks for an updated startup.
+
 This foreground run lasts as long as the terminal stays open; Ctrl+C stops it. The automated launcher uses launchd and copies the runtime outside Google Drive because of macOS restrictions. That supervision is not needed to understand the manual startup.
+
+In another terminal, `/health` reports `ciba_enabled` and
+`oauth_revocation_lab_available`. The CIBA flag is true after provisioning chapter
+[17](17-contratacion-ciba.md), unless explicitly disabled; it does not attest to
+Validator approval. The revocation flag confirms that the operator was loaded,
+not that a revocation test has run. After editing source in a managed installation,
+use `bash scripts/demo/start.sh` to synchronize and restart it; a foreground manual
+run must instead be stopped and started again with the block above.
 
 ## 4. Open the interfaces
 
