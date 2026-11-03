@@ -101,7 +101,7 @@ CODE
 add_cell markdown <<'MD'
 ## 6. Interactive walkthrough
 
-The labels below are in English: select **EN** to follow them literally. **ES** switches the form, validations and inbox to Spanish; the initial language comes from the browser if no choice has been saved. **Da el siguiente paso**, **Usar datos de prueba**, **Guardar borrador** and **Revelar datos** are the Spanish equivalents of **Take the next step**, **Use test data**, **Save draft** and **Reveal data**. Switching EN/ES keeps the step and the data typed during the session, with the same permissions and the same validation of Spanish DNI/IBAN numbers. [Preservation test without saving an application](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
+The labels below are in English: select **EN** to follow them literally. **ES** switches the form, validations and inbox to Spanish; the initial language comes from the browser if no choice has been saved. **Da el siguiente paso**, **Usar datos de prueba**, **Guardar solicitud** and **Revelar datos** are the Spanish equivalents of **Take the next step**, **Use test data**, **Save application** and **Reveal data**. Switching EN/ES keeps the step and the data typed during the session, with the same permissions and the same validation of Spanish DNI/IBAN numbers. [Preservation test without saving an application](docs/manual/10-aplicacion.md#idioma-y-comprobaciones-bilingües).
 
 1. **Writer**: sign in as `lumen-writer`. «Take the next step» → accept the random suggestions with Tab (or «Use test data») → go through tariff, home, holder, payment and review. Try a wrong DNI letter or change the IBAN check digits: progress is blocked. Review, tick the confirmation and save.
 2. **Writer**: in «Applications», click «Reveal data». The ciphertext is read with SQL RW, but Vault denies Transit decrypt with HTTP 403. Open the trace link in the dialog.
@@ -164,7 +164,7 @@ CODE
 add_cell markdown <<'MD'
 ## 9. Repetition and limits
 
-The scripts reuse users, engines, roles and keys. There is no destructive cleanup or migration of `service_requests`; the original drafts remain under «Previous drafts». A new row is inserted only after the three protected results have been obtained. A failure after tokenization can leave token mappings without an SQL row, since there is no distributed transaction between Vault and MySQL.
+The scripts reuse users, engines, roles and keys. There is no destructive cleanup or migration of `service_requests`; historical rows are retained without a separate drafts view. All current form submissions and chat queries use the same «Applications» inbox backed by `energy_applications`; `draft` is an application status until CIBA finalizes the contract. A new row is inserted only after the three protected results have been obtained. A failure after tokenization can leave token mappings without an SQL row, since there is no distributed transaction between Vault and MySQL.
 
 For new runs without raw content: `LUMEN_VAULT_AUDIT_MODE=hmac bash chatbot/scripts/enable-audit.sh`, stop Lumen and start it with `LUMEN_TRACE_CONTENT=0 LUMEN_TRACE_VAULT_RAW=0 bash chatbot/scripts/run.sh`. This does not delete previous records.
 

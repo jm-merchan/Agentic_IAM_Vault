@@ -275,12 +275,6 @@ def home(request: Request):
                 ui.link(t('Ver última traza'), '/traces/' + session.traces[-1], new_tab=True).classes('tiny')
                 ui.label(t('Trace ID · ' + session.traces[-1])).classes('tiny muted').style('overflow-wrap:anywhere')
 
-    async def confirm():
-        async def action():
-            result = await SERVICES.confirm_request(session)
-            return t('Borrador **#{id}** guardado en MySQL. Es una solicitud ficticia; no se ha contratado ningún suministro.', id=result['id'])
-        await perform(t('Confirmar borrador'), action)
-
     @ui.refreshable
     def pending_view():
         if session and session.pending:
@@ -345,14 +339,6 @@ def home(request: Request):
             return '**' + t('Catálogo de demostración') + '**\n\n' + table(rows, t.language) + '\n\n' + t('Precios ficticios para probar el acceso a datos.')
         await perform(t('Comparar los planes del catálogo'), action)
 
-    async def quick_requests():
-        async def action():
-            rows = await SERVICES.requests(session)
-            if not rows:
-                return t('Todavía no tienes borradores guardados.')
-            return '\n'.join(f'- **#{r["id"]}** · plan {r["plan_id"]} · {r["status"]}: {r["note"]}' for r in rows)
-        await perform(t('Ver mis solicitudes'), action)
-
     async def quick_search():
         async def action():
             rows = await SERVICES.search(session, 'autoconsumo')
@@ -392,7 +378,6 @@ def home(request: Request):
                 ui.button(t('Laboratorio RAR'), icon='tune', on_click=lambda: ui.navigate.to('/laboratorio-rar')).props('flat').classes('nav-button')
                 ui.button(t('Revocación OAuth'), icon='block', on_click=lambda: ui.navigate.to('/laboratorio-revocacion')).props('flat').classes('nav-button')
                 ui.button(t('Mi espacio de secretos'), icon='lock_outline', on_click=lambda: ui.navigate.to('/mi-espacio')).props('flat').classes('nav-button')
-                ui.button(t('Borradores anteriores'), icon='history', on_click=quick_requests).props('flat').classes('nav-button')
                 ui.button(t('Explorar en la web'), icon='public', on_click=quick_search).props('flat').classes('nav-button')
             ui.button(t('Nueva conversación'), icon='add', on_click=clear_chat).props('outline').classes('secondary w-full')
         with ui.element('main').classes('workspace'):

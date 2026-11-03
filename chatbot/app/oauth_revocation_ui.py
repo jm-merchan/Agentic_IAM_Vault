@@ -102,7 +102,7 @@ async def render_oauth_revocation(services, session, guard, run_action, language
                 ui.label(t('TTL inicial: {ttl} s · Vault: {state} · acceso antes: {before} · acceso después: {after}',
                     ttl=lease['ttl'], state=t(states[lease['state']]),
                     before=t(states[lease['before']]), after=t(states[lease['after']]))).classes('tiny muted')
-            ui.label(t('Se conserva la misma credencial para las pruebas antes y después. No se revoca el lease por separado. Las contraseñas y API keys permanecen en el servidor.')).classes('tiny muted')
+            ui.label(t('Se conserva la misma credencial para las pruebas antes y después. No se revoca el lease por separado. Puedes inspeccionar las credenciales del lab con Ver valores sensibles en una traza nueva.')).classes('tiny muted')
         with ui.expansion(t('Identidad de los tokens y petición de bloqueo'), icon='data_object').classes('w-full'):
             for label, claims in zip(('A', 'B'), saved['tokens']):
                 ui.label('Token ' + label).classes('text-weight-bold')
@@ -113,7 +113,7 @@ async def render_oauth_revocation(services, session, guard, run_action, language
                 ui.code(json.dumps({'issuer': claims['iss'], 'unique_id': claims['jti'],
                                     'exp': max(0, int(claims['exp'] - time.time())) + 16}, indent=2), language='json').classes('w-full')
                 ui.label(t('issuer viene de iss; unique_id viene de jti. exp es la duración restante más 15 s de tolerancia, no la fecha exp del JWT. El valor se recalcula al pulsar Bloquear.')).classes('tiny muted')
-                ui.label(t('La llamada usa un operador de Vault separado, limitado al issuer de Verify. Los JWT y la credencial del operador permanecen en el servidor.')).classes('tiny muted')
+                ui.label(t('La llamada usa un operador de Vault separado, limitado al issuer de Verify. Su credencial permanece oculta; puedes inspeccionar el payload y la respuesta.')).classes('tiny muted')
         ui.label(t('Resultados de la prueba')).classes('text-2xl mt-4')
         phases = {'before': 'Generar lease', 'revoke': 'Bloqueo en Vault', 'after': 'Acceso tras el bloqueo', 'cleanup': 'Limpieza',
                   'lease_before': 'Lease antes', 'lease_after': 'Lease después',
@@ -139,5 +139,5 @@ async def render_oauth_revocation(services, session, guard, run_action, language
         if saved['traces']:
             tid = saved['traces'][-1]
             ui.label(t('Flujo de la última acción')).classes('text-2xl mt-4')
-            TraceFlow(records_for({tid}), trace_id=tid, language=t.language, inspection=False)
+            TraceFlow(records_for({tid}), trace_id=tid, language=t.language)
     body()

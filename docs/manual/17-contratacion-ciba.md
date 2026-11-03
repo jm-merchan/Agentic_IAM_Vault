@@ -67,7 +67,7 @@ contracting button: use Writer and one of Writer's own drafts.
 ## Verification in the interface
 
 1. Sign in as **Writer + Modo actual** or **Writer + Creación de solicitudes**.
-2. Create an application with the fictitious data and press **Guardar borrador** (*Save draft*).
+2. Create an application with the fictitious data and press **Guardar solicitud** (*Save application*).
 3. Open **Solicitudes** (*Applications*). Only your drafts show **Contratar**.
 4. Press **Contratar**. The window shows the Validator, the reference and the message
    that must match Verify. While waiting, no contract row exists.

@@ -129,12 +129,20 @@ registran los resultados sin secretos. Un error de red o permisos no demuestra
 revocación; el éxito exige A=403, lease ausente y autenticación rechazada antes del
 vencimiento original, con B funcionando en los tres niveles.
 
-Las llamadas a Vault de este lab registran metadatos, sin capturar JWT, credenciales
-SQL, API keys ni el bearer nativo del operador. El diagrama integrado desactiva los controles
-de inspección sensible y repetición; el panel de identidades muestra los claims
-permitidos y el JSON de bloqueo. La emisión OBO sigue los controles de captura
-habituales cuando el modo raw está habilitado. La auditoría de `revoke-oauth` se
-consulta en `hmac`, no en los filtros raw de las rutas de negocio.
+En una traza nueva, **Ver valores sensibles** muestra las peticiones y respuestas
+reales de Verify, Vault y xAI, además de la credencial, consulta preparada o enviada
+y resultado/error de MySQL. El diagrama integrado y la página de traza permiten
+la misma inspección. Con `LUMEN_TRACE_VAULT_RAW=1`, estos detalles del lab se guardan
+en memoria durante diez minutos, vinculados a la sesión propietaria; no se exportan
+como atributos de spans. Las trazas anteriores no pueden recuperar cuerpos que no
+se capturaron.
+
+El payload y la respuesta de `revoke-oauth` y `sys/leases/lookup` también se pueden
+inspeccionar, con el bearer del operador sustituido por `[REDACTED]`. Estas llamadas
+del operador no ofrecen repetición desde la consola. Las llamadas de los JWT del
+lab, xAI y MySQL sí conservan sus plantillas, con la credencial original y su vigencia.
+La auditoría de `revoke-oauth` se consulta en `hmac`, no en los filtros raw de las
+rutas de negocio.
 
 `vault.clock.offset_seconds` identifica un diagnóstico de reloj: una respuesta
 403 con HTTP Date desfasado más de 30 s y un JWT vigente en Lumen pero fuera de

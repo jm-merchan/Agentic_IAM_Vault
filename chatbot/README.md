@@ -48,7 +48,7 @@ Las siguientes respuestas del asistente usan el idioma elegido con OpenAI, xAI o
 | Solicitudes | Applications |
 | Continuar solicitud | Continue application |
 | Usar datos de prueba | Use test data |
-| Guardar borrador | Save draft |
+| Guardar solicitud | Save application |
 | Ver última traza | View latest trace |
 | Ver valores sensibles | View sensitive values |
 | Autenticación HTTP Basic | HTTP Basic authentication |
@@ -129,7 +129,7 @@ Los tres son usuarios **Cloud Directory**; elegir esa opción al entrar en Verif
 
 **No hay sincronización nativa automática del claim con políticas.** Ejecutar el script 05 después de cambiar miembros, reiniciar Lumen si cambia el mapa de grupos y pedir un nuevo login. Para revocar acceso, sincronizar Vault inmediatamente; los JWT duran hasta 600 s. Si un usuario pertenece al grupo de gestores además de otro grupo, obtiene RW y la unión de sus políticas de Vault.
 
-Los roles son permisos de **base de datos**, no seguridad por fila o columna. «Borradores anteriores» filtra `service_requests` por `subject_id`. La bandeja «Solicitudes» muestra una proyección enmascarada compartida de `energy_applications` para comparar los tres perfiles sobre el mismo registro. Un cliente SQL RO podría leer ciphertext y tokens; necesita permisos independientes de Vault para recuperarlos en claro. El agente conversacional no expone SQL arbitrario. Guardar crea un **borrador**; solo la aprobación CIBA permite formalizar el contrato ficticio. No hay contratación comercial.
+Los roles son permisos de **base de datos**, no seguridad por fila o columna. Todas las solicitudes del formulario y del chat se consultan en la misma bandeja «Solicitudes», que muestra una proyección enmascarada compartida de `energy_applications` para comparar los tres perfiles sobre el mismo registro. Un cliente SQL RO podría leer ciphertext y tokens; necesita permisos independientes de Vault para recuperarlos en claro. El agente conversacional no expone SQL arbitrario. «Guardar solicitud» crea una solicitud con estado **borrador** en esa misma bandeja; no hay una sección separada de borradores. Solo la aprobación CIBA permite formalizar el contrato ficticio. La tabla histórica `service_requests` se conserva sin borrarla ni migrarla y no forma parte de la interfaz actual. No hay contratación comercial.
 
 ## Instalación
 
@@ -239,6 +239,9 @@ el directo emite API keys dinámicas de xAI y prueba `/v1/api-key` sin inferenci
 La tabla exige A=403, lease ausente y credencial rechazada antes del vencimiento
 original, con B funcionando en los tres niveles. No se revoca el lease por separado.
 La llamada API usa el operador separado; A y B son JWT de Verify.
+En una traza nueva, **Ver valores sensibles** permite inspeccionar peticiones,
+respuestas y errores reales de Verify, Vault, MySQL y xAI durante diez minutos.
+El bearer del operador permanece oculto y sus llamadas sólo permiten inspección.
 
 El ciclo histórico del 14/10 comprobó en Chrome tres consultas reales: emisión inicial, reutilización del mismo lease y sustitución por otro antes de caducar. [Ciclo de vida verificado](docs/xai-runtime-verification.json) · [Correlación Tempo/Loki](docs/xai-observability-verification.json). La suite incluye concurrencia, sustitución fallida, expiración, límite de ejecución y ausencia de retorno a la clave estática.
 
@@ -248,7 +251,7 @@ La [revisión integral del 22/10](../docs/runs/20261022T140230Z-workspace-review
 
 1. Entrar como **lumen-reader**, usando Cloud Directory. Pedir «Consulta el catálogo y el inventario». Puede leer los tres planes y los tres equipos de ejemplo. «Da el siguiente paso» bloquea la escritura localmente. «Comprobar límites en Vault» prueba nueve rutas: SQL, administración, Transit y Transform, con resultado y permiso esperado. [Matriz y capturas](../docs/PERMISSION_PROBES.md).
 2. Cambiar a **lumen-writer**. Pedir «Prepara una solicitud para Luz Noche, plan 2». El agente ofrece **Continuar solicitud**; todavía no ha guardado datos.
-3. Completar tarifa, vivienda, titular, pago y revisión. Marcar la revisión y pulsar **Guardar borrador**. Se guarda una única solicitud ficticia protegida.
+3. Completar tarifa, vivienda, titular, pago y revisión. Marcar la revisión y pulsar **Guardar solicitud**. Se guarda una única solicitud ficticia protegida.
 4. En **Solicitudes**, lector y gestor ven la bandeja compartida enmascarada. **Revelar datos** produce una denegación real de Vault para ambos.
 5. Cambiar a **lumen-supervisor**: puede revelar el mismo registro mediante Transit y Transform. Sigue sin permiso RW ni creación de solicitudes.
 6. **Una mirada más amplia** ejecuta el agente autónomo Tavily. El rol humano no le concede acceso SQL: usa su propia identidad registrada.
@@ -276,7 +279,7 @@ aún más cada permiso; consulta la matriz de Agentes por tarea.
 | Operación | Lector | Gestor | Supervisor |
 |---|---|---|---|
 | Catálogo, inventario y bandeja enmascarada | Sí | Sí | Sí |
-| Guardar borrador | No | Sí | No |
+| Guardar solicitud | No | Sí | No |
 | Transit encrypt + Transform encode | No | Sí | No |
 | Transit decrypt + Transform decode | No | No | Sí |
 | Credencial SQL RW | No | Sí | No |

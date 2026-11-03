@@ -48,7 +48,10 @@ Verify. The agent drawer also links to this lab alongside the RAR lab.
    must both authenticate: new MySQL connections with `SELECT 1`, or xAI's API-key endpoint.
 4. Expand **Leases y acceso al sistema final** and **Identidad de los tokens y
    petición de bloqueo**. They show lease IDs, initial TTLs, authentication outcomes,
-   signed identity metadata and revocation JSON; passwords and API keys stay on the server.
+   signed identity metadata and revocation JSON. Use **Ver valores sensibles / View
+   sensitive values** on a new trace to inspect the workload JWT, leased credentials,
+   HTTP request/response and SQL result or authentication error. Details remain in
+   the owning session's server memory for ten minutes and are returned on demand.
 5. Click **3. Revocar token A** while the JWTs have over 30 seconds and both leases
    over 15 seconds remaining. The server confirms both original leases are still
    active, then calls `auth/token/revoke-oauth` with the separate native operator.
@@ -80,6 +83,12 @@ This service operator is different from the CLI runner's per-token temporary ope
 After updating the source, `bash scripts/demo/start.sh` synchronizes the managed runtime
 and prepares this operator; restarting ends current browser sessions.
 
+Both the embedded diagram and the trace page support detailed inspection. The
+operator's request payload and response are visible, while its bearer is always
+redacted and its calls cannot be replayed from the request console. Workload JWT,
+xAI and SQL calls retain their original request templates. Old traces created
+without detailed capture cannot recover their missing bodies; create a fresh pair.
+
 [UI controller verification](../../chatbot/docs/oauth-revocation-ui-verification.json)
 records the earlier November 3 Chrome walkthrough and a subsequent live check against
 Verify, Vault and MySQL using the synchronized runtime. Both modes returned A=403
@@ -91,6 +100,17 @@ Reproduce the extended UI controller test against Verify, Vault, MySQL and xAI:
 ```bash
 bash chatbot/scripts/verify-oauth-revocation-leases.sh
 ```
+
+To also verify the real capture store and owner-only inspection endpoints:
+
+```bash
+LUMEN_REVOCATION_CAPTURE_CHECK=1 bash chatbot/scripts/verify-oauth-revocation-leases.sh
+```
+
+This writes a separate `chatbot/docs/oauth-revocation-capture-verification.json`
+containing only check results and identifiers, excluding captured credentials.
+The [capture verification summary](../runs/20261103-revocation-capture/README.md)
+also records the browser check of xAI's HTTP 400 response body.
 
 This verifier uses fresh JWT pairs and a five-minute native operator, with the
 same policy template as the UI. It verifies both original leases disappear during

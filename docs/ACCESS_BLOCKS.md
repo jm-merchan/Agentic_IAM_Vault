@@ -104,7 +104,7 @@ a time-validation failure is different from either an ACL block or token revocat
 
 1. **xAI:** select xAI and type a question about energy. Run `block xai` and send another one: the denied path and HTTP 403 appear. Run `unblock xai` and repeat: a new key is obtained and the answer comes back.
 2. **Read:** sign in as reader or writer. Open Energy plans, run `block database-read` and click the button again. After `unblock database-read`, repeat without signing out.
-3. **Write:** sign in as writer and fill in a fictitious application up to Review. Run `block database-write` and click **Save draft**. Reads remain available; the INSERT never reaches MySQL. Run `unblock database-write` and retry.
+3. **Write:** sign in as writer and fill in a fictitious application up to Review. Run `block database-write` and click **Save application**. Reads remain available; the INSERT never reaches MySQL. Run `unblock database-write` and retry.
 4. **Decryption:** sign in as supervisor. Open Applications, run `block decrypt` and click Reveal data. The list stays masked. After `unblock decrypt`, the same operation works again.
 
 `Check limits in Vault` makes real requests to the nine SQL/Transit/Transform paths. The Expected column describes the profile's normal permissions; an administrative block produces a deliberate difference between that column and Result.

@@ -107,6 +107,7 @@ def inspection_router(identity, records_for, cookie='lumen_session'):
         sections = inspect_record(record, stored)
         return result({
             'span_id': sid, 'sections': sections, 'requests': templates(stored),
+            'replay_note': t((stored or {}).get('sections', {}).get('replay_policy', {}).get('value', {}).get('reason', '')),
             'expires_at': min(session.expires_at, (stored or {}).get('expires_at', time.time() + 600)),
             'message': '' if sections else 'No hay valores capturados para este paso. Genera una nueva traza; las capturas en memoria caducan a los 10 minutos o al reiniciar Lumen.',
             'note': 'Valores de esta ejecución. La decodificación de JWT no verifica su firma. Los valores en memoria caducan a los 10 minutos; los intercambios raw de Vault/SPIFFE conservan la retención de las trazas.',

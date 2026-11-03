@@ -138,7 +138,7 @@ def test_model_uses_selected_language_instead_of_old_history(monkeypatch):
     agent.make_agent(services, session, config={'model': 'test', 'provider': 'openai'}, model=object(), language='en')
     prompt = factory.call_args.kwargs['system_prompt']
     assert prompt.startswith('Reply in English')
-    assert 'Continue application' in prompt and 'Save draft' in prompt
+    assert 'Continue application' in prompt and 'Save application' in prompt
     assert 'Habla en español' not in prompt
     assert session.language == 'es'  # Page preference cannot mutate another tab's locale.
 

@@ -13,6 +13,7 @@ from app.oauth_revocation_lab import OAuthRevocationLab, PATHS, payload_for
 from app.oauth_revocation_ui import render_oauth_revocation
 from app.rar import authorization_details
 from app.security import AccessDenied, ISSUER, Session
+from app.telemetry import span
 
 
 def setup(mode='delegated'):
@@ -163,9 +164,19 @@ def test_api_exp_is_remaining_duration():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('language', ['es', 'en'])
-async def test_ui_buttons_drive_real_manager_without_reissuing_tokens(language):
+async def test_ui_buttons_drive_real_manager_without_reissuing_tokens(language, monkeypatch):
     manager, session, _ = setup()
-    async def run_action(name, action): return await action()
+    monkeypatch.setenv('LUMEN_TRACE_VAULT_RAW', '1')
+    from app.trace_flow_ui import TraceFlow
+    inspection = []
+    def flow(*args, **kwargs):
+        element = TraceFlow(*args, **kwargs)
+        inspection.append(element._props['labEnabled'])
+        return element
+    monkeypatch.setattr('app.oauth_revocation_ui.TraceFlow', flow)
+    async def run_action(name, action):
+        with span(name):
+            return await action()
     async def page():
         await render_oauth_revocation(manager.services, session, lambda: None, run_action, language)
     labels = (['1. Crear tokens y leases', '2. Probar acceso al sistema final', '3. Revocar token A', '4. Verificar token, lease y acceso']
@@ -179,6 +190,7 @@ async def test_ui_buttons_drive_real_manager_without_reissuing_tokens(language):
         assert manager.view(session, 'delegated')['verified']
         assert manager.services.exchange.await_count == 2
         await user.should_see('Demostrado:' if language == 'es' else 'Proven:')
+        assert inspection and all(inspection)
 
 
 @pytest.mark.asyncio

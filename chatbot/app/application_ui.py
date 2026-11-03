@@ -142,8 +142,9 @@ async def render_wizard(services, session, guard, run_action, language=None):
         if saved:
             with ui.element('section').classes('application-success'):
                 ui.icon('check_circle', size='58px').classes('success-icon')
-                ui.label(t('Borrador guardado.')).classes('text-3xl mt-4')
+                ui.label(t('Solicitud guardada.')).classes('text-3xl mt-4')
                 ui.label(t('Todo listo para continuar la demostración. No se ha contratado ningún suministro.')).classes('muted mt-3')
+                ui.label(t('La encontrarás en Solicitudes, con estado borrador hasta completar la contratación.')).classes('muted mt-3')
                 ui.label(t('Referencia · ' + saved)).classes('application-reference')
                 ui.label(t('Tus datos se han guardado protegidos.')).classes('mt-4')
                 ui.link(t('Ver solicitudes'), '/solicitudes').classes('primary mt-5')
@@ -223,7 +224,7 @@ async def render_wizard(services, session, guard, run_action, language=None):
                     if step < 4:
                         ui.button(t('Continuar'), icon='arrow_forward', on_click=next_step).props('no-caps').classes('primary')
                     else:
-                        ui.button(t('Guardando…' if busy else 'Guardar borrador'), icon='lock', on_click=save).props('no-caps').classes('primary').set_enabled(not busy)
+                        ui.button(t('Guardando…' if busy else 'Guardar solicitud'), icon='lock', on_click=save).props('no-caps').classes('primary').set_enabled(not busy)
             with ui.element('aside').classes('application-summary'):
                 ui.label(t('TU ELECCIÓN')).classes('eyebrow')
                 plan = plan_map.get(form['plan_id'], plans[0])
@@ -259,7 +260,7 @@ async def render_applications(services, session, guard, run_action, language=Non
     if not rows:
         with ui.element('div').classes('application-panel'):
             ui.label(t('Todavía no hay solicitudes en esta bandeja.')).classes('text-xl')
-            ui.label(t('Entra como gestor para completar la primera. Los borradores antiguos siguen disponibles desde el chat.')).classes('muted mt-3')
+            ui.label(t('Entra como gestor para completar la primera.')).classes('muted mt-3')
         return
 
     latest_trace = None

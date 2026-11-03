@@ -343,9 +343,6 @@ class Services(ApplicationServices, SpiffeModelServices):
         session.catalogue_evidence = {'checked_at': time.time(), 'trace_id': trace_id(), 'plans': plans}
         return plans
 
-    async def requests(self, session: Session):
-        return await self.database(session, 'SELECT id,plan_id,note,status,created_at FROM service_requests WHERE subject_id=%s ORDER BY id DESC LIMIT 20', (session.subject,))
-
     async def inventory(self, session: Session):
         return await self.database(session, 'SELECT ID,server_name FROM test_encryption ORDER BY ID DESC LIMIT 20')
 
@@ -361,13 +358,6 @@ class Services(ApplicationServices, SpiffeModelServices):
             session.application_draft['form'].update(plan_id=plan_id, note=note.strip())
         return {'status': 'awaiting_user_confirmation', 'plan_id': plan_id,
                 'note': note.strip(), 'message': 'Pulsa Continuar solicitud para completar los cinco pasos y revisar antes de guardar. No se contrata ningún suministro.'}
-
-    async def confirm_request(self, session: Session):
-        pending, session.pending = session.pending, None
-        if not pending or time.time() - pending['created_at'] > 300:
-            raise AccessDenied('El borrador no existe o ha caducado.')
-        return await self.database(session, 'INSERT INTO service_requests(subject_id,plan_id,note) VALUES(%s,%s,%s)',
-                                   (session.subject, pending['plan_id'], pending['note']), write=True)
 
     async def search(self, session: Session, topic: str):
         session.require_login()

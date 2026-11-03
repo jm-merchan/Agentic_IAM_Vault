@@ -7,10 +7,74 @@ import pytest
 from nicegui import ui
 from nicegui.testing.user_simulation import user_simulation
 
-from app.application_ui import render_applications
-from app.applications import DEMO_FORM
+from app.application_ui import render_applications, render_wizard
+from app.applications import DEMO_FORM, document_hint, iban_hint
+from app.i18n import Translator
 from app.security import Session
 from app.services import VaultPermissionDenied
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('language', ['es', 'en'])
+async def test_saved_application_is_linked_to_the_same_masked_inbox(language):
+    """Saving and reading use one application reference, with draft as its status."""
+    t = Translator(language)
+    session = Session('save-ui', subject='writer', name='Writer')
+    rows = []
+
+    async def save(_, form, reference):
+        rows.append({
+            'application_id': reference, 'plan_name': 'Luz Noche', 'status': 'borrador',
+            'created_at': '2026-11-03', 'dni_hint': document_hint(form['dni']),
+            'iban_hint': iban_hint(form['iban']),
+        })
+        return reference
+
+    services = SimpleNamespace(
+        role=lambda _: 'readwrite', can_reveal=lambda _: False,
+        contracts=SimpleNamespace(config={}),
+        plans=AsyncMock(return_value=[{
+            'id': n, 'name': 'Luz Noche', 'price_kwh': 0.119,
+            'description': 'Tarifa ficticia',
+        } for n in (1, 2, 3)]),
+        save_application=AsyncMock(side_effect=save),
+        applications=AsyncMock(side_effect=lambda _: rows),
+    )
+
+    async def run_action(name, action):
+        session.traces.append('a' * 32)
+        return await action()
+
+    async def wizard():
+        await render_wizard(services, session, lambda: None, run_action, language)
+
+    async def inbox():
+        await render_applications(services, session, lambda: None, run_action, language)
+
+    async with user_simulation(wizard) as user:
+        ui.page('/solicitudes')(inbox)
+        await user.open('/')
+        user.find(t('Usar datos de prueba'), kind=ui.button).click()
+        for heading in ['¿Dónde está tu vivienda?', 'Conozcamos al titular.',
+                        'Tu cuenta, con tranquilidad.', 'Todo claro antes de guardar.']:
+            user.find(t('Continuar'), kind=ui.button).click()
+            await user.should_see(t(heading))
+        user.find(t('He revisado los datos de esta solicitud de demostración.'), kind=ui.checkbox).click()
+        user.find(t('Guardar solicitud'), kind=ui.button).click()
+        await user.should_see(t('Solicitud guardada.'))
+        services.save_application.assert_awaited_once()
+        reference = services.save_application.call_args.args[2]
+        link = next(iter(user.find(t('Ver solicitudes'), kind=ui.link).elements))
+        assert link.props['href'] == '/solicitudes'
+        assert session.application_draft is None and session.pending is None
+        await user.open('/solicitudes')
+        await user.should_see(t('Referencia · ' + reference))
+        await user.should_see(t('borrador'))
+        services.applications.assert_awaited_once_with(session)
+        await user.should_not_see(t('Todavía no hay solicitudes en esta bandeja.'))
+        form = services.save_application.call_args.args[1]
+        for field in ('full_name', 'dni', 'iban', 'email'):
+            await user.should_not_see(form[field])
 
 
 @pytest.mark.asyncio

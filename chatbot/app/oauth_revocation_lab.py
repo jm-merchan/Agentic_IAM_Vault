@@ -19,6 +19,7 @@ from .security import AccessDenied, ISSUER
 from .task_agents import actor_credential
 from .telemetry import headers, span, trace_id
 from .vault_clock import raise_for_clock_mismatch
+from . import lab_capture
 
 PATHS = {'delegated': 'database/creds/chatbot-readonly',
          'direct': 'xai/creds/lumen'}
@@ -138,6 +139,24 @@ class OAuthRevocationLab:
                                  verify=self.services.vault_tls, timeout=30,
                                  headers={'X-Vault-Token': self._token, 'X-Vault-Namespace': 'verify'})
 
+    async def _operator_request(self, current, path, payload):
+        """Inspect the real operator exchange without handing its bearer to the UI."""
+        async with self._client() as client:
+            request = client.build_request('POST', '/v1/' + path, json=payload, headers=headers())
+            safe_headers = {key: '[REDACTED]' if key.lower() == 'x-vault-token' else value
+                            for key, value in request.headers.items()}
+            lab_capture.request(current, request.method, str(request.url), payload, headers=safe_headers)
+            lab_capture.capture(current, 'replay_policy', 'Operador de revocación', {
+                'allowed': False,
+                'reason': 'La credencial del operador permanece en el servidor. Puedes inspeccionar esta llamada; su repetición desde la consola está desactivada.',
+            })
+            result = await client.send(request)
+        lab_capture.capture(current, 'response', 'Respuesta recibida', {
+            'status_code': result.status_code, 'headers': dict(result.headers),
+            'body': result.json() if result.content else None,
+        })
+        return result
+
     def _guard(self, session, mode):
         self.services.role(session)
         if mode not in PATHS:
@@ -170,7 +189,8 @@ class OAuthRevocationLab:
         method = 'POST' if revoke is not None else 'GET'
         actor = ('oauth-revocation-operator' if revoke is not None else 'chatbot-xai'
                  if pair.mode == 'direct' else 'chatbot-' + actor_credential(self.services.config, pair.task_agent))
-        # Deliberately capture metadata only: no operator bearer, SQL password or JWT body.
+        # Telemetry contains metadata only. Detailed lab evidence stays in the
+        # session-owned, ten-minute memory store; the operator bearer is excluded.
         with span('vault.write' if revoke is not None else 'vault.read', **{
             'vault.path': path, 'vault.namespace': 'verify', 'http.request.method': method,
             'agent.identity': actor, 'auth.flow': 'revocation_operator' if revoke else pair.mode,
@@ -179,9 +199,15 @@ class OAuthRevocationLab:
             if len(pair.claims) > index:
                 current.set_attribute('revocation.lab.seconds_until_exp', pair.claims[index]['exp'] - time.time())
                 current.set_attribute('revocation.lab.unique_id', pair.claims[index]['jti'])
-            async with self._client() as client:
-                result = await client.request(method, '/v1/' + path, json=revoke,
-                    headers={'X-Vault-Token': token, 'X-Vault-Namespace': 'verify', **headers()})
+            if revoke is not None:
+                result = await self._operator_request(current, path, revoke)
+            else:
+                request_headers = {'X-Vault-Token': token, 'X-Vault-Namespace': 'verify', **headers()}
+                lab_capture.request(current, method, self.services.config['vault_addr'] + '/v1/' + path,
+                                    None, headers=request_headers)
+                async with self._client() as client:
+                    result = await client.request(method, '/v1/' + path, headers=request_headers)
+                lab_capture.response(current, result)
             current.set_attribute('http.response.status_code', result.status_code)
             body = result.json() if result.content else {}
             current.set_attribute('vault.request_id', body.get('request_id', ''))
@@ -204,9 +230,8 @@ class OAuthRevocationLab:
                 'revocation.lab.token': label, 'revocation.lab.phase': phase}) as current:
             try:
                 lookup_started, lookup_wall = time.monotonic(), time.time()
-                async with self._client() as client:
-                    response = await client.post('/v1/sys/leases/lookup',
-                        json={'lease_id': credential.lease_id}, headers=headers())
+                response = await self._operator_request(current, 'sys/leases/lookup',
+                                                        {'lease_id': credential.lease_id})
                 current.set_attribute('http.response.status_code', response.status_code)
                 body = response.json()
                 ttl = body.get('data', {}).get('ttl')
@@ -239,27 +264,48 @@ class OAuthRevocationLab:
         if not credential.get('client_secret'):
             raise AccessDenied('El agente directo chatbot-xai no está configurado.')
         with span('verify.client_credentials', **{'agent.identity': 'chatbot-xai', 'auth.flow': 'client_credentials'}) as current:
+            data = {'grant_type': 'client_credentials', 'scope': 'openid profile email',
+                    'authorization_details': json.dumps(authorization_details(PATHS['direct'], ['read']))}
+            lab_capture.request(current, 'POST', ISSUER + '/token', data,
+                                basic_auth=(credential['client_id'], credential['client_secret']))
             async with httpx.AsyncClient(timeout=30) as client:
                 response = await client.post(ISSUER + '/token',
                     auth=(credential['client_id'], credential['client_secret']),
-                    data={'grant_type': 'client_credentials', 'scope': 'openid profile email',
-                          'authorization_details': json.dumps(authorization_details(PATHS['direct'], ['read']))})
+                    data=data)
+            lab_capture.response(current, response)
             current.set_attribute('http.response.status_code', response.status_code)
             if response.status_code != 200:
                 raise AccessDenied('Verify no ha emitido el token directo del laboratorio.')
             return response.json()['access_token']
 
-    async def _sql_accepts(self, credential):
+    async def _sql_accepts(self, credential, *, lease_id='', ttl=None, label='', phase=''):
         def connect():
             with span('mysql.query', **{'db.role': 'readonly', 'db.operation.name': 'SELECT',
-                                       'db.statement': 'SELECT 1'}) as current:
+                    'db.statement': 'SELECT 1', 'db.system.name': 'mysql',
+                    'vault.lease_id': lease_id, 'revocation.lab.token': label,
+                    'revocation.lab.phase': phase}) as current:
+                lab_capture.capture(current, 'connection', 'Credencial dinámica utilizada en MySQL', {
+                    'host': '127.0.0.1', 'port': 13306, 'database': None,
+                    'username': credential['username'], 'password': credential['password'],
+                    'lease_id': lease_id, 'lease_duration': ttl,
+                })
+                query = {'statement': 'SELECT 1', 'parameters': [], 'executed': False}
+                lab_capture.capture(current, 'query', 'Consulta preparada', query)
                 try:
                     with pymysql.connect(host='127.0.0.1', port=13306, connect_timeout=5,
                             user=credential['username'], password=credential['password']) as connection:
                         with connection.cursor() as cursor:
                             cursor.execute('SELECT 1')
-                            return cursor.fetchone()[0] == 1
+                            query['executed'] = True
+                            lab_capture.capture(current, 'query', 'Consulta y parámetros enviados', query)
+                            row = cursor.fetchone()
+                            lab_capture.capture(current, 'result', 'Resultado de MySQL', {'row': row})
+                            return row[0] == 1
                 except pymysql.MySQLError as exc:
+                    lab_capture.capture(current, 'result', 'Resultado de MySQL', {
+                        'error_code': exc.args[0], 'message': str(exc.args[1]) if len(exc.args) > 1 else '',
+                        'query_executed': query['executed'],
+                    })
                     if exc.args[0] not in (1045, 3118):
                         raise AccessDenied('No se pudo comprobar la conexión MySQL.') from None
                     current.set_attribute('db.error.code', exc.args[0])
@@ -272,16 +318,21 @@ class OAuthRevocationLab:
         target, label = ('MySQL' if pair.mode == 'delegated' else 'xAI'), 'AB'[index]
         try:
             if pair.mode == 'delegated':
-                accepted = await self._sql_accepts(credential.secret)
+                accepted = await self._sql_accepts(credential.secret, lease_id=credential.lease_id,
+                                                 ttl=credential.ttl, label=label, phase=phase)
                 status = 'SQL OK' if accepted else 'SQL authentication rejected'
             else:
                 # Authentication-only endpoint: no inference, prompt or cached chat key.
                 with span('xai.auth_probe', **{'http.request.method': 'GET',
                         'server.address': 'api.x.ai', 'url.path': '/v1/api-key',
                         'revocation.lab.token': label, 'revocation.lab.phase': phase}) as current:
+                    request_headers = {'Authorization': 'Bearer ' + credential.secret['api_key']}
+                    lab_capture.request(current, 'GET', 'https://api.x.ai/v1/api-key', None,
+                                        headers=request_headers)
                     async with httpx.AsyncClient(timeout=15) as client:
                         response = await client.get('https://api.x.ai/v1/api-key',
-                            headers={'Authorization': 'Bearer ' + credential.secret['api_key']})
+                                                    headers=request_headers)
+                    lab_capture.response(current, response)
                     current.set_attribute('http.response.status_code', response.status_code)
                     accepted = True if response.status_code == 200 else None
                     if response.status_code in (401, 403):

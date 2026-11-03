@@ -5,7 +5,7 @@ load_inputs
 load_vault
 export VAULT_NAMESPACE=verify LUMEN_GUIDED=1 MANUAL="$LUMEN_STATE_DIR/manual"
 export PYTHONPATH="$DEMO_ROOT/chatbot"
-export LUMEN_TRACE_VAULT_RAW=0 LUMEN_TRACE_CONTENT=0
+export LUMEN_TRACE_VAULT_RAW=${LUMEN_REVOCATION_CAPTURE_CHECK:-0} LUMEN_TRACE_CONTENT=0
 export LUMEN_TRACE_DIR="$LUMEN_STATE_DIR/oauth-revocation/lease-traces"
 bash "$DEMO_ROOT/scripts/manual/oidc-login.sh" writer write
 export CHATBOT_OAUTH_REVOKER_ISSUER

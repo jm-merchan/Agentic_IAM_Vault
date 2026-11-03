@@ -472,7 +472,7 @@ export default {
           <button type="button" class="tf-small-button" @click="hideSensitive()">{{ t('Cerrar consola') }}</button>
         </header>
         <p>{{ t('Precargada con la petición real. Editar no ejecuta nada. Enviar realiza una nueva llamada con estos valores, sin renovar tokens ni ejecutar las herramientas que proponga el modelo.') }}</p>
-        <p v-if="!inspection.requests?.length" class="tf-notice">{{ t('Este paso no tiene una captura completa reproducible. Genera una nueva traza. Las operaciones internas no son peticiones HTTP.') }}</p>
+        <p v-if="!inspection.requests?.length" class="tf-notice">{{ inspection.replay_note || t('Este paso no tiene una captura completa reproducible. Genera una nueva traza. Las operaciones internas no son peticiones HTTP.') }}</p>
         <template v-if="draft && requestTemplate">
           <div class="tf-workbench-toolbar">
             <label>{{ t('Petición capturada') }}<select :aria-label="t('Petición capturada')" :value="templateId" :disabled="sending" @change="loadRequest($event.target.value)">

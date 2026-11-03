@@ -58,15 +58,6 @@ def test_jwt_requires_signature_issuer_audience_and_expiry():
 
 
 @pytest.mark.asyncio
-async def test_confirmation_is_single_use_and_expires():
-    services = object.__new__(Services)
-    session = Session('s', subject='u', expires_at=time.time() + 60)
-    session.pending = dict(plan_id=1, note='demo', created_at=time.time() - 301)
-    with pytest.raises(AccessDenied):
-        await services.confirm_request(session)
-    assert session.pending is None
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize('changed', [
     {'sub': 'other-user'}, {'actor-token': {'sub': 'other-agent'}},
     {'authorization_details': [{'type': 'vault:path_access', 'path': '*', 'capabilities': ['read']}]},
