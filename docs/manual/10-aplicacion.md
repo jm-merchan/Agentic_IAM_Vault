@@ -101,8 +101,9 @@ The app loads its configuration and revokes the bootstrap token in `load_config(
 
 The third credential is a separate native operator for the
 [OAuth revocation lab](18-revocacion-oauth.md#demonstrate-it-in-lumens-ui).
-It can revoke OAuth JWTs only for the configured Verify issuer, renew itself and
-revoke itself. It cannot read business data, create tokens or change policies.
+It can revoke OAuth JWTs only for the configured Verify issuer, look up lease metadata
+for the two lab roles, renew itself and revoke itself. It cannot list or revoke leases
+directly, read business data, create tokens or change policies.
 The server restricts targets to the current session's lab pairs. This token has
 a renewable one-hour period; Lumen renews it every 20 minutes and revokes it on
 normal shutdown. If it is absent, the lab asks for an updated startup.

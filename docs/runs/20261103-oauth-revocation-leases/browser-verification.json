@@ -1,0 +1,133 @@
+{
+  "checked_at": "2026-11-03T15:22:00.208673+00:00",
+  "browser": "Google Chrome",
+  "observation": "Final success message and original lease/backend results confirmed in accessibility tree for both modes.",
+  "modes": {
+    "delegated": {
+      "prepare": "82a855022806cbce51a9bd714d26d50b",
+      "check": "80ffd293e96820a305f357808350ae0d",
+      "cleanup_http_status": 200,
+      "checks": [
+        {
+          "name": "vault.read",
+          "http_status": 403,
+          "token": "A",
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "vault.read",
+          "http_status": 200,
+          "token": "B",
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "vault.write",
+          "http_status": 400,
+          "token": "A",
+          "lease_state": "missing",
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "mysql.query",
+          "http_status": null,
+          "token": null,
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": 1045
+        },
+        {
+          "name": "vault.write",
+          "http_status": 200,
+          "token": "B",
+          "lease_state": "active",
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "mysql.query",
+          "http_status": null,
+          "token": null,
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "lumen.oauth_revocation.check",
+          "http_status": null,
+          "token": null,
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        }
+      ]
+    },
+    "direct": {
+      "prepare": "e73eb4996b7c5509a250284b79edef0a",
+      "check": "984e0e09453fd2a82d5d1641533df310",
+      "cleanup_http_status": 200,
+      "checks": [
+        {
+          "name": "vault.read",
+          "http_status": 403,
+          "token": "A",
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "vault.read",
+          "http_status": 200,
+          "token": "B",
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "vault.write",
+          "http_status": 400,
+          "token": "A",
+          "lease_state": "missing",
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "xai.auth_probe",
+          "http_status": 400,
+          "token": "A",
+          "lease_state": null,
+          "authentication": "rejected",
+          "db_error_code": null
+        },
+        {
+          "name": "vault.write",
+          "http_status": 200,
+          "token": "B",
+          "lease_state": "active",
+          "authentication": null,
+          "db_error_code": null
+        },
+        {
+          "name": "xai.auth_probe",
+          "http_status": 200,
+          "token": "B",
+          "lease_state": null,
+          "authentication": "accepted",
+          "db_error_code": null
+        },
+        {
+          "name": "lumen.oauth_revocation.check",
+          "http_status": null,
+          "token": null,
+          "lease_state": null,
+          "authentication": null,
+          "db_error_code": null
+        }
+      ]
+    }
+  }
+}

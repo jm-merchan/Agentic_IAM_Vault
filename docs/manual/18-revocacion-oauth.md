@@ -5,15 +5,18 @@ For each mode, token A succeeds, an operator revokes A by its issuer and unique
 identifier, and A then receives HTTP 403 **before expiry**. A second token B,
 with the same identity and RAR but another `jti`, still succeeds.
 
-The delegated branch also checks that the SQL credential issued through A stops
-accepting new connections before its original lease expires.
+The UI also verifies **lease revocation and final-system authentication** in both
+branches: delegated access issues a MySQL login; direct access issues a dynamic
+xAI API key. Both credentials work before revocation. After revoking A's JWT,
+its original lease must disappear and its original credential must stop authenticating
+before the lease's original expiry. B's original lease and credential remain usable.
 
 ## Prerequisites and scope
 
 - The existing Lumen installation, Vault Enterprise 2.2 and the `verify` namespace.
 - The `verify` OAuth resource-server profile with `unique_id_claim=jti`.
-- Existing Writer/task agents, Verify STS, the `chatbot-xai` identity and its
-  `chatbot/xai-access` authorization marker. The database-read and xAI blocks must
+- Existing Writer/task agents, Verify STS, the `chatbot-xai` identity, its
+  `chatbot/xai-access` marker and the `xai/creds/lumen` dynamic role. The database-read and xAI blocks must
   allow normal operation. The lab leaves existing block settings untouched.
 - The Python runtime from [chapter 10](10-aplicacion.md#2-instalar-el-runtime)
   and a working MySQL port-forward on `127.0.0.1:13306`.
@@ -26,8 +29,9 @@ accepting new connections before its original lease expires.
 
 The CLI runner creates fresh lab JWTs and a temporary operator policy/token for each
 mode. It changes no business ACL, OAuth profile, agent registration or Verify client.
-The direct branch reads a non-secret cache marker and performs no model call.
-No CIBA approval is required.
+The original CLI runner's direct branch reads a non-secret cache marker. The UI
+and the lease verifier below use dynamic xAI credentials and the authentication-only
+`GET https://api.x.ai/v1/api-key` endpoint, without inference. No CIBA approval is required.
 
 ## Demonstrate it in Lumen's UI
 
@@ -37,30 +41,39 @@ Verify. The agent drawer also links to this lab alongside the RAR lab.
 
 1. Select **Delegado · usuario + agente (OBO)**. Writer + Creación de solicitudes
    reproduces the CLI example. Other demo users can test their own effective access.
-2. Click **1. Crear tokens y comprobar acceso**. The server obtains fresh A and B,
-   validates their signed identities and exact RAR, then requires HTTP 200 for both.
-3. Expand **Identidad de los tokens y petición de bloqueo** to show `iss`, `jti`,
-   `sub`, `exp`, the delegated actor and the API JSON. Full credentials are not displayed.
-4. Click **2. Bloquear token A**. The server sends the real API request using a
-   separate native operator. It targets this session's A; no arbitrary token input exists.
-5. Click **3. Repetir acceso con A y B**. The same A must receive 403 and B 200,
-   with more than 30 seconds remaining. No new tokens are obtained at this step.
-   For delegated access, a new SQL connection with A's original credential is also
-   checked if its lease has not expired. A late check is labelled inconclusive for SQL.
-6. Inspect the result table, trace links and **Flujo de la última acción**.
-7. Select **Directo · agente (Client Credentials)** and repeat steps 2–6. This reads
-   only `secrets/data/chatbot/xai-access`; it makes no model request.
+2. Click **1. Crear tokens y leases**. The server obtains fresh A and B,
+   validates their signed identities and exact RAR, requires HTTP 200 for both,
+   and confirms each issued lease through `POST /v1/sys/leases/lookup`.
+3. Click **2. Probar acceso al sistema final**. The original A and B credentials
+   must both authenticate: new MySQL connections with `SELECT 1`, or xAI's API-key endpoint.
+4. Expand **Leases y acceso al sistema final** and **Identidad de los tokens y
+   petición de bloqueo**. They show lease IDs, initial TTLs, authentication outcomes,
+   signed identity metadata and revocation JSON; passwords and API keys stay on the server.
+5. Click **3. Revocar token A** while the JWTs have over 30 seconds and both leases
+   over 15 seconds remaining. The server confirms both original leases are still
+   active, then calls `auth/token/revoke-oauth` with the separate native operator.
+   It never calls a lease-revocation endpoint. Only this session's A is targeted.
+6. Click **4. Verificar token, lease y acceso**. The same JWTs must return A=403 and
+   B=200 before JWT expiry. A's original lease must be absent and its original
+   credential rejected before the original lease expiry. B's original lease must
+   remain active and its original credential still authenticate. B's repeated Vault
+   engine read creates an additional control lease, also removed during token cleanup.
+7. Inspect the result table, trace links and **Flujo de la última acción**. Select
+   **Directo · agente (Client Credentials)** and repeat steps 2–6 for dynamic xAI keys.
 8. Click **Limpiar tokens del lab** in each mode when finished. Creating another pair
    first cleans up the preceding pair in that mode. Abandoned pairs are cleaned up
    when the session expires, and on normal application shutdown.
 
 The countdown distinguishes blocking from natural token expiry. If fewer than 30
-seconds remain, create a new pair. Existing login tokens and the chat's other JWTs
-are not targeted.
+seconds of JWT or 15 seconds of lease remain before revocation, create a new pair.
+A late final check is inconclusive, as are network failures, lookup permission
+errors or a failing B control. Existing login tokens and the chat's other JWTs are not targeted.
 
 `chatbot/scripts/run.sh` provisions a renewable, no-default-policy operator with a
-one-hour period, limited to `auth/token/revoke-oauth` for this Verify issuer plus
-self-renewal/revocation. The application restricts targets to server-held pairs owned
+one-hour period, limited to `auth/token/revoke-oauth` for this Verify issuer,
+metadata lookup for `database/creds/chatbot-readonly/*` and `xai/creds/lumen/*`,
+and self-renewal/revocation. It cannot list, renew or revoke leases directly.
+The application restricts targets to server-held pairs owned
 by the current session and agent. The operator has no policy-management, token-creation
 or business-data permissions. Its bearer is excluded from capture and browser payloads.
 This service operator is different from the CLI runner's per-token temporary operator below.
@@ -68,17 +81,33 @@ After updating the source, `bash scripts/demo/start.sh` synchronizes the managed
 and prepares this operator; restarting ends current browser sessions.
 
 [UI controller verification](../../chatbot/docs/oauth-revocation-ui-verification.json)
-records the November 3 Chrome walkthrough and a subsequent live check against
+records the earlier November 3 Chrome walkthrough and a subsequent live check against
 Verify, Vault and MySQL using the synchronized runtime. Both modes returned A=403
 and B=200 before expiry; the operator was denied other issuers, business-data
 access, policy management and token creation. Test pairs were cleaned up.
 
+Reproduce the extended UI controller test against Verify, Vault, MySQL and xAI:
+
+```bash
+bash chatbot/scripts/verify-oauth-revocation-leases.sh
+```
+
+This verifier uses fresh JWT pairs and a five-minute native operator, with the
+same policy template as the UI. It verifies both original leases disappear during
+cleanup, including asynchronous xAI deletion. It excludes the administrative token
+from Python. The sanitized [lease verification report](../../chatbot/docs/oauth-revocation-leases-verification.json)
+records all four stages, TTLs, original lease IDs, backend results, trace IDs and
+operator denials. The xAI rejection can be HTTP 400 with an explicit invalid-key
+authentication error; arbitrary 400/429/5xx responses do not count as revocation.
+The [extended run summary](../runs/20261103-oauth-revocation-leases/README.md)
+also records the Chrome checks against the restarted application.
+
 | Mode | JWT identity | Resource | Vault authorization |
 |---|---|---|---|
 | Delegated | UI: current human and agent; CLI: Writer and task-write | `database/creds/chatbot-readonly` | Human policy ∩ actor ceiling ∩ RAR |
-| Direct | `sub` = xAI client ID; no delegated actor | `secrets/data/chatbot/xai-access` | Agent entity policy ∩ RAR |
+| Direct | `sub` = xAI client ID; no delegated actor | UI/lease verifier: `xai/creds/lumen`; original CLI: `secrets/data/chatbot/xai-access` | Agent entity policy ∩ RAR |
 
-## 1. Run both modes
+## 1. Run the original CLI token lab in both modes
 
 From the repository root:
 
@@ -211,8 +240,12 @@ the same test tokens; cleanup revokes those tokens too.
 | A's signature and time claims | Still validate locally after revocation | UI and CLI |
 | B, with the same identity and RAR | HTTP 200 | UI and CLI |
 | Operator attempts to revoke B | HTTP 403 | CLI only: its temporary policy confines it to A |
-| SQL login obtained through delegated A | Rejected before the original SQL lease expires | CLI required; UI checks while the lease still permits attribution |
-| SQL login obtained through delegated B | Still works | CLI; the UI checks B's Vault read only |
+| SQL login obtained through delegated A | Rejected before the original SQL lease expires | UI, lease verifier and original CLI |
+| SQL login obtained through delegated B | Still works with the original credential | UI, lease verifier and original CLI |
+| Original A lease after revocation | Explicit `invalid lease` / missing response before original expiry | UI and lease verifier, both modes |
+| Original B lease after revocation | Active in Vault | UI and lease verifier, both modes |
+| Dynamic xAI credential obtained through direct A | Authenticates before, then rejected before original lease expiry | UI and lease verifier |
+| Dynamic xAI credential obtained through direct B | Still authenticates with the original API key | UI and lease verifier |
 
 Vault's denylist adds state to JWT acceptance. Revocation here affects **Vault**;
 the lab does not call Verify's revocation endpoint or establish the token's status
@@ -224,6 +257,9 @@ flow uses `revoke-self` for OAuth JWT cleanup. If a normally permitted request
 fails after the Mac resumes, check [the clocks](../OPERACION.md#reloj-de-la-vm)
 before interpreting a 403 as evidence of blocking.
 Existing SQL connections and already returned data are outside this test's scope.
+Final-system revocation applies here because Vault owns the dynamic credential's
+lifecycle through its secrets engine; blocking a JWT does not invalidate arbitrary
+static secrets previously read from KV or revoke the Verify JWT at every service.
 
 On **November 3, 2026 at 11:08 CET**, the combined live run passed **20 checks**.
 A still had about **599 seconds** before expiry when Vault rejected it in both

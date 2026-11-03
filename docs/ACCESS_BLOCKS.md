@@ -88,8 +88,10 @@ The policy blocks above affect the corresponding routes for all callers subject
 to those policies. The [OAuth revocation lab](manual/18-revocacion-oauth.md) instead
 targets one JWT through `auth/token/revoke-oauth`, leaving the policies in place.
 Open `/laboratorio-revocacion`, select delegated OBO or direct Client Credentials,
-and use **Create tokens → Block token A → Retry access**. A must change from 200 to
-403 before expiry while B retains 200. The UI uses a separate native operator;
+and use **Create tokens and leases → Test final system access → Revoke token A →
+Verify token, lease and access**. A must change from 200 to 403, its original lease
+must disappear and its original MySQL/xAI credential must stop authenticating before
+expiry. B must retain its active lease and working credential. The UI uses a separate native operator;
 the CLI runner uses a temporary operator scoped to the exact target `jti`.
 
 The denylist is local to Vault; it does not revoke tokens at Verify or other APIs.

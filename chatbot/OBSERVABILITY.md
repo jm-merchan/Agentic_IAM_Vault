@@ -117,14 +117,20 @@ el control de acceso de su sesión.
 
 El [lab de revocación](../docs/manual/18-revocacion-oauth.md) ofrece OBO y Client
 Credentials en `/laboratorio-revocacion`. Las acciones
-`lumen.oauth_revocation.prepare`, `.block`, `.check` y `.clear` crean trazas de la
+`lumen.oauth_revocation.prepare`, `.access`, `.block`, `.check` y `.clear` crean trazas de la
 sesión propietaria. El diagrama integrado muestra la última acción; la tabla
 conserva los enlaces a las anteriores. Los atributos `revocation.lab.token`,
 `.phase`, `.unique_id` y `.seconds_until_exp` permiten distinguir A/B, el bloqueo
-y la prueba previa a caducidad. Un 403 de A y un 200 de B son respuestas reales.
+y la prueba previa a caducidad. La UI muestra los leases originales y sus TTLs,
+consulta sus metadatos mediante `sys/leases/lookup` y prueba las mismas credenciales
+antes y después del bloqueo: `mysql.query` con una conexión nueva y `SELECT 1`, o
+`xai.auth_probe` en `/v1/api-key` sin inferencia. `.lease_state` y `.authentication`
+registran los resultados sin secretos. Un error de red o permisos no demuestra
+revocación; el éxito exige A=403, lease ausente y autenticación rechazada antes del
+vencimiento original, con B funcionando en los tres niveles.
 
 Las llamadas a Vault de este lab registran metadatos, sin capturar JWT, credenciales
-SQL ni el bearer nativo del operador. El diagrama integrado desactiva los controles
+SQL, API keys ni el bearer nativo del operador. El diagrama integrado desactiva los controles
 de inspección sensible y repetición; el panel de identidades muestra los claims
 permitidos y el JSON de bloqueo. La emisión OBO sigue los controles de captura
 habituales cuando el modo raw está habilitado. La auditoría de `revoke-oauth` se
@@ -138,6 +144,8 @@ leeway y no reintenta la petición. [Comprobación y recuperación](../docs/OPER
 [Evidencia del Writer](docs/writer-clock-verification.json) y
 [verificación del lab](docs/oauth-revocation-ui-verification.json) conservan sus
 fechas y el alcance real de las pruebas.
+La [verificación de leases](docs/oauth-revocation-leases-verification.json) amplía
+la evidencia a MySQL y xAI, con los controles del operador y limpieza final.
 
 ### Idioma del visor
 

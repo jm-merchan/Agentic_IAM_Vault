@@ -1,0 +1,930 @@
+{
+  "checked_at": "2026-11-03T15:24:35.912923+00:00",
+  "controller": "app.oauth_revocation_lab.OAuthRevocationLab",
+  "ciba_enabled": true,
+  "ciba_auth_mode": "oauth",
+  "modes": {
+    "delegated": {
+      "prepare": {
+        "mode": "delegated",
+        "path": "database/creds/chatbot-readonly",
+        "blocked": false,
+        "verified": false,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "bc1ee917-2ac2-4e8e-b685-7ac9c281b04b.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720076,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "77fbec75-a889-46dc-b766-d460542b9a0a.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720077,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          }
+        ],
+        "traces": [
+          "4a4da7dbb7a893c84e43ae10afed2440"
+        ],
+        "accessed": false,
+        "leases": [
+          {
+            "lease_id": "database/creds/chatbot-readonly/O7johlTWQpmB4p6grNvyoZx5.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.064307,
+            "state": "active",
+            "before": "",
+            "after": "",
+            "before_expiry": false
+          },
+          {
+            "lease_id": "database/creds/chatbot-readonly/WTg4UN96Dy2YlZY9sBaaFcCh.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.103041,
+            "state": "active",
+            "before": "",
+            "after": "",
+            "before_expiry": false
+          }
+        ],
+        "token_verified": false,
+        "lease_verified": false,
+        "system_verified": false
+      },
+      "access": {
+        "mode": "delegated",
+        "path": "database/creds/chatbot-readonly",
+        "blocked": false,
+        "verified": false,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "bc1ee917-2ac2-4e8e-b685-7ac9c281b04b.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720076,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "77fbec75-a889-46dc-b766-d460542b9a0a.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720077,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "system_before",
+            "token": "A",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "f5ae87b5f3d6420ca37efef2235069f4"
+          },
+          {
+            "phase": "system_before",
+            "token": "B",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "f5ae87b5f3d6420ca37efef2235069f4"
+          }
+        ],
+        "traces": [
+          "4a4da7dbb7a893c84e43ae10afed2440",
+          "f5ae87b5f3d6420ca37efef2235069f4"
+        ],
+        "accessed": true,
+        "leases": [
+          {
+            "lease_id": "database/creds/chatbot-readonly/O7johlTWQpmB4p6grNvyoZx5.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.064307,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          },
+          {
+            "lease_id": "database/creds/chatbot-readonly/WTg4UN96Dy2YlZY9sBaaFcCh.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.103041,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          }
+        ],
+        "token_verified": false,
+        "lease_verified": false,
+        "system_verified": false
+      },
+      "block": {
+        "mode": "delegated",
+        "path": "database/creds/chatbot-readonly",
+        "blocked": true,
+        "verified": false,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "bc1ee917-2ac2-4e8e-b685-7ac9c281b04b.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720076,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "77fbec75-a889-46dc-b766-d460542b9a0a.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720077,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "system_before",
+            "token": "A",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "f5ae87b5f3d6420ca37efef2235069f4"
+          },
+          {
+            "phase": "system_before",
+            "token": "B",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "f5ae87b5f3d6420ca37efef2235069f4"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "03f589671824008f848089ee785abb73"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "03f589671824008f848089ee785abb73"
+          },
+          {
+            "phase": "revoke",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "03f589671824008f848089ee785abb73"
+          }
+        ],
+        "traces": [
+          "4a4da7dbb7a893c84e43ae10afed2440",
+          "f5ae87b5f3d6420ca37efef2235069f4",
+          "03f589671824008f848089ee785abb73"
+        ],
+        "accessed": true,
+        "leases": [
+          {
+            "lease_id": "database/creds/chatbot-readonly/O7johlTWQpmB4p6grNvyoZx5.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.064307,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          },
+          {
+            "lease_id": "database/creds/chatbot-readonly/WTg4UN96Dy2YlZY9sBaaFcCh.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.103041,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          }
+        ],
+        "token_verified": false,
+        "lease_verified": false,
+        "system_verified": false
+      },
+      "check": {
+        "mode": "delegated",
+        "path": "database/creds/chatbot-readonly",
+        "blocked": true,
+        "verified": true,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "bc1ee917-2ac2-4e8e-b685-7ac9c281b04b.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720076,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "77fbec75-a889-46dc-b766-d460542b9a0a.M18xNzkzNzE5NDc2XzQx",
+            "sub": "646009USN8",
+            "exp": 1793720077,
+            "actor-token": {
+              "sub": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367"
+            }
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "4a4da7dbb7a893c84e43ae10afed2440"
+          },
+          {
+            "phase": "system_before",
+            "token": "A",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "f5ae87b5f3d6420ca37efef2235069f4"
+          },
+          {
+            "phase": "system_before",
+            "token": "B",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "f5ae87b5f3d6420ca37efef2235069f4"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "03f589671824008f848089ee785abb73"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "03f589671824008f848089ee785abb73"
+          },
+          {
+            "phase": "revoke",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "03f589671824008f848089ee785abb73"
+          },
+          {
+            "phase": "after",
+            "token": "A",
+            "target": "Vault",
+            "status": 403,
+            "trace_id": "ecbbd25e4bf7c0814cb5aebd54a3b658"
+          },
+          {
+            "phase": "after",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "ecbbd25e4bf7c0814cb5aebd54a3b658"
+          },
+          {
+            "phase": "lease_after",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "400 \u00b7 missing",
+            "trace_id": "ecbbd25e4bf7c0814cb5aebd54a3b658"
+          },
+          {
+            "phase": "system_after",
+            "token": "A",
+            "target": "MySQL",
+            "status": "SQL authentication rejected",
+            "trace_id": "ecbbd25e4bf7c0814cb5aebd54a3b658"
+          },
+          {
+            "phase": "lease_after",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "ecbbd25e4bf7c0814cb5aebd54a3b658"
+          },
+          {
+            "phase": "system_after",
+            "token": "B",
+            "target": "MySQL",
+            "status": "SQL OK",
+            "trace_id": "ecbbd25e4bf7c0814cb5aebd54a3b658"
+          }
+        ],
+        "traces": [
+          "4a4da7dbb7a893c84e43ae10afed2440",
+          "f5ae87b5f3d6420ca37efef2235069f4",
+          "03f589671824008f848089ee785abb73",
+          "ecbbd25e4bf7c0814cb5aebd54a3b658"
+        ],
+        "accessed": true,
+        "leases": [
+          {
+            "lease_id": "database/creds/chatbot-readonly/O7johlTWQpmB4p6grNvyoZx5.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.064307,
+            "state": "missing",
+            "before": "accepted",
+            "after": "rejected",
+            "before_expiry": true
+          },
+          {
+            "lease_id": "database/creds/chatbot-readonly/WTg4UN96Dy2YlZY9sBaaFcCh.WGCZ5",
+            "ttl": 120,
+            "expires_at": 1793719596.103041,
+            "state": "active",
+            "before": "accepted",
+            "after": "accepted",
+            "before_expiry": true
+          }
+        ],
+        "token_verified": true,
+        "lease_verified": true,
+        "system_verified": true
+      },
+      "jwt_seconds_remaining": 598.6372921466827,
+      "cleanup_original_leases_missing": true
+    },
+    "direct": {
+      "prepare": {
+        "mode": "direct",
+        "path": "xai/creds/lumen",
+        "blocked": false,
+        "verified": false,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "11174dc8-7896-4431-93dc-dd34cbe1da51.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "9ae95df4-e373-4ea7-8d55-6d43d3cc962f.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          }
+        ],
+        "traces": [
+          "d4757bd1dc8c5b450c03f08031d273a6"
+        ],
+        "accessed": false,
+        "leases": [
+          {
+            "lease_id": "xai/creds/lumen/LlviJUik07yZ31p6siE8hS84.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719778.1859012,
+            "state": "active",
+            "before": "",
+            "after": "",
+            "before_expiry": false
+          },
+          {
+            "lease_id": "xai/creds/lumen/hEhh6c8Dyvrs4fjrCtTiKz83.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719779.352088,
+            "state": "active",
+            "before": "",
+            "after": "",
+            "before_expiry": false
+          }
+        ],
+        "token_verified": false,
+        "lease_verified": false,
+        "system_verified": false
+      },
+      "access": {
+        "mode": "direct",
+        "path": "xai/creds/lumen",
+        "blocked": false,
+        "verified": false,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "11174dc8-7896-4431-93dc-dd34cbe1da51.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "9ae95df4-e373-4ea7-8d55-6d43d3cc962f.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "system_before",
+            "token": "A",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "30de38fbc39a4d6fe40442cbede7440c"
+          },
+          {
+            "phase": "system_before",
+            "token": "B",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "30de38fbc39a4d6fe40442cbede7440c"
+          }
+        ],
+        "traces": [
+          "d4757bd1dc8c5b450c03f08031d273a6",
+          "30de38fbc39a4d6fe40442cbede7440c"
+        ],
+        "accessed": true,
+        "leases": [
+          {
+            "lease_id": "xai/creds/lumen/LlviJUik07yZ31p6siE8hS84.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719778.1859012,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          },
+          {
+            "lease_id": "xai/creds/lumen/hEhh6c8Dyvrs4fjrCtTiKz83.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719779.352088,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          }
+        ],
+        "token_verified": false,
+        "lease_verified": false,
+        "system_verified": false
+      },
+      "block": {
+        "mode": "direct",
+        "path": "xai/creds/lumen",
+        "blocked": true,
+        "verified": false,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "11174dc8-7896-4431-93dc-dd34cbe1da51.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "9ae95df4-e373-4ea7-8d55-6d43d3cc962f.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "system_before",
+            "token": "A",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "30de38fbc39a4d6fe40442cbede7440c"
+          },
+          {
+            "phase": "system_before",
+            "token": "B",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "30de38fbc39a4d6fe40442cbede7440c"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "13374f7798c7386f0cd9ae7434657832"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "13374f7798c7386f0cd9ae7434657832"
+          },
+          {
+            "phase": "revoke",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "13374f7798c7386f0cd9ae7434657832"
+          }
+        ],
+        "traces": [
+          "d4757bd1dc8c5b450c03f08031d273a6",
+          "30de38fbc39a4d6fe40442cbede7440c",
+          "13374f7798c7386f0cd9ae7434657832"
+        ],
+        "accessed": true,
+        "leases": [
+          {
+            "lease_id": "xai/creds/lumen/LlviJUik07yZ31p6siE8hS84.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719777.8780649,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          },
+          {
+            "lease_id": "xai/creds/lumen/hEhh6c8Dyvrs4fjrCtTiKz83.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719778.893297,
+            "state": "active",
+            "before": "accepted",
+            "after": "",
+            "before_expiry": false
+          }
+        ],
+        "token_verified": false,
+        "lease_verified": false,
+        "system_verified": false
+      },
+      "check": {
+        "mode": "direct",
+        "path": "xai/creds/lumen",
+        "blocked": true,
+        "verified": true,
+        "tokens": [
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "11174dc8-7896-4431-93dc-dd34cbe1da51.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          },
+          {
+            "iss": "https://merchan.verify.ibm.com/oauth2",
+            "jti": "9ae95df4-e373-4ea7-8d55-6d43d3cc962f.M18xNzkzNzE5NDc3XzQx",
+            "sub": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+            "exp": 1793720078
+          }
+        ],
+        "rows": [
+          {
+            "phase": "before",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "before",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "d4757bd1dc8c5b450c03f08031d273a6"
+          },
+          {
+            "phase": "system_before",
+            "token": "A",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "30de38fbc39a4d6fe40442cbede7440c"
+          },
+          {
+            "phase": "system_before",
+            "token": "B",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "30de38fbc39a4d6fe40442cbede7440c"
+          },
+          {
+            "phase": "lease_before",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "13374f7798c7386f0cd9ae7434657832"
+          },
+          {
+            "phase": "lease_before",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "13374f7798c7386f0cd9ae7434657832"
+          },
+          {
+            "phase": "revoke",
+            "token": "A",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "13374f7798c7386f0cd9ae7434657832"
+          },
+          {
+            "phase": "after",
+            "token": "A",
+            "target": "Vault",
+            "status": 403,
+            "trace_id": "ac96dd9ec5ddabec698c563d904eae54"
+          },
+          {
+            "phase": "after",
+            "token": "B",
+            "target": "Vault",
+            "status": 200,
+            "trace_id": "ac96dd9ec5ddabec698c563d904eae54"
+          },
+          {
+            "phase": "lease_after",
+            "token": "A",
+            "target": "Vault lease",
+            "status": "400 \u00b7 missing",
+            "trace_id": "ac96dd9ec5ddabec698c563d904eae54"
+          },
+          {
+            "phase": "system_after",
+            "token": "A",
+            "target": "xAI",
+            "status": "HTTP 400 \u00b7 rejected",
+            "trace_id": "ac96dd9ec5ddabec698c563d904eae54"
+          },
+          {
+            "phase": "lease_after",
+            "token": "B",
+            "target": "Vault lease",
+            "status": "200 \u00b7 active",
+            "trace_id": "ac96dd9ec5ddabec698c563d904eae54"
+          },
+          {
+            "phase": "system_after",
+            "token": "B",
+            "target": "xAI",
+            "status": "HTTP 200 \u00b7 accepted",
+            "trace_id": "ac96dd9ec5ddabec698c563d904eae54"
+          }
+        ],
+        "traces": [
+          "d4757bd1dc8c5b450c03f08031d273a6",
+          "30de38fbc39a4d6fe40442cbede7440c",
+          "13374f7798c7386f0cd9ae7434657832",
+          "ac96dd9ec5ddabec698c563d904eae54"
+        ],
+        "accessed": true,
+        "leases": [
+          {
+            "lease_id": "xai/creds/lumen/LlviJUik07yZ31p6siE8hS84.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719777.8780649,
+            "state": "missing",
+            "before": "accepted",
+            "after": "rejected",
+            "before_expiry": true
+          },
+          {
+            "lease_id": "xai/creds/lumen/hEhh6c8Dyvrs4fjrCtTiKz83.WGCZ5",
+            "ttl": 300,
+            "expires_at": 1793719778.893297,
+            "state": "active",
+            "before": "accepted",
+            "after": "accepted",
+            "before_expiry": true
+          }
+        ],
+        "token_verified": true,
+        "lease_verified": true,
+        "system_verified": true
+      },
+      "jwt_seconds_remaining": 594.95077085495,
+      "cleanup_original_leases_missing": true
+    }
+  },
+  "operator_checks": {
+    "other_lease_denied": true,
+    "lease_listing_denied": true,
+    "lease_revoke_denied": true,
+    "policy_management_denied": true,
+    "token_creation_denied": true,
+    "business_data_denied": true,
+    "other_issuer_denied": true
+  },
+  "all_passed": true
+}

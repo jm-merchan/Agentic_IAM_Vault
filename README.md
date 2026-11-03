@@ -214,8 +214,11 @@ one of Writer's own drafts in **Applications**. Provisioning enables CIBA by
 default; a fresh installation still needs a usable Validator selected as described
 in the guide. The generated `lumen-validator` placeholder cannot receive email OTP.
 
-For revocation, open **OAuth revocation** in the sidebar and use **Create tokens →
-Block token A → Retry access** in each mode. The lab only targets its own JWT pairs;
+For revocation, open **OAuth revocation** in the sidebar and use **Create tokens and leases →
+Test final system access → Revoke token A → Verify token, lease and access** in each
+mode (OBO → MySQL; Client Credentials → dynamic xAI API key). Success requires A's
+original lease and credential to stop working before expiry while B remains usable.
+The lab only targets its own JWT pairs;
 it does not revoke your login or the issuer's tokens at other APIs.
 
 <a id="acceso-a-vault-y-grafana"></a>

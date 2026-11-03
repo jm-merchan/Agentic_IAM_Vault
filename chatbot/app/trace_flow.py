@@ -24,6 +24,7 @@ TITLES = {
     'personal.access': 'Comprobar la política del propietario',
     'lumen.rar.compare': 'Comparación de parámetros RAR',
     'lumen.oauth_revocation.prepare': 'Crear pareja OAuth del laboratorio',
+    'lumen.oauth_revocation.access': 'Probar las credenciales en el sistema final',
     'lumen.oauth_revocation.block': 'Bloquear token A en Vault',
     'lumen.oauth_revocation.check': 'Comprobar A bloqueado y B permitido',
     'lumen.oauth_revocation.clear': 'Limpiar tokens del laboratorio',
@@ -135,7 +136,10 @@ def _describe(record):
             title = 'Bloquear token A en Vault' if a.get('revocation.lab.phase') == 'revoke' else 'Limpiar tokens del laboratorio'
             credential = 'Operador nativo de Vault · issuer de Verify · sin políticas de datos'
             response = 'Respuesta real del bloqueo por issuer y unique_id'
-        if a.get('revocation.lab.token') and path != 'auth/token/revoke-oauth':
+        elif path == 'sys/leases/lookup':
+            title, response = 'Comprobar el lease en Vault', 'Metadatos del lease o ausencia confirmada'
+            credential = 'Operador nativo de Vault · consulta de metadatos de los roles del lab'
+        if a.get('revocation.lab.token') and path not in ('auth/token/revoke-oauth', 'sys/leases/lookup'):
             title = 'Token ' + a['revocation.lab.token'] + ' · ' + ('acceso inicial' if a.get('revocation.lab.phase') == 'before' else 'acceso tras el bloqueo')
         return dict(target='vault', title=title, method=a.get('http.request.method', 'GET' if name != 'vault.write' else 'POST'),
                     endpoint='/v1/' + path, credential=credential,
@@ -158,6 +162,10 @@ def _describe(record):
                     credential='JWT-SVID firmado por Vault',
                     request='subject_token + mapping de la cuenta' if provider == 'openai' else 'assertion de un solo uso + regla de federación',
                     response='Access token temporal del proveedor')
+    if name == 'xai.auth_probe':
+        return dict(target='xai', title='Probar la credencial dinámica de xAI', method='GET',
+                    endpoint='api.x.ai/v1/api-key', credential='API key del lease original · sin inferencia',
+                    request='Comprobar autenticación con la misma credencial', response='Aceptación o rechazo de la API key')
     if name in {'openai.chat', 'anthropic.chat', 'xai.chat'}:
         provider = name.split('.')[0]
         return dict(target=provider, title='Consultar el modelo', method=a.get('http.request.method', 'SDK'),

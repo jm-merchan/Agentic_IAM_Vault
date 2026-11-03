@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 import json
 import math
 import os
+import re
 import time
 
 import httpx
@@ -20,7 +21,7 @@ from .telemetry import headers, span, trace_id
 from .vault_clock import raise_for_clock_mismatch
 
 PATHS = {'delegated': 'database/creds/chatbot-readonly',
-         'direct': 'secrets/data/chatbot/xai-access'}
+         'direct': 'xai/creds/lumen'}
 
 
 def payload_for(claims, now=None):
@@ -34,6 +35,24 @@ def payload_for(claims, now=None):
 
 
 @dataclass
+class Credential:
+    lease_id: str
+    ttl: int
+    deadline: float
+    expires_at: float
+    secret: dict = field(repr=False)
+    state: str = 'active'
+    before: str = ''
+    after: str = ''
+    before_expiry: bool = False
+
+    def public(self):
+        return dict(lease_id=self.lease_id, ttl=self.ttl, expires_at=self.expires_at,
+                    state=self.state, before=self.before, after=self.after,
+                    before_expiry=self.before_expiry)
+
+
+@dataclass
 class Pair:
     sid: str
     subject: str
@@ -41,13 +60,15 @@ class Pair:
     task_agent: str
     tokens: list = field(default_factory=list, repr=False)
     claims: list = field(default_factory=list, repr=False)
-    sql: dict = field(default_factory=dict, repr=False)
-    lease_deadline: float = 0
+    credentials: list = field(default_factory=list, repr=False)
+    accessed: bool = False
     blocked: bool = False
+    token_verified: bool = False
+    lease_verified: bool = False
+    system_verified: bool = False
     verified: bool = False
     rows: list = field(default_factory=list)
     traces: list = field(default_factory=list)
-    sql_result: str = ''
 
     def public(self):
         def project(claims):
@@ -57,7 +78,9 @@ class Pair:
             return result
         return dict(mode=self.mode, path=PATHS[self.mode], blocked=self.blocked, verified=self.verified,
                     tokens=[project(c) for c in self.claims], rows=list(self.rows), traces=list(self.traces),
-                    sql_result=self.sql_result)
+                    accessed=self.accessed, leases=[c.public() for c in self.credentials],
+                    token_verified=self.token_verified, lease_verified=self.lease_verified,
+                    system_verified=self.system_verified)
 
 
 class OAuthRevocationLab:
@@ -162,10 +185,54 @@ class OAuthRevocationLab:
             current.set_attribute('http.response.status_code', result.status_code)
             body = result.json() if result.content else {}
             current.set_attribute('vault.request_id', body.get('request_id', ''))
-            pair.rows.append(dict(phase=phase, token=label, status=result.status_code, trace_id=trace_id()))
-            pair.rows[:] = pair.rows[-20:]
+            self._row(pair, label, phase, 'Vault', result.status_code)
             raise_for_clock_mismatch(result, token, current)
             return result.status_code, body
+
+    @staticmethod
+    def _row(pair, label, phase, target, status):
+        pair.rows.append(dict(phase=phase, token=label, target=target,
+                              status=status, trace_id=trace_id()))
+        pair.rows[:] = pair.rows[-100:]
+
+    async def _lookup(self, pair, index, phase):
+        credential = pair.credentials[index]
+        label = 'AB'[index]
+        with span('vault.write', **{'vault.path': 'sys/leases/lookup', 'vault.namespace': 'verify',
+                'http.request.method': 'POST', 'auth.flow': 'revocation_operator',
+                'agent.identity': 'oauth-revocation-operator', 'vault.lease_id': credential.lease_id,
+                'revocation.lab.token': label, 'revocation.lab.phase': phase}) as current:
+            try:
+                lookup_started, lookup_wall = time.monotonic(), time.time()
+                async with self._client() as client:
+                    response = await client.post('/v1/sys/leases/lookup',
+                        json={'lease_id': credential.lease_id}, headers=headers())
+                current.set_attribute('http.response.status_code', response.status_code)
+                body = response.json()
+                ttl = body.get('data', {}).get('ttl')
+                if (response.status_code == 200 and body.get('data', {}).get('id') == credential.lease_id
+                        and type(ttl) in (int, float) and math.isfinite(ttl) and ttl > 0):
+                    state = 'active'
+                    if not pair.blocked:
+                        # Bound expiry from request start; allow for whole-second
+                        # rounding without adding response latency to the lease.
+                        remaining = max(0, ttl - 1)
+                        credential.deadline = min(credential.deadline, lookup_started + remaining)
+                        credential.expires_at = min(credential.expires_at, lookup_wall + remaining)
+                    current.set_attribute('vault.lease.ttl', ttl)
+                elif (response.status_code in (400, 404)
+                      and any(str(e).lower() in ('invalid lease', 'lease not found') for e in body.get('errors', []))):
+                    state = 'missing'
+                else:
+                    state = 'unknown'
+                self._row(pair, label, phase, 'Vault lease', f'{response.status_code} · {state}')
+            except (httpx.HTTPError, ValueError):
+                state = 'unknown'
+                current.set_status(Status(StatusCode.ERROR))
+                self._row(pair, label, phase, 'Vault lease', 'unavailable')
+            credential.state = state
+            current.set_attribute('revocation.lab.lease_state', state)
+            return state
 
     async def _direct(self):
         credential = self.services.config.get('xai', {})
@@ -200,6 +267,49 @@ class OAuthRevocationLab:
                     return False
         return await asyncio.to_thread(connect)
 
+    async def _system(self, pair, index, phase):
+        credential = pair.credentials[index]
+        target, label = ('MySQL' if pair.mode == 'delegated' else 'xAI'), 'AB'[index]
+        try:
+            if pair.mode == 'delegated':
+                accepted = await self._sql_accepts(credential.secret)
+                status = 'SQL OK' if accepted else 'SQL authentication rejected'
+            else:
+                # Authentication-only endpoint: no inference, prompt or cached chat key.
+                with span('xai.auth_probe', **{'http.request.method': 'GET',
+                        'server.address': 'api.x.ai', 'url.path': '/v1/api-key',
+                        'revocation.lab.token': label, 'revocation.lab.phase': phase}) as current:
+                    async with httpx.AsyncClient(timeout=15) as client:
+                        response = await client.get('https://api.x.ai/v1/api-key',
+                            headers={'Authorization': 'Bearer ' + credential.secret['api_key']})
+                    current.set_attribute('http.response.status_code', response.status_code)
+                    accepted = True if response.status_code == 200 else None
+                    if response.status_code in (401, 403):
+                        accepted = False
+                    elif response.status_code == 400:
+                        body = response.json()
+                        error = body.get('error', body.get('message', ''))
+                        message = str(error.get('message', '') if isinstance(error, dict) else error)
+                        if (re.search(r'api.?key|authentication', message, re.I)
+                                and re.search(r'incorrect|invalid|expired|deleted|not found|does not exist', message, re.I)):
+                            accepted = False
+                    authentication = 'accepted' if accepted is True else 'rejected' if accepted is False else 'unknown'
+                    current.set_attribute('revocation.lab.authentication', authentication)
+                    status = f'HTTP {response.status_code} · {authentication}'
+        except (httpx.HTTPError, AccessDenied, ValueError):
+            accepted, status = None, 'unavailable'
+        self._row(pair, label, phase, target, status)
+        setattr(credential, 'before' if phase == 'system_before' else 'after',
+                'accepted' if accepted is True else 'rejected' if accepted is False else 'unknown')
+        return accepted
+
+    @staticmethod
+    def _fresh(pair, *, leases=False):
+        if len(pair.tokens) != 2 or min(c['exp'] for c in pair.claims) - time.time() <= 30:
+            raise AccessDenied('Quedan menos de 30 segundos. Crea otra pareja para distinguir bloqueo y caducidad.')
+        if leases and (len(pair.credentials) != 2 or min(c.deadline for c in pair.credentials) - time.monotonic() <= 15):
+            raise AccessDenied('Quedan menos de 15 segundos de lease. Crea otra pareja para distinguir revocación y caducidad.')
+
     async def prepare(self, session, mode):
         self._guard(session, mode)
         async with self._lock:
@@ -232,16 +342,34 @@ class OAuthRevocationLab:
                     status, response = await self._request(pair, label, pair.tokens[index], phase='before')
                     if status != 200:
                         raise AccessDenied('El acceso inicial no devuelve HTTP 200. Revisa los permisos en la traza.')
-                    if mode == 'delegated' and index == 0:
-                        pair.sql = response['data']
-                        pair.lease_deadline = time.monotonic() + response['lease_duration']
-                        if not await self._sql_accepts(pair.sql):
-                            raise AccessDenied('La credencial MySQL inicial no permite conectar.')
+                    ttl, lease_id = response.get('lease_duration'), response.get('lease_id', '')
+                    secret = response.get('data', {})
+                    required = ('username', 'password') if mode == 'delegated' else ('api_key',)
+                    if (not lease_id.startswith(PATHS[mode] + '/') or type(ttl) is not int or ttl <= 15
+                            or not all(isinstance(secret.get(k), str) and secret[k] for k in required)):
+                        raise AccessDenied('Vault no ha emitido un lease y una credencial válidos.')
+                    pair.credentials.append(Credential(lease_id, ttl, time.monotonic() + ttl,
+                                                        time.time() + ttl, {k: secret[k] for k in required}))
+                    if await self._lookup(pair, index, 'lease_before') != 'active':
+                        raise AccessDenied('No se pudo confirmar el lease activo en Vault.')
                 return pair.public()
             except Exception:
                 await self._clean(pair)
                 self._pairs.pop(key, None)
                 raise
+
+    async def access(self, session, mode):
+        async with self._lock:
+            pair = self._owned(session, mode)
+            self._remember(pair)
+            if pair.blocked:
+                raise AccessDenied('Crea otra pareja para probar el acceso inicial.')
+            self._fresh(pair, leases=True)
+            results = [await self._system(pair, i, 'system_before') for i in range(2)]
+            pair.accessed = all(result is True for result in results)
+            if not pair.accessed:
+                raise AccessDenied('El acceso inicial al sistema final no funciona con ambas credenciales. Revisa la traza.')
+            return pair.public()
 
     async def block(self, session, mode):
         async with self._lock:
@@ -249,8 +377,13 @@ class OAuthRevocationLab:
             self._remember(pair)
             if pair.blocked:
                 return pair.public()
-            if min(c['exp'] for c in pair.claims) - time.time() <= 30:
-                raise AccessDenied('Quedan menos de 30 segundos. Crea otra pareja para distinguir bloqueo y caducidad.')
+            self._fresh(pair, leases=True)
+            if not pair.accessed:
+                raise AccessDenied('Comprueba primero el acceso al sistema final con A y B.')
+            for index in range(2):
+                if await self._lookup(pair, index, 'lease_before') != 'active':
+                    raise AccessDenied('Los leases deben seguir activos antes de revocar A.')
+            self._fresh(pair, leases=True)
             status, _ = await self._request(pair, 'A', self._token,
                                             revoke=payload_for(pair.claims[0]), phase='revoke')
             if status not in (200, 204):
@@ -262,29 +395,36 @@ class OAuthRevocationLab:
         async with self._lock:
             pair = self._owned(session, mode)
             self._remember(pair)
-            if len(pair.tokens) != 2 or min(c['exp'] for c in pair.claims) - time.time() <= 30:
-                raise AccessDenied('Quedan menos de 30 segundos. Crea otra pareja para distinguir bloqueo y caducidad.')
+            self._fresh(pair)
+            if not pair.blocked:
+                raise AccessDenied('Bloquea primero el token A.')
             statuses = []
             for index, label in enumerate(('A', 'B')):
                 status, _ = await self._request(pair, label, pair.tokens[index], phase='after')
                 statuses.append(status)
-            pair.verified = bool(pair.blocked and statuses == [403, 200]
+            pair.token_verified = bool(pair.blocked and statuses == [403, 200]
                                  and min(c['exp'] for c in pair.claims) - time.time() > 30)
-            if pair.verified:
+            if pair.token_verified:
                 # Local signature verification intentionally still succeeds after Vault's denylist.
                 await asyncio.to_thread(self.services.identity.validate, pair.tokens[0], None)
-            if pair.blocked and pair.sql and not pair.sql_result:
-                if pair.lease_deadline - time.monotonic() > 5:
-                    for _ in range(10):
-                        if not await self._sql_accepts(pair.sql):
-                            pair.sql_result = ('revoked' if pair.lease_deadline > time.monotonic() else 'expired')
-                            break
-                        await asyncio.sleep(.25)
-                    else:
-                        pair.sql_result = 'accepted'
-                else:
-                    pair.sql_result = 'expired'
-                pair.sql = {}
+            for attempt in range(8):
+                state = await self._lookup(pair, 0, 'lease_after')
+                accepted = await self._system(pair, 0, 'system_after')
+                if (state == 'missing' and accepted is False) or pair.credentials[0].deadline <= time.monotonic():
+                    break
+                if attempt < 7:
+                    await asyncio.sleep(.5)
+            b_state = await self._lookup(pair, 1, 'lease_after')
+            b_accepted = await self._system(pair, 1, 'system_after')
+            # Expiry, lookup errors and backend outages are never revocation evidence.
+            a, b = pair.credentials
+            a.before_expiry = a.deadline > time.monotonic()
+            b.before_expiry = b.deadline > time.monotonic()
+            timely = a.before_expiry and b.before_expiry
+            pair.lease_verified = bool(timely and state == 'missing' and b_state == 'active')
+            pair.system_verified = bool(timely and pair.accessed and accepted is False and b_accepted is True)
+            pair.verified = bool(pair.token_verified and pair.lease_verified and pair.system_verified
+                                 and min(c['exp'] for c in pair.claims) - time.time() > 30)
             return pair.public()
 
     async def _clean(self, pair):
@@ -296,7 +436,8 @@ class OAuthRevocationLab:
             if status not in (200, 204):
                 raise AccessDenied('No se pudo limpiar la pareja anterior. Reintenta la limpieza.')
         pair.tokens.clear()
-        pair.sql.clear()
+        for credential in pair.credentials:
+            credential.secret.clear()
 
     async def clear(self, session, mode):
         async with self._lock:

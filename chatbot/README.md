@@ -192,8 +192,9 @@ Todos los caminos siguientes son KV v2, namespace `verify`, mount `secrets`:
 El arranque prepara además dos credenciales nativas independientes: el inspector
 de metadatos y el operador del lab de revocación, ambos sin política `default` y
 con periodo renovable de una hora. Lumen los renueva y los revoca al apagarse
-normalmente. El operador solo puede usar `auth/token/revoke-oauth` para el issuer
-de Verify, además de renovarse y revocarse a sí mismo. No puede crear tokens,
+normalmente. El operador puede usar `auth/token/revoke-oauth` para el issuer
+de Verify y consultar metadatos de leases de los dos roles del lab, además de
+renovarse y revocarse a sí mismo. No puede listar ni revocar leases directamente, crear tokens,
 cambiar políticas ni leer datos de negocio. La aplicación limita sus destinos a
 las parejas del lab pertenecientes a la sesión y al agente actuales.
 
@@ -232,8 +233,11 @@ Puedes bloquear cada recurso desde `./demo.sh block xai|database-read|database-w
 
 El [lab de revocación OAuth](../docs/manual/18-revocacion-oauth.md) bloquea una
 pareja `issuer/jti` mediante la API, sin cambiar estas políticas. Abre
-`/laboratorio-revocacion` y repite **Crear tokens → Bloquear A → Repetir acceso**
-en los modos delegado y directo. La tabla exige A=403 y B=200 antes de caducar.
+`/laboratorio-revocacion` y repite **Crear tokens y leases → Probar acceso al sistema
+final → Revocar A → Verificar token, lease y acceso**. El modo delegado usa MySQL;
+el directo emite API keys dinámicas de xAI y prueba `/v1/api-key` sin inferencia.
+La tabla exige A=403, lease ausente y credencial rechazada antes del vencimiento
+original, con B funcionando en los tres niveles. No se revoca el lease por separado.
 La llamada API usa el operador separado; A y B son JWT de Verify.
 
 El ciclo histórico del 14/10 comprobó en Chrome tres consultas reales: emisión inicial, reutilización del mismo lease y sustitución por otro antes de caducar. [Ciclo de vida verificado](docs/xai-runtime-verification.json) · [Correlación Tempo/Loki](docs/xai-observability-verification.json). La suite incluye concurrencia, sustitución fallida, expiración, límite de ejecución y ausencia de retorno a la clave estática.
