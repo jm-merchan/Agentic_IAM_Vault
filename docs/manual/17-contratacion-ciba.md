@@ -20,7 +20,11 @@ bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh
 ```
 
 The wrapper loads `.env` and exports the Vault bootstrap path, also
-from a new terminal. The installer keeps the selected Validator.
+from a new terminal. To keep an existing Validator through a full removal and
+reinstallation, set `LUMEN_CONTRACT_VALIDATOR='usuario@dominio.example'` in the
+private `.env`. The installer selects an explicit `--validator` first, then this
+environment setting, then the previous Vault/local selection. A full removal
+deletes the previous Vault/local selection but preserves `.env`.
 On this tenant it is the existing account `jose.merchan@ibm.com@www.ibm.com`
 (ID `64300857U3`), which receives the request by email. Its password,
 profile and administrative privileges are kept. To select another existing account:
@@ -29,7 +33,11 @@ profile and administrative privileges are kept. To select another existing accou
 bash scripts/manual/guided-run.sh bash chatbot/scripts/configure-contracts.sh --validator 'usuario@dominio.example'
 ```
 
-Without a previous selection it prepares `lumen-validator`, with a fictitious email: **it cannot
+Update `LUMEN_CONTRACT_VALIDATOR` in `.env` as well to keep that choice on later
+provisioning runs. An explicit `--validator` overrides the environment only for
+that invocation.
+
+Without an environment setting or previous selection it prepares `lumen-validator`, with a fictitious email: **it cannot
 receive an OTP by email**. Before verifying, choose a real account or configure
 its authentication method in Verify. The installer does not assume mobile push.
 The Validator must be separate from the demo Reader, Writer and Supervisor groups.
@@ -71,9 +79,11 @@ contracting button: use Writer and one of Writer's own drafts.
 3. Open **Solicitudes** (*Applications*). Only your drafts show **Contratar**.
 4. Press **Contratar**. The window shows the Validator, the reference and the message
    that must match Verify. While waiting, no contract row exists.
-5. The Validator authenticates and confirms in Verify. Complete **Continue** on the
-   consent screen with all five requested RAR permissions selected. Authentication alone
-   leaves the request pending. If they reject it or it expires, the draft is kept.
+5. The Validator authenticates and confirms in Verify. Press **Continuar / Continue** on the
+   consent screen with all five requested RAR permissions selected. Selected checkboxes
+   alone leave the server at `authorization_pending`. Complete consent while both the
+   Writer session and the approval request are valid. If either expires, sign in again
+   as needed and start a new request; the draft is kept.
 6. After the commit, **Descargar contrato PDF** (*Download contract PDF*) appears. The inbox shows
    `contratada`, the date and the download button.
 7. The window shows a single link to the latest CIBA trace; when finished it is
@@ -248,10 +258,12 @@ fictitious. The content is not sent to the LLM.
 The OAuth migration passed **13 live checks on November 3, 2026**, including direct
 JWT resource access, a different PDF owner denied, native-token revocation denied,
 JWT/SQL revocation, idempotent commit and two matching PDF reads.
-[Migration evidence](../CIBA_OAUTH_VERIFICATION.md) also records the enabled Writer
-interface and Chrome's completed PDF download. The real tests and their date are in
-[contracts-verification.json](../../chatbot/docs/contracts-verification.json).
-They are evidence of that run, not a guarantee about later changes.
+[Migration evidence](../CIBA_OAUTH_VERIFICATION.md) separates the original 09:13 UTC
+run, including Chrome's completed PDF download, from the 17:07 UTC repetition after
+the clean reinstallation. The [fresh service report](../runs/20261103T163255Z-clean-reinstall/ciba-oauth.json)
+again passed all 13 checks; browser PDF download was not repeated in that run.
+The mutable [latest report](../../chatbot/docs/contracts-verification.json) records
+its own execution date.
 
 The [October 22, 2026 rehearsal](../runs/20261022T122934Z-full-e2e/README.md) includes
 a real approval using the earlier native JWT flow, nine passing checks, a single idempotent

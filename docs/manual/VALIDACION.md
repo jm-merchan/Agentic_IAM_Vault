@@ -1,5 +1,36 @@
 # Validación actual e historial de reinstalación manual
 
+## Retirada completa y reinstalación con demo.sh · 3 de noviembre de 2026
+
+La [reinstalación limpia](../runs/20261103T163255Z-clean-reinstall/README.md)
+retiró los tres namespaces, diez volúmenes y dieciocho recursos gestionados de
+Verify. Se recrearon los tres namespaces con UIDs nuevos y diecisiete recursos
+Verify con IDs nuevos; el Validador real se conservó en lugar de recrear la cuenta
+ficticia. Fue un ciclo nuevo con `demo.sh start`; los ciclos manuales anteriores
+mantienen su fecha y alcance.
+
+Pasaron **688 pruebas Python, 2 subtests y 15 pruebas JavaScript**. Contra los
+servicios recién instalados pasaron 137 comprobaciones generales con 54 trazas,
+36 de agentes por tarea, 120 de espacios personales, 25 de RAR, las tres
+integraciones de modelos, la revocación OAuth por API y el verificador de leases
+y capturas con MySQL delegado y xAI directo. Ambos comprueban el rechazo de A
+antes de caducar mientras B sigue funcionando.
+
+La nueva aprobación CIBA completó las **13 comprobaciones**, incluida la
+revocación del JWT OAuth y su credencial SQL, idempotencia y dos lecturas del PDF
+por su propietario. CIBA quedó habilitado por defecto y la selección del
+Validador persiste ahora en `.env`. Todos los bloqueos quedaron inactivos y
+los 59 archivos de aplicación y estáticos coinciden con el runtime.
+
+El primer arranque falló en Claude hasta actualizar sus JWKS públicas en la
+consola; el segundo completó instalación e inferencia. Una primera petición
+CIBA no terminó antes de caducar la sesión; la petición nueva sí terminó.
+Chrome acreditó la actualización de claves, el consentimiento CIBA y la entrada
+de Lumen. Los recorridos de negocio autenticados usan PKCE y los servicios
+reales de la aplicación; esta ejecución no repitió la descarga del PDF en Chrome.
+El [resultado agregado](../runs/20261103T163255Z-clean-reinstall/results.json)
+enlaza las evidencias de cada verificación.
+
 ## Cambios funcionales y coherencia documental · 3 de noviembre de 2026
 
 La [revisión de coherencia](../runs/20261103-documentation-consistency/README.md)

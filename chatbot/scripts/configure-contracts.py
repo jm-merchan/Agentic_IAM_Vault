@@ -83,7 +83,9 @@ def configure(vault, verify, validator=None, enable=True):
     state_path = Path(os.environ.get('LUMEN_STATE_DIR', str(Path.home() / '.local/state/lumen-vault-demo'))) / 'contracts/validator.json'
     saved = json.loads(state_path.read_text()) if state_path.exists() else {}
     prior_validator = kv('pdf-approval', missing=True) or {}
-    username = validator or previous.get('validator_username') or saved.get('username') or prior_validator.get('validator_username') or USERNAME
+    username = (validator or os.environ.get('LUMEN_CONTRACT_VALIDATOR', '').strip()
+                or previous.get('validator_username') or saved.get('username')
+                or prior_validator.get('validator_username') or USERNAME)
     if username != USERNAME:
         user = one(api('GET', '/v2.0/Users', params={'filter': f'userName eq "{username}"'})['Resources'], username)
         if user is None:

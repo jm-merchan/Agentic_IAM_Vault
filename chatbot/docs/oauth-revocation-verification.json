@@ -1,7 +1,7 @@
 {
-  "checked_at": "2026-11-03T10:30:45.546818+00:00",
+  "checked_at": "2026-11-03T16:59:04.930001+00:00",
   "flow": "oauth-revocation-api",
-  "run_id": "20261103T103043Z-fe451c92",
+  "run_id": "20261103T165902Z-dff16c96",
   "passed": true,
   "endpoint": "auth/token/revoke-oauth",
   "namespace": "verify",
@@ -12,18 +12,18 @@
       "passed": true,
       "path": "database/creds/chatbot-readonly",
       "agent": "chatbot-task-write",
-      "subject": "646009USN8",
-      "actor": "8a637358-6fc3-4ff5-8581-ffb0a6ff9367",
+      "subject": "6470002OJ1",
+      "actor": "c5c69180-46b9-4862-8b4a-0e34cd07c88e",
       "issuer": "https://merchan.verify.ibm.com/oauth2",
-      "unique_id_a": "2d93fd1d-b1e1-4350-9078-c4246b190faa.M18xNzkzNzAxODQ0XzQx",
-      "unique_id_b": "5baa3ab9-cc5f-4c54-b3c3-f212b40c8a03.M18xNzkzNzAxODQ0XzQx",
-      "jwt_exp": 1793702444,
+      "unique_id_a": "5627f7aa-37cf-47c1-9623-928b9f9642a3.M18xNzkzNzI1MTQzXzQx",
+      "unique_id_b": "b418db4b-847a-4a35-b1d9-b06f0370ec66.M18xNzkzNzI1MTQ0XzQx",
+      "jwt_exp": 1793725744,
       "revoke_payload": {
         "issuer": "https://merchan.verify.ibm.com/oauth2",
-        "unique_id": "2d93fd1d-b1e1-4350-9078-c4246b190faa.M18xNzkzNzAxODQ0XzQx",
+        "unique_id": "5627f7aa-37cf-47c1-9623-928b9f9642a3.M18xNzkzNzI1MTQzXzQx",
         "exp": 615
       },
-      "seconds_until_exp_at_denial": 599.094,
+      "seconds_until_exp_at_denial": 599.828,
       "checks": [
         "same identity and RAR; distinct JWT identifiers",
         "token A allowed before revocation (HTTP 200)",
@@ -38,25 +38,25 @@
         "unrevoked token B still allowed (HTTP 200)",
         "token B can still obtain a working SQL credential"
       ],
-      "trace_id": "4ba2e851f6410d8327e9502fa88272f9"
+      "trace_id": "62b8d3536020b71cb0a927dde28e6d55"
     },
     {
       "mode": "direct",
       "passed": true,
       "path": "secrets/data/chatbot/xai-access",
       "agent": "chatbot-xai",
-      "subject": "6f116f1d-2bb3-4803-8891-119c3e6adc92",
+      "subject": "a910801c-2d1b-4aa7-913b-2f124ba0c19b",
       "actor": null,
       "issuer": "https://merchan.verify.ibm.com/oauth2",
-      "unique_id_a": "3dbb4648-bdf7-42da-a10d-a87cc4116e86.M18xNzkzNzAxODQ1XzQx",
-      "unique_id_b": "dca41cd5-a015-4cc0-81a2-646dd49c1753.M18xNzkzNzAxODQ1XzQx",
-      "jwt_exp": 1793702445,
+      "unique_id_a": "a6b20cda-5d3c-404f-ab65-3c48573c94e4.M18xNzkzNzI1MTQ0XzQx",
+      "unique_id_b": "36fbb9e3-32e7-4c94-84c2-15f4577d35cb.M18xNzkzNzI1MTQ0XzQx",
+      "jwt_exp": 1793725744,
       "revoke_payload": {
         "issuer": "https://merchan.verify.ibm.com/oauth2",
-        "unique_id": "3dbb4648-bdf7-42da-a10d-a87cc4116e86.M18xNzkzNzAxODQ1XzQx",
+        "unique_id": "a6b20cda-5d3c-404f-ab65-3c48573c94e4.M18xNzkzNzI1MTQ0XzQx",
         "exp": 615
       },
-      "seconds_until_exp_at_denial": 599.487,
+      "seconds_until_exp_at_denial": 599.105,
       "checks": [
         "same identity and RAR; distinct JWT identifiers",
         "token A allowed before revocation (HTTP 200)",
@@ -67,7 +67,7 @@
         "revoked JWT still has a valid signature and unexpired claims",
         "unrevoked token B still allowed (HTTP 200)"
       ],
-      "trace_id": "5e12370099756912715dada473495264"
+      "trace_id": "d7fe888ebdd92fb759500672d78df499"
     }
   ],
   "scope": "Fresh lab JWTs only; no changes to business ACLs, agents or clients; no model calls."

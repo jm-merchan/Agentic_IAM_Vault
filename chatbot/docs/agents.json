@@ -1,14 +1,14 @@
 [
   {
     "name": "chatbot-oidc",
-    "entity_id": "c9a5b1d6-adb6-e3ca-a0de-dd780db583d5",
-    "client_id": "1a61150f-f339-41fe-9b8b-99d7afe90a27",
+    "entity_id": "a36e98c6-a92a-ad6e-e39c-3c1aa6108322",
+    "client_id": "e6b2a8b0-9c2a-40dd-bb9d-c821693ef1cb",
     "ceiling_policy": "chatbot-data-ceiling"
   },
   {
     "name": "chatbot-research",
-    "entity_id": "93aca48a-eb6f-6cc1-05e6-3808510b9f0a",
-    "client_id": "a2b95c76-5b10-499e-9f8b-b4da50476f57",
+    "entity_id": "82c22d8d-841e-4ad5-670e-c45fdfac5a51",
+    "client_id": "ba5a357c-aa76-49ac-8313-14336ba33456",
     "ceiling_policy": "chatbot-research"
   }
 ]

@@ -1,14 +1,14 @@
 {
-  "checked_at": "2026-11-03T09:13:43.352195+00:00",
+  "checked_at": "2026-11-03T17:07:30.994445+00:00",
   "flow": "contract-ciba-oauth",
   "auth_mode": "oauth",
   "passed": true,
-  "client_id": "b12262f4-9a7c-407b-8811-e3b6cc316d78",
+  "client_id": "676adcd6-bf2f-43d3-9462-6a083a9fd453",
   "validator_subject": "64300857U3",
-  "actor_entity_id": "bf4efa9b-28a7-558b-f5c5-74210d48f342",
-  "application_id": "1d3f53b7-e59d-4500-b43f-f0244fc6a713",
-  "contract_id": "42999540-0675-49db-bf6a-99bde31e2325",
-  "sha256": "fec3f9cd206e33ffb56a729353eafc759212453f0ea42e34c8647a8480d7252a",
+  "actor_entity_id": "8437429e-a0c7-8c79-bd0a-b55079b40a79",
+  "application_id": "b8c0e625-1e18-4a6d-ab7a-3a8fd9f9360b",
+  "contract_id": "a7a1e0d4-0196-4c9d-b63a-c814c3cb5d82",
+  "sha256": "ab604491da21187b8bb7754792bbb38263b1465120f6bb9765c423f5c856182d",
   "checks": [
     "ordinary ID token rejected by OAuth contract route",
     "CIBA client rejects client_credentials",
@@ -25,13 +25,24 @@
     "contracted draft immutable to regular Writer SQL"
   ],
   "traces": [
-    "0a50dbfcbf68aa669208d3b595daa5e0",
-    "15d9d105bd9330f30ea638d8370425cc",
-    "8f556dfe679825086c06c396ab04be12",
-    "b931fc8ae609d6c8dc8245ff453bfa3a",
-    "eceef796a7bc99c76caa1c89e26b7654",
-    "e712dc15eca5ad3f14d8bfb0b43e6810",
-    "3adc2ffd48405e47e7816dc1c88bd053",
-    "0fbab59d6e4ed190635b32ccec8ab58d"
+    "8cb325b391b72ca122056af628ce4d4f",
+    "19df4c76f153b67ac314197d36fc7193",
+    "4623be133d1a22b4d6ae236d52274bb4",
+    "0e949aae0a8870caf43fbd509e6af3f6",
+    "b7fb01fec0141e8e74b3b95443c5fc44",
+    "6fd81c21cb124e1f6b9974fa0bdae1bb",
+    "e0027c3f1e9f5afa4a1d05fc0c09943a",
+    "17d822ee4b3b2184369d4efd08a22d97",
+    "c6c59804a1f0b060b8f09813499266b1",
+    "db16857797501e45a9594afa4947ef21",
+    "86dbf8c7a88f095f34bbd8d893f06de0",
+    "80f5235b97e8f130aafebe9c0112100a",
+    "fb6fc420274037e889ccf4126e89c629",
+    "8d3d31f2239f9f742a82ccaf4c1625e6",
+    "d924ca16575f7bb727ee224bfe3ac8d2",
+    "19adf2ce3d54984d6b02d60ed2fb370c",
+    "78542f27a6609872b36f087aca57c70a",
+    "e042685080f10eadf7531d00dc26c2bf",
+    "3d01cee8e9e8f321d776a8a88940573c"
   ]
 }

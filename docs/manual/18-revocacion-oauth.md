@@ -122,6 +122,13 @@ authentication error; arbitrary 400/429/5xx responses do not count as revocation
 The [extended run summary](../runs/20261103-oauth-revocation-leases/README.md)
 also records the Chrome checks against the restarted application.
 
+After the [clean reinstallation](../runs/20261103T163255Z-clean-reinstall/README.md),
+the capture-enabled verifier repeated all four stages for both delegated MySQL
+and direct xAI access, including original-lease revocation, final-system rejection,
+the B control, operator denials and owner-only detail retrieval. Its immutable
+[lease and capture report](../runs/20261103T163255Z-clean-reinstall/oauth-leases-and-captures.json)
+contains the fresh evidence. That run did not repeat the Chrome trace walkthrough.
+
 | Mode | JWT identity | Resource | Vault authorization |
 |---|---|---|---|
 | Delegated | UI: current human and agent; CLI: Writer and task-write | `database/creds/chatbot-readonly` | Human policy ∩ actor ceiling ∩ RAR |

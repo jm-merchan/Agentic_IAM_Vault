@@ -1,0 +1,184 @@
+{
+  "created_at": "2026-11-03T16:29:41Z",
+  "dry_run": true,
+  "context": "workshop",
+  "namespaces": [
+    "mysql",
+    "lumen-observability",
+    "vault"
+  ],
+  "verify_tenant": "https://merchan.verify.ibm.com",
+  "verify_resources": [
+    {
+      "kind": "sts",
+      "name": "vault-chatbot-sts",
+      "id": "81526bbf-d3a1-4d61-8aac-7acecfdbce22",
+      "path": "/v1.0/sts/oauth/clients/81526bbf-d3a1-4d61-8aac-7acecfdbce22"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-oidc",
+      "id": "2088285084219761340",
+      "path": "/v1.0/applications/2088285084219761340"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-research",
+      "id": "2088299609735093279",
+      "path": "/v1.0/applications/2088299609735093279"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-xai",
+      "id": "2088521144474092770",
+      "path": "/v1.0/applications/2088521144474092770"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-openai",
+      "id": "2088578976060679121",
+      "path": "/v1.0/applications/2088578976060679121"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-anthropic",
+      "id": "2088599011949999863",
+      "path": "/v1.0/applications/2088599011949999863"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-task-read",
+      "id": "2088396550453908771",
+      "path": "/v1.0/applications/2088396550453908771"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-task-write",
+      "id": "2088416669380845161",
+      "path": "/v1.0/applications/2088416669380845161"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-task-reveal",
+      "id": "2088435941069164978",
+      "path": "/v1.0/applications/2088435941069164978"
+    },
+    {
+      "kind": "app",
+      "name": "vault-chatbot-contract",
+      "id": "2088491963091951813",
+      "path": "/v1.0/applications/2088491963091951813"
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-readers",
+      "id": "6470002N4I",
+      "path": "/v2.0/Groups/6470002N4I"
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-writers",
+      "id": "6470002N4J",
+      "path": "/v2.0/Groups/6470002N4J"
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-supervisors",
+      "id": "6480002JJJ",
+      "path": "/v2.0/Groups/6480002JJJ"
+    },
+    {
+      "kind": "group",
+      "name": "chatbot-validators",
+      "id": "6480002JJL",
+      "path": "/v2.0/Groups/6480002JJL"
+    },
+    {
+      "kind": "user",
+      "name": "lumen-reader",
+      "id": "6480002JJH",
+      "path": "/v2.0/Users/6480002JJH"
+    },
+    {
+      "kind": "user",
+      "name": "lumen-writer",
+      "id": "646009USN8",
+      "path": "/v2.0/Users/646009USN8"
+    },
+    {
+      "kind": "user",
+      "name": "lumen-supervisor",
+      "id": "6480002JJI",
+      "path": "/v2.0/Users/6480002JJI"
+    },
+    {
+      "kind": "user",
+      "name": "lumen-validator",
+      "id": "645009KG9A",
+      "path": "/v2.0/Users/645009KG9A"
+    }
+  ],
+  "volumes": [
+    {
+      "name": "pvc-04bd6759-b8f0-43ea-89c6-952953c17ade",
+      "namespace": "vault",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-1bf80d4c-ecdd-401d-b8e8-9b04a618485b",
+      "namespace": "vault",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-1faa3a65-90d5-4506-98c1-53a03278b4d3",
+      "namespace": "vault",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-26fb11f7-0406-4cb5-8dea-d7f3c1e932b3",
+      "namespace": "lumen-observability",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-35487bf1-a94b-4e65-b922-066e4e4461f1",
+      "namespace": "vault",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-5c95856f-6277-444a-839a-0e9e63f54bd0",
+      "namespace": "lumen-observability",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-b5161d27-bb2e-45f7-af03-c1fa49e8da65",
+      "namespace": "lumen-observability",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-dd5d6ea3-600c-4f4f-a153-2d1bb1f2104d",
+      "namespace": "mysql",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-e1e65c5e-2c22-4441-96a3-346d5e7ec443",
+      "namespace": "vault",
+      "reclaim_policy": "Delete"
+    },
+    {
+      "name": "pvc-e9438056-134b-496d-a222-fcab56413f77",
+      "namespace": "vault",
+      "reclaim_policy": "Delete"
+    }
+  ],
+  "local_state": "/Users/jose/.local/state/lumen-vault-demo",
+  "preserved": [
+    ".env",
+    "OpenAI project, service account and WIF provider/mapping",
+    "Claude issuer, federation rule and service account",
+    "Verify administrative API client",
+    "vault:path_access RAR schema",
+    "non-Lumen Verify resources",
+    "Minikube profile and image cache",
+    "workspace documentation and historical reports"
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "checked_at": "2026-11-03T17:18:52.086113+00:00",
+  "all_passed": true,
+  "installation": "fresh guarded removal and demo.sh start; console JWKS updated before successful rerun",
+  "resources": {
+    "namespaces_removed_and_recreated": 3,
+    "volumes_removed": 10,
+    "verify_resources_removed": 18,
+    "verify_resources_recreated": 17,
+    "all_recreated_ids_new": true,
+    "real_validator_reused": true
+  },
+  "tests": {
+    "python": 688,
+    "subtests": 2,
+    "javascript": 15
+  },
+  "verification": {
+    "openai": {
+      "passed": true,
+      "report": "openai.json",
+      "checks": 5
+    },
+    "claude": {
+      "passed": true,
+      "report": "claude.json",
+      "checks": 5
+    },
+    "xai-expiry": {
+      "passed": true,
+      "report": "xai-expiry.json",
+      "checks": 12
+    },
+    "task-agents": {
+      "passed": true,
+      "report": "task-agents.json",
+      "cases": 12,
+      "checks": 36
+    },
+    "personal-spaces": {
+      "passed": true,
+      "report": "personal-spaces.json",
+      "cases": 12,
+      "checks": 120
+    },
+    "rar-parameters": {
+      "passed": true,
+      "report": "rar-parameters.json",
+      "cases": 4,
+      "checks": 25
+    },
+    "oauth-api": {
+      "passed": true,
+      "report": "oauth-api.json",
+      "scenarios": 2
+    },
+    "oauth-leases-and-captures": {
+      "passed": true,
+      "report": "oauth-leases-and-captures.json",
+      "modes": [
+        "delegated",
+        "direct"
+      ],
+      "operator_checks": 7
+    },
+    "ciba-oauth": {
+      "passed": true,
+      "report": "ciba-oauth.json",
+      "checks": 13
+    },
+    "workflows": {
+      "passed": true,
+      "checks": 137,
+      "traces": 54,
+      "report": "workflows/workflows.json"
+    }
+  },
+  "final_state": {
+    "all_blocks_inactive": {
+      "database-write": true,
+      "database-read": true,
+      "decrypt": true,
+      "xai": true
+    },
+    "ciba_enabled": true,
+    "ciba_auth_mode": "oauth",
+    "validator_selection_persisted": true,
+    "runtime_source_files_identical": 59,
+    "health": "ok"
+  },
+  "presentation": {
+    "slides": 47,
+    "changed_slide": 6,
+    "change": "Replace hardcoded reader SCIM ID with a Vault CLI lookup",
+    "notes_empty": true,
+    "sha256": "8f0257ecc9245a9863d6fa283b975d9da6c349d33a9da6831bd562779e4f9148"
+  },
+  "attempts": [
+    {
+      "stage": "initial install",
+      "result": "Claude HTTP 401 before console JWKS rotation",
+      "report": "install-attempt-1.json"
+    },
+    {
+      "stage": "CIBA first request",
+      "result": "Writer session expired while consent remained pending; not a completed contract"
+    },
+    {
+      "stage": "CIBA second request",
+      "result": "ready; OAuth and SQL revocation, idempotency and owner PDF retrieval passed",
+      "report": "ciba-oauth.json"
+    }
+  ],
+  "browser_scope": "Fresh Claude public-key update, completed Verify CIBA consent for the matching binding message, and new Lumen landing/login UI. Authenticated Writer/Reader/Supervisor business workflows were verified through real PKCE and application services. Browser PDF download was not repeated.",
+  "documentation": {
+    "checked_at": "2026-11-03T17:24:44.275887+00:00",
+    "all_passed": true,
+    "static_report": "static-validation.json",
+    "run_readme_links": 27,
+    "updated_notebook_outputs_empty": true,
+    "public_reports_credential_scan_passed": true
+  }
+}

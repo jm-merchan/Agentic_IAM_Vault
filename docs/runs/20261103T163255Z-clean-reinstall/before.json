@@ -1,0 +1,14 @@
+[
+  {
+    "name": "vault",
+    "uid": "1ddeaea9-17a2-4bb3-b5ae-ec783fd6510b"
+  },
+  {
+    "name": "mysql",
+    "uid": "3a356a84-dcba-4e5d-9210-87ea717df0f5"
+  },
+  {
+    "name": "lumen-observability",
+    "uid": "8ce98f12-8009-4449-9639-d167876444d6"
+  }
+]

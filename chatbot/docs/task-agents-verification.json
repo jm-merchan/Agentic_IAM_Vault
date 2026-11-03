@@ -17,9 +17,9 @@
           "passed": true
         }
       ],
-      "trace_id": "0deb1b185a4cb19a4023cfbad6c35dee",
+      "trace_id": "54798a3e2997bdec7266cc232fd348d8",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:51:25.415947+00:00"
+      "checked_at": "2026-11-03T16:39:59.983196+00:00"
     },
     {
       "role": "writer",
@@ -38,9 +38,9 @@
           "passed": true
         }
       ],
-      "trace_id": "93004765faf5d08fa97235fe72203dbb",
+      "trace_id": "a05e578910b6e39aff25f93a8de487b6",
       "leases_revoked": 3,
-      "checked_at": "2026-10-27T09:51:34.873747+00:00"
+      "checked_at": "2026-11-03T16:40:08.842297+00:00"
     },
     {
       "role": "supervisor",
@@ -59,9 +59,9 @@
           "passed": true
         }
       ],
-      "trace_id": "5cea61cda20100e8e444ecc5182b2fcd",
+      "trace_id": "15e3aec808775429950b55e4840fa33e",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:51:43.953830+00:00"
+      "checked_at": "2026-11-03T16:40:17.498115+00:00"
     },
     {
       "role": "reader",
@@ -80,9 +80,9 @@
           "passed": true
         }
       ],
-      "trace_id": "e70e1b2c5f6c56dea9c72987985caca8",
+      "trace_id": "b1db059b9736314f3392e1e7942734f9",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:51:53.387744+00:00"
+      "checked_at": "2026-11-03T16:40:25.874178+00:00"
     },
     {
       "role": "writer",
@@ -101,9 +101,9 @@
           "passed": true
         }
       ],
-      "trace_id": "711ecb8a83fb383f9fe35fcc31c37192",
+      "trace_id": "394bff49661b1de56fa7862120a8e12f",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:52:02.947293+00:00"
+      "checked_at": "2026-11-03T16:40:34.034252+00:00"
     },
     {
       "role": "supervisor",
@@ -122,9 +122,9 @@
           "passed": true
         }
       ],
-      "trace_id": "9ee6aa793b372585e39113d54e8019f5",
+      "trace_id": "e356a9b1cd40557446a3156bfbc40ece",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:52:11.613058+00:00"
+      "checked_at": "2026-11-03T16:40:42.661760+00:00"
     },
     {
       "role": "reader",
@@ -143,9 +143,9 @@
           "passed": true
         }
       ],
-      "trace_id": "114b97af313f4b5978d0fc7a8674766d",
+      "trace_id": "b1993ba4c1e51b992401569158939397",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:52:20.317288+00:00"
+      "checked_at": "2026-11-03T16:40:50.911096+00:00"
     },
     {
       "role": "writer",
@@ -164,9 +164,9 @@
           "passed": true
         }
       ],
-      "trace_id": "2d32931e874068ea147162f7c0f035b5",
+      "trace_id": "b7016e9517e66293c2d405f9ab3db8d0",
       "leases_revoked": 3,
-      "checked_at": "2026-10-27T09:52:29.414529+00:00"
+      "checked_at": "2026-11-03T16:41:00.983017+00:00"
     },
     {
       "role": "supervisor",
@@ -185,9 +185,9 @@
           "passed": true
         }
       ],
-      "trace_id": "58038bc44f863893050b28bc1513f56a",
+      "trace_id": "c735a570e1f649283da2412deb7a6444",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:52:37.765381+00:00"
+      "checked_at": "2026-11-03T16:41:10.668240+00:00"
     },
     {
       "role": "reader",
@@ -206,9 +206,9 @@
           "passed": true
         }
       ],
-      "trace_id": "9ad193d436e8033a8939310a5db68004",
+      "trace_id": "3329420deaebb1e029cd16e62f167a59",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:52:46.262530+00:00"
+      "checked_at": "2026-11-03T16:41:20.208215+00:00"
     },
     {
       "role": "writer",
@@ -227,9 +227,9 @@
           "passed": true
         }
       ],
-      "trace_id": "9565c2d32d8cda46af1c10f4b04dd219",
+      "trace_id": "63f11d63c437f8e9864fc2a7b59cee7b",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:52:55.067741+00:00"
+      "checked_at": "2026-11-03T16:41:29.420781+00:00"
     },
     {
       "role": "supervisor",
@@ -248,9 +248,9 @@
           "passed": true
         }
       ],
-      "trace_id": "18b6052cfdfaabeffd62932fb6d32f35",
+      "trace_id": "f757ef08705fae010925376087f63d67",
       "leases_revoked": 2,
-      "checked_at": "2026-10-27T09:53:04.334073+00:00"
+      "checked_at": "2026-11-03T16:41:38.077062+00:00"
     }
   ],
   "all_passed": true,

@@ -1,7 +1,7 @@
 # CIBA direct OAuth verification · November 3, 2026
 
 The live run completed at **09:13:43 UTC** against Vault **2.2.0+ent**, namespace
-`verify`, and IBM Verify. [Machine-readable results](../chatbot/docs/contracts-verification.json)
+`verify`, and IBM Verify. The [original migration results](runs/20261103T163255Z-clean-reinstall/ciba-migration-original.json)
 record **13 passing checks** for `contract-ciba-oauth`.
 
 ## Credential flow
@@ -67,3 +67,17 @@ to re-enable an explicitly disabled installation. Follow the [manual](manual/17-
 The subsequent [UI revocation lab](manual/18-revocacion-oauth.md) uses a separate
 native operator and `auth/token/revoke-oauth` to target lab JWTs by issuer/jti.
 It does not change the CIBA cleanup flow recorded above.
+
+## Repeated after the clean reinstallation
+
+The [fresh installation run](runs/20261103T163255Z-clean-reinstall/README.md)
+repeated all **13 checks** at **17:07:30 UTC** with a new CIBA client and actor
+entity. The real Validator subject remained `64300857U3`, selected through
+`LUMEN_CONTRACT_VALIDATOR` in the preserved private `.env`.
+
+The completed request was **Lumen contrato b8c0e625 a7a1e0**. Verify's browser
+showed the matching authentication result; the [new service report](runs/20261103T163255Z-clean-reinstall/ciba-oauth.json)
+records the committed contract, direct OAuth JWT revocation, dependent SQL
+credential revocation, idempotency and two matching owner PDF reads. Browser PDF
+download was not repeated. An earlier request remained at consent until the
+Writer session expired and is recorded as an incomplete attempt in the run report.

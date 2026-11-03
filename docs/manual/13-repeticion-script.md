@@ -8,11 +8,15 @@ This rehearsal runs the Bash blocks from chapters 00–10, always including xAI,
 
 ## 1. Prepare the inputs
 
-Complete `.env` as described in 00 and start the container engine. To rerun with OpenAI, `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID` and `OPENAI_IDENTITY_PROVIDER_ID` must be saved, along with the Admin API key and ngrok. For Claude, the five WIF IDs from [08](08-claude-spiffe.md) are kept and the administrative OAuth profile `lumen-admin` is prepared. The installation synchronizes the new public keys through the official API before the first exchange. External WIF resources are kept.
+Complete `.env` as described in 00 and start the container engine. To rerun with OpenAI, `OPENAI_PROJECT_ID`, `OPENAI_SERVICE_ACCOUNT_ID` and `OPENAI_IDENTITY_PROVIDER_ID` must be saved, along with the Admin API key and ngrok. For Claude, keep the five WIF IDs from [08](08-claude-spiffe.md). In `api` key-update mode, prepare the administrative OAuth profile `lumen-admin`; installation synchronizes the new public keys through the official API and reads them back. In `console` mode, replace the issuer's inline public keys in Claude Console with the exported JWKS before functional verification. External WIF resources are kept.
 
 The test accounts are Cloud Directory users with an active password and no MFA required by an additional policy. The script stops if it encounters MFA, a password change or an unknown form. It does not bypass those controls or use the ROPC password grant. Perl parses the HTML received by curl; it does not drive a browser.
 
 ## 2. Remove and rebuild
+
+Set `LUMEN_CONTRACT_VALIDATOR` in the private `.env` before removal to reuse an
+existing real Validator. Its account and `.env` survive removal; the generated
+Vault contract configuration and local Validator selection do not.
 
 ### If the cluster was stopped
 
@@ -68,7 +72,7 @@ The following are deleted: the Lumen resources in the Kubernetes namespaces `vau
 
 Audit is enabled immediately after initializing Vault. All three branches are always configured. `LUMEN_MODEL_PROVIDER` only sets the banner's initial provider; it does not control which branches are installed or verified. Before removing resources, the credentials and external IDs of all three integrations must be present. The conditional steps that create the OpenAI project/account are skipped when their IDs are reused.
 
-`rebuild` and `install` finish the local installation, generate `claude-jwks.json` inside the run directory and synchronize the existing issuer. The result is checked by a subsequent API read. Continue with the real tests:
+`rebuild` and `install` finish the local installation and generate `claude-jwks.json` inside the run directory. In `api` mode they synchronize the existing Claude issuer and check it with a subsequent API read. In `console` mode, exporting the file leaves the external update pending: save those public keys in Claude Console first. The next tests must complete a fresh exchange and inference with the new Vault keys:
 
 ```bash
 bash scripts/manual/rehearse.sh verify

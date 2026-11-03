@@ -1,0 +1,74 @@
+{
+  "checked_at": "2026-11-03T16:59:04.930001+00:00",
+  "flow": "oauth-revocation-api",
+  "run_id": "20261103T165902Z-dff16c96",
+  "passed": true,
+  "endpoint": "auth/token/revoke-oauth",
+  "namespace": "verify",
+  "cleanup_passed": true,
+  "scenarios": [
+    {
+      "mode": "delegated",
+      "passed": true,
+      "path": "database/creds/chatbot-readonly",
+      "agent": "chatbot-task-write",
+      "subject": "6470002OJ1",
+      "actor": "c5c69180-46b9-4862-8b4a-0e34cd07c88e",
+      "issuer": "https://merchan.verify.ibm.com/oauth2",
+      "unique_id_a": "5627f7aa-37cf-47c1-9623-928b9f9642a3.M18xNzkzNzI1MTQzXzQx",
+      "unique_id_b": "b418db4b-847a-4a35-b1d9-b06f0370ec66.M18xNzkzNzI1MTQ0XzQx",
+      "jwt_exp": 1793725744,
+      "revoke_payload": {
+        "issuer": "https://merchan.verify.ibm.com/oauth2",
+        "unique_id": "5627f7aa-37cf-47c1-9623-928b9f9642a3.M18xNzkzNzI1MTQzXzQx",
+        "exp": 615
+      },
+      "seconds_until_exp_at_denial": 599.828,
+      "checks": [
+        "same identity and RAR; distinct JWT identifiers",
+        "token A allowed before revocation (HTTP 200)",
+        "leased SQL credential accepts a new connection",
+        "operator cannot revoke token B (HTTP 403)",
+        "JWT A still has more than 30 seconds before expiry",
+        "SQL lease has not expired before revocation",
+        "revoke-oauth accepted issuer and unique_id, without the JWT",
+        "same token A denied before expiry (HTTP 403)",
+        "revoked JWT still has a valid signature and unexpired claims",
+        "SQL rejection occurred before the original lease expiry",
+        "unrevoked token B still allowed (HTTP 200)",
+        "token B can still obtain a working SQL credential"
+      ],
+      "trace_id": "62b8d3536020b71cb0a927dde28e6d55"
+    },
+    {
+      "mode": "direct",
+      "passed": true,
+      "path": "secrets/data/chatbot/xai-access",
+      "agent": "chatbot-xai",
+      "subject": "a910801c-2d1b-4aa7-913b-2f124ba0c19b",
+      "actor": null,
+      "issuer": "https://merchan.verify.ibm.com/oauth2",
+      "unique_id_a": "a6b20cda-5d3c-404f-ab65-3c48573c94e4.M18xNzkzNzI1MTQ0XzQx",
+      "unique_id_b": "36fbb9e3-32e7-4c94-84c2-15f4577d35cb.M18xNzkzNzI1MTQ0XzQx",
+      "jwt_exp": 1793725744,
+      "revoke_payload": {
+        "issuer": "https://merchan.verify.ibm.com/oauth2",
+        "unique_id": "a6b20cda-5d3c-404f-ab65-3c48573c94e4.M18xNzkzNzI1MTQ0XzQx",
+        "exp": 615
+      },
+      "seconds_until_exp_at_denial": 599.105,
+      "checks": [
+        "same identity and RAR; distinct JWT identifiers",
+        "token A allowed before revocation (HTTP 200)",
+        "operator cannot revoke token B (HTTP 403)",
+        "JWT A still has more than 30 seconds before expiry",
+        "revoke-oauth accepted issuer and unique_id, without the JWT",
+        "same token A denied before expiry (HTTP 403)",
+        "revoked JWT still has a valid signature and unexpired claims",
+        "unrevoked token B still allowed (HTTP 200)"
+      ],
+      "trace_id": "d7fe888ebdd92fb759500672d78df499"
+    }
+  ],
+  "scope": "Fresh lab JWTs only; no changes to business ACLs, agents or clients; no model calls."
+}

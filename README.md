@@ -212,7 +212,9 @@ Additional workflows have their own guides:
 For contracting, use **Writer + Current mode** or **Request creation**, then open
 one of Writer's own drafts in **Applications**. Provisioning enables CIBA by
 default; a fresh installation still needs a usable Validator selected as described
-in the guide. The generated `lumen-validator` placeholder cannot receive email OTP.
+in the guide. Set `LUMEN_CONTRACT_VALIDATOR` in the private `.env` to retain that
+selection across removal and reinstallation. The generated `lumen-validator`
+placeholder cannot receive email OTP.
 
 For revocation, open **OAuth revocation** in the sidebar and use **Create tokens and leases →
 Test final system access → Revoke token A → Verify token, lease and access** in each
@@ -255,7 +257,13 @@ chapters; `verify` does not run all of them.
 
 The latest launcher result is stored in `~/.local/state/lumen-vault-demo/last-run.json`;
 `start`, `verify`, `prepare-openai`, `block`, `unblock`, and `remove` also keep a copy per
-run in `reports/` inside that directory. The [October 22, 2026 run](docs/runs/20261022T122934Z-full-e2e/README.md)
+run in `reports/` inside that directory. The [November 3 clean reinstallation](docs/runs/20261103T163255Z-clean-reinstall/README.md)
+removed and recreated the demo, then passed 688 Python tests, 2 subtests, 15 JavaScript
+tests and live authorization, model, OAuth lease-revocation and CIBA checks. CIBA was
+enabled with the persisted real Validator. The report distinguishes browser checks
+from the service-level business workflows and PDF retrieval.
+
+The [October 22, 2026 run](docs/runs/20261022T122934Z-full-e2e/README.md)
 documents the reinstallation, results, and browser download step that remained
 unconfirmed. The [validation history](docs/manual/VALIDACION.md) preserves other
 runs with their dates and scope.

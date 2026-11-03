@@ -1,0 +1,104 @@
+[
+  {
+    "kind": "sts",
+    "name": "vault-chatbot-sts",
+    "id": "dbb645ae-a3b7-4295-8f59-f807297280e6",
+    "path": "/v1.0/sts/oauth/clients/dbb645ae-a3b7-4295-8f59-f807297280e6"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-oidc",
+    "id": "2469323772637854332",
+    "path": "/v1.0/applications/2469323772637854332"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-research",
+    "id": "2469337142714659833",
+    "path": "/v1.0/applications/2469337142714659833"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-xai",
+    "id": "2469565519047630555",
+    "path": "/v1.0/applications/2469565519047630555"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-openai",
+    "id": "2469632905719501623",
+    "path": "/v1.0/applications/2469632905719501623"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-anthropic",
+    "id": "2469656085871990853",
+    "path": "/v1.0/applications/2469656085871990853"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-task-read",
+    "id": "2469434638466383520",
+    "path": "/v1.0/applications/2469434638466383520"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-task-write",
+    "id": "2469454618626106657",
+    "path": "/v1.0/applications/2469454618626106657"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-task-reveal",
+    "id": "2469473882091400499",
+    "path": "/v1.0/applications/2469473882091400499"
+  },
+  {
+    "kind": "app",
+    "name": "vault-chatbot-contract",
+    "id": "2469533792138411782",
+    "path": "/v1.0/applications/2469533792138411782"
+  },
+  {
+    "kind": "group",
+    "name": "chatbot-readers",
+    "id": "6470002OIZ",
+    "path": "/v2.0/Groups/6470002OIZ"
+  },
+  {
+    "kind": "group",
+    "name": "chatbot-writers",
+    "id": "6480002KVB",
+    "path": "/v2.0/Groups/6480002KVB"
+  },
+  {
+    "kind": "group",
+    "name": "chatbot-supervisors",
+    "id": "646009UTZZ",
+    "path": "/v2.0/Groups/646009UTZZ"
+  },
+  {
+    "kind": "group",
+    "name": "chatbot-validators",
+    "id": "645009KHNQ",
+    "path": "/v2.0/Groups/645009KHNQ"
+  },
+  {
+    "kind": "user",
+    "name": "lumen-reader",
+    "id": "6480002KVA",
+    "path": "/v2.0/Users/6480002KVA"
+  },
+  {
+    "kind": "user",
+    "name": "lumen-writer",
+    "id": "6470002OJ1",
+    "path": "/v2.0/Users/6470002OJ1"
+  },
+  {
+    "kind": "user",
+    "name": "lumen-supervisor",
+    "id": "6480002KVC",
+    "path": "/v2.0/Users/6480002KVC"
+  }
+]

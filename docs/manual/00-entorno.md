@@ -90,6 +90,12 @@ For xAI add `XAI_MANAGEMENT_API_KEY`; for OpenAI `OPENAI_ADMIN_API_KEY`, `NGROK_
 
 The three providers are prerequisites of the selector. Keep `LUMEN_MODEL_PROVIDER=auto` and the template's basic models: `LUMEN_OPENAI_MODEL=gpt-5.6-luna`, `LUMEN_XAI_MODEL=grok-4.3` and `LUMEN_ANTHROPIC_MODEL=claude-haiku-5-5`. The initial provider does not exclude the other integrations. In a new manual installation the WIF IDs are filled in when you reach 07–08; the automatic rehearsal requires them to be saved already, before removing resources.
 
+For CIBA, set `LUMEN_CONTRACT_VALIDATOR` to an existing Verify username or email
+with a working authentication method. This non-secret setting survives a clean
+removal because `.env` is preserved. Without it or a previous selection, the
+installer creates the fictitious `lumen-validator`, which cannot receive email
+OTP. See [CIBA setup](17-contratacion-ciba.md#prepare-and-enable).
+
 **Do not put `VAULT_TOKEN`, `VAULT_ADDR` or `VAULT_CACERT` in `.env`.** Vault may not exist yet. Its private configuration is generated after `operator init`.
 
 <a id="3-crear-una-sesión-de-trabajo-reutilizable"></a>
