@@ -23,6 +23,10 @@ TITLES = {
     'lumen.personal.list': 'Listar un espacio personal',
     'personal.access': 'Comprobar la política del propietario',
     'lumen.rar.compare': 'Comparación de parámetros RAR',
+    'lumen.oauth_revocation.prepare': 'Crear pareja OAuth del laboratorio',
+    'lumen.oauth_revocation.block': 'Bloquear token A en Vault',
+    'lumen.oauth_revocation.check': 'Comprobar A bloqueado y B permitido',
+    'lumen.oauth_revocation.clear': 'Limpiar tokens del laboratorio',
     'rar.comparison.phase': 'Preparar una fase de la comparación RAR',
     'rar.comparison.access': 'Comprobar el acceso en Vault',
     'lumen.applications.list': 'Consultar solicitudes',
@@ -114,6 +118,8 @@ def _describe(record):
             response = 'Contrato PDF vinculado a su propietario'
         if a.get('auth.flow') == 'ciba_jwt':
             credential = 'Token nativo de Vault obtenido con CIBA · X-Vault-Token'
+        elif a.get('auth.flow') == 'ciba_oauth':
+            credential = 'Access token OAuth de Verify tras CIBA · Validador y chatbot-contract · X-Vault-Token'
         if path == 'auth/ciba-contract/login':
             title, credential, response = ('Validar CIBA en Vault', 'ID token de Validador emitido por el cliente CIBA',
                 'Token nativo de Vault · política lumen-contract-confirm')
@@ -123,6 +129,14 @@ def _describe(record):
             title = 'Cifrar el contrato PDF' if '/encrypt/' in path else 'Recuperar el contrato PDF registrado'
         elif path == 'auth/token/revoke-self':
             title, response = 'Revocar la credencial CIBA de Vault', 'Token y credenciales SQL dependientes revocados'
+        elif path == 'auth/token/revoke' and a.get('auth.flow') == 'ciba_oauth':
+            title, response = 'Revocar el JWT OAuth CIBA', 'JWT bloqueado en Vault y credenciales SQL dependientes revocadas'
+        elif path == 'auth/token/revoke-oauth':
+            title = 'Bloquear token A en Vault' if a.get('revocation.lab.phase') == 'revoke' else 'Limpiar tokens del laboratorio'
+            credential = 'Operador nativo de Vault · issuer de Verify · sin políticas de datos'
+            response = 'Respuesta real del bloqueo por issuer y unique_id'
+        if a.get('revocation.lab.token') and path != 'auth/token/revoke-oauth':
+            title = 'Token ' + a['revocation.lab.token'] + ' · ' + ('acceso inicial' if a.get('revocation.lab.phase') == 'before' else 'acceso tras el bloqueo')
         return dict(target='vault', title=title, method=a.get('http.request.method', 'GET' if name != 'vault.write' else 'POST'),
                     endpoint='/v1/' + path, credential=credential,
                     request=f'Namespace {a.get("vault.namespace", "verify")} · {path}', response=response)
@@ -263,6 +277,9 @@ def build_flow(records: list[dict], agent_details=None) -> dict:
                 agent_name = ''
                 if attrs.get('auth.flow') == 'ciba_jwt':
                     notes.append('Confirmación CIBA con autenticación JWT nativa de Vault. Esta llamada no utiliza OBO ni el techo del agente de la sesión.')
+            elif attrs.get('auth.flow') == 'ciba_oauth':
+                agent_name = attrs.get('agent.identity', '')
+                notes.append('JWT OAuth obtenido mediante CIBA: políticas de Validador, techo de chatbot-contract y RAR de esta aprobación. La identidad Writer solo solicita el contrato.')
             elif not agent_name and name.split('.')[0] in {'openai', 'anthropic', 'xai'}:
                 agent_name = 'chatbot-' + name.split('.')[0]
             elif not agent_name and name == 'tavily.search':

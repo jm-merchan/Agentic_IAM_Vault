@@ -17,6 +17,7 @@ instalada, abre **http://localhost:8088** y entra con Verify.
 | Búsqueda pública | Agente autónomo que obtiene Tavily desde Vault | [Demostración](#demostración) |
 | Solicitudes | Formulario de cinco pasos, cifrado Transit y tokenización Transform | [Solicitudes protegidas](#solicitudes-en-cinco-pasos) |
 | Contratación ficticia | Writer guarda un borrador; Validador confirma por CIBA antes de formalizar | [CIBA y PDF](../docs/manual/17-contratacion-ciba.md) |
+| Revocación OAuth | Lab UI con acceso delegado y directo: A bloqueado (403), B vigente (200) | [Laboratorio de revocación](../docs/manual/18-revocacion-oauth.md#demonstrate-it-in-lumens-ui) |
 | Agentes por tarea | Intersección de permisos humanos, techo del agente y RAR | [Selección y matriz](../docs/manual/14-agentes-por-tarea.md) |
 | Laboratorio RAR | Control y restricciones de parámetros sobre peticiones reales | [Escenarios RAR](../docs/manual/15-parametros-rar.md) |
 | Mi espacio de secretos | KV v2 por identidad humana, con denegación de acceso cruzado | [Espacios personales](../docs/manual/16-espacios-personales.md) |
@@ -186,7 +187,7 @@ Todos los caminos siguientes son KV v2, namespace `verify`, mount `secrets`:
 | `tavily` | Clave obtenida por la identidad autónoma registrada |
 | `chatbot/users/reader`, `chatbot/users/writer`, `chatbot/users/supervisor` | Credenciales de prueba |
 
-`run.sh` genera un token de bootstrap de cinco minutos que solo lee la configuración y los clientes OAuth del chatbot. El proceso Python carga esos datos y revoca el token. No hereda el token raíz. La política de bootstrap no lee MySQL, Tavily, el cliente administrativo, `secrets/xai`, `secrets/xai_mgmt` ni `xai/creds/lumen`. Los accesos OBO y autónomos presentan JWT de Verify directamente a Vault. La contratación CIBA utiliza un login JWT separado que emite un token nativo Vault de hasta 120 s; [flujo y permisos](../docs/manual/17-contratacion-ciba.md#quién-autoriza-cada-paso).
+`run.sh` genera un token de bootstrap de cinco minutos que solo lee la configuración y los clientes OAuth del chatbot. El proceso Python carga esos datos y revoca el token. No hereda el token raíz. La política de bootstrap no lee MySQL, Tavily, el cliente administrativo, `secrets/xai`, `secrets/xai_mgmt` ni `xai/creds/lumen`. Los accesos OBO, autónomos y CIBA presentan el access JWT de Verify directamente a Vault. En CIBA, `sub` identifica al Validador y `actor-token.sub` al agente `chatbot-contract`. Vault aplica política del Validador ∩ techo del actor ∩ RAR, sin emitir un `client_token` intermedio. La vigencia OAuth configurada es de 120 s y la credencial SQL se revoca junto al JWT al terminar; [flujo y permisos](../docs/manual/17-contratacion-ciba.md#quién-autoriza-cada-paso), [validación real de OAuth](../docs/CIBA_OAUTH_VERIFICATION.md).
 
 El catálogo de modelos es opcional si Vault responde 403/404. Una respuesta 429
 o un error de servidor detiene el arranque con un diagnóstico; no se interpreta

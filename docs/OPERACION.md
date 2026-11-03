@@ -41,6 +41,38 @@ Open http://localhost:3000 and sign in with the **`lumen-admin`** user. Retrieve
 
 Paste the password and open the [Lumen dashboard](http://localhost:3000/d/lumen-iam). The commands copy the credentials without showing them in the terminal; run each one right before you paste its value.
 
+<a id="reloj-de-la-vm"></a>
+## VM clock and OAuth failures after resume
+
+A suspended Mac can leave the Podman/Minikube clock behind the host. A Verify JWT
+may then be valid on Lumen but still be in the future on Vault, which returns 403
+before evaluating business permissions. On November 3 the Writer failure showed
+Lumen at `13:01:52 UTC` and Vault's HTTP Date at `12:28:27 UTC`: a 2,005-second gap.
+After the clocks aligned, fresh Writer OBO requests returned 200 with both the
+standard and task-write agents. Business policies and block settings were unchanged.
+
+Compare these clocks before changing permissions:
+
+```bash
+date -u '+Host UTC: %Y-%m-%dT%H:%M:%SZ'
+```
+
+```bash
+kubectl --context workshop -n vault exec vault-0 -- date -u '+Vault UTC: %Y-%m-%dT%H:%M:%SZ'
+```
+
+```bash
+minikube -p workshop ssh -- date -u '+Minikube UTC: %Y-%m-%dT%H:%M:%SZ'
+```
+
+If the VM differs, restore time synchronization in the VM that hosts Podman, then
+check again. The containers share that VM clock. The OAuth profile retains its
+15-second tolerance. New login sessions alone do not fix an incorrect VM clock.
+Lumen now distinguishes a 403 accompanied by a large HTTP Date offset and JWT
+validity mismatch from an ordinary permission denial. It records
+`vault.clock.offset_seconds` and displays a clock-synchronization message; it
+does not retry the request, change ACLs or relax token validation.
+
 <a id="qué-configura-el-arranque"></a>
 ## What startup configures
 
@@ -49,7 +81,7 @@ Paste the password and open the [Lumen dashboard](http://localhost:3000/d/lumen-
 3. Deploys/adopts MySQL Enterprise with `keyring_okv` and KMIP; existing data and certificates are kept.
 4. Prepares the **verify** Vault namespace, KV v2 and the static entries.
 5. Configures RAR, the OAuth profile, OIDC/STS applications, users, groups, entities, policies and registered agents.
-6. Creates the MySQL RO/RW roles, catalog, sample inventory, Transit, tokenization and the applications table. Prepares the task agents, personal spaces and CIBA; contracting requires its initial verification and enablement.
+6. Creates the MySQL RO/RW roles, catalog, sample inventory, Transit, tokenization and the applications table. Prepares the task agents, personal spaces and CIBA; contracting is enabled by default and still requires Validator approval for each contract.
 7. Configures the three providers: dynamic xAI with a 5 min TTL / 10 min maximum, OpenAI with a Vault JWT-SVID and discovery/JWKS through ngrok, and Claude with its own SPIFFE identity and federation. The external OpenAI resources from the initial setup are kept.
 8. Enables auditing, applies Grafana/Loki/Tempo/Alloy, opens local ports and starts Lumen.
 9. Checks SPIFFE federation and a real Claude inference, and runs application, SQL permission, agent limit and real Tavily search tests. A failure returns a non-zero exit code and identifies the failed stage.

@@ -42,7 +42,7 @@ The `deny` takes precedence over the permission in the base policy. RAR must all
 
 How the policies are attached depends on the flow:
 
-- **CIBA contracting:** all three blocks are assigned to the native token through `auth/ciba-contract/role/validator`; this step does not use OBO.
+- **CIBA contracting:** all three blocks are in the `chatbot-contract` actor's ceiling. Vault evaluates the CIBA access JWT directly against the Validator's group policy, that ceiling and the signed RAR.
 - **Autonomous xAI:** `lumen-block-xai` is part of the policies of the `chatbot-xai` entity. This is what limits Client Credentials.
 - **MySQL and OBO data protection:** all three blocks are part of the `ceiling_policies` of `chatbot-oidc` and of the task agents. Vault checks both the user's permissions and that actor limit. The registry ceiling policies apply to OBO; on their own they do not block autonomous access. [Agent registry](https://developer.hashicorp.com/vault/ai/iam/concepts/agent-registry).
 
@@ -112,7 +112,7 @@ as history. The missing raw Loki copies observed there were fixed
 in the [later rebuild that same day](E2E_OPENAI_VERIFICATION.md#trazas-y-auditoría).
 It is not presented as an outstanding limitation, and its screenshots are not used as the current interface.
 
-[CIBA contracting](manual/17-contratacion-ciba.md) uses `database/creds/chatbot-contract`. The `database-read` and `database-write` blocks include this role and revoke its leases. The CIBA JWT role also attaches the decryption block.
+[CIBA contracting](manual/17-contratacion-ciba.md) uses `database/creds/chatbot-contract`. The `database-read` and `database-write` blocks include this role and revoke its leases. The CIBA actor ceiling also attaches the decryption block. The [November 3 OAuth verification](CIBA_OAUTH_VERIFICATION.md) confirms direct access-JWT use and revocation of its dependent SQL credential.
 
 ## Block verified in the current interface
 

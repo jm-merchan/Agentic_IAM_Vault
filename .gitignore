@@ -19,3 +19,6 @@ __pycache__/
 
 # Legacy location of the synthetic contract PDF
 output/
+*.pptx
+*ppt-build**
+*tmp*

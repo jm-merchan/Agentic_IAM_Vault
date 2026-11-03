@@ -164,6 +164,7 @@ def task_agent_selector(config, session, t, blocked=lambda: False):
         else:
             ui.label(t('Esta ampliación todavía no está instalada. El modo actual sigue disponible.')).classes('muted')
         ui.link(t('Abrir laboratorio de parámetros RAR'), '/laboratorio-rar').classes('task-rar-link')
+        ui.link(t('Laboratorio de revocación OAuth'), '/laboratorio-revocacion').classes('task-rar-link')
         ui.link(t('Mi espacio de secretos'), '/mi-espacio').classes('task-rar-link')
 
     def render_launcher():

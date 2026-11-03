@@ -1,0 +1,120 @@
+{
+  "checked_at": "2026-11-03T12:03:08.614689+00:00",
+  "flow": "oauth-revocation-ui",
+  "browser_validation": {
+    "browser": "Google Chrome",
+    "identity": "Writer / task-write",
+    "delegated_trace_ids": ["e0a9a5bdb3826e6cc164d1cedd83af1d", "9cf7798fd46f7728e69d9ef7b7f620ce", "fe5ca502635ddd6cbe266828a7edcea6"],
+    "direct_trace_ids": ["975198be8cd4d6b425617a0d22665404", "56885886b0d83afb6fc5958aba46f264", "7a058b0a7213b1a00331fe36e4df0e8a"],
+    "same_a_403_b_200_both_modes": true,
+    "ciba_writer_contract_button_visible": true,
+    "ciba_approval_sent": false
+  },
+  "scope": "Live UI controller against Verify, Vault and MySQL; Chrome walkthrough also completed.",
+  "passed": true,
+  "modes": {
+    "delegated": {
+      "passed": true,
+      "path": "database/creds/chatbot-readonly",
+      "traces": [
+        "80716e2e748f0cec4e43513987005f37",
+        "6fbd914a6447f488001ce5281bbf3c38",
+        "a18e5edb63c5a04b11fcecfc9bcd02ac"
+      ],
+      "responses": [
+        {
+          "phase": "before",
+          "token": "A",
+          "status": 200,
+          "trace_id": "80716e2e748f0cec4e43513987005f37"
+        },
+        {
+          "phase": "before",
+          "token": "B",
+          "status": 200,
+          "trace_id": "80716e2e748f0cec4e43513987005f37"
+        },
+        {
+          "phase": "revoke",
+          "token": "A",
+          "status": 200,
+          "trace_id": "6fbd914a6447f488001ce5281bbf3c38"
+        },
+        {
+          "phase": "after",
+          "token": "A",
+          "status": 403,
+          "trace_id": "a18e5edb63c5a04b11fcecfc9bcd02ac"
+        },
+        {
+          "phase": "after",
+          "token": "B",
+          "status": 200,
+          "trace_id": "a18e5edb63c5a04b11fcecfc9bcd02ac"
+        }
+      ],
+      "seconds_until_exp_after_check": 598.838,
+      "sql_result": "revoked",
+      "token_ids": [
+        "c42a109c-ac10-4246-b3e5-493d3b69000b.M18xNzkzNzA3MzkwXzQx",
+        "70237423-f3c7-45e9-b4db-f718b630a049.M18xNzkzNzA3MzkxXzQx"
+      ],
+      "cleanup_passed": true
+    },
+    "direct": {
+      "passed": true,
+      "path": "secrets/data/chatbot/xai-access",
+      "traces": [
+        "4566b533dc01e3d65d7459b8545dd97e",
+        "888ebdcd9887af8575b21ec9b8829524",
+        "29316e49bdcd1c0f18a1b09712aff873"
+      ],
+      "responses": [
+        {
+          "phase": "before",
+          "token": "A",
+          "status": 200,
+          "trace_id": "4566b533dc01e3d65d7459b8545dd97e"
+        },
+        {
+          "phase": "before",
+          "token": "B",
+          "status": 200,
+          "trace_id": "4566b533dc01e3d65d7459b8545dd97e"
+        },
+        {
+          "phase": "revoke",
+          "token": "A",
+          "status": 200,
+          "trace_id": "888ebdcd9887af8575b21ec9b8829524"
+        },
+        {
+          "phase": "after",
+          "token": "A",
+          "status": 403,
+          "trace_id": "29316e49bdcd1c0f18a1b09712aff873"
+        },
+        {
+          "phase": "after",
+          "token": "B",
+          "status": 200,
+          "trace_id": "29316e49bdcd1c0f18a1b09712aff873"
+        }
+      ],
+      "seconds_until_exp_after_check": 599.317,
+      "sql_result": "",
+      "token_ids": [
+        "50f592c1-0bf1-4b34-974f-a951e552a776.M18xNzkzNzA3MzkyXzQx",
+        "80a30a94-a32d-47cf-b50d-897f9b98e093.M18xNzkzNzA3MzkyXzQx"
+      ],
+      "cleanup_passed": true
+    }
+  },
+  "operator_checks": {
+    "different_issuer_denied": 403,
+    "business_data_denied": 403,
+    "policy_management_denied": 403,
+    "token_creation_denied": 403
+  },
+  "ciba_enabled": true
+}

@@ -17,6 +17,10 @@ El **23/10** se repitió la [retirada e instalación manual por bloques](../runs
 con recursos nuevos y CIBA aprobado. Esa ejecución documenta la recuperación de
 Vault sellado, los PV atascados tras reiniciar Minikube y las correcciones de sesión Bash.
 
+[18 · Revocación OAuth por API](18-revocacion-oauth.md) demuestra `auth/token/revoke-oauth`
+con acceso delegado y directo: JWT A permitido, revocado y denegado antes de caducar,
+mientras un JWT B de control sigue funcionando.
+
 Estos documentos explican qué configura la demo y cómo reproducirlo desde una terminal, sin ejecutar notebooks ni `demo.sh start`. Incluyen cuerpos JSON, políticas, comandos y verificaciones. Revisadas el **23 de octubre de 2026** durante la instalación manual; las capturas de interfaz conservan la fecha de su comprobación anterior. El alcance de las comprobaciones actuales y los ensayos históricos se distingue en [VALIDACION](VALIDACION.md).
 
 ## Prerrequisitos y orden
@@ -51,6 +55,7 @@ Prepara antes las entradas de [00 · Entorno y credenciales](00-entorno.md). No 
 | 15 | [Parámetros RAR](15-parametros-rar.md) | Seis escenarios con reglas, cuerpos, resultados HTTP y trazas correlacionadas |
 | 16 | [Espacios personales](16-espacios-personales.md) | KV por usuario, políticas centrales, acceso cruzado y trazas |
 | 17 | [Contratación CIBA](17-contratacion-ciba.md) | Writer, confirmación de Validador, credencial SQL limitada y PDF tras commit |
+| 18 | [Revocación OAuth por API](18-revocacion-oauth.md) | OBO y Client Credentials, revocación por issuer/jti, control antes de expirar y leases SQL |
 
 Completa 00–05, prepara **los tres proveedores en 06–08** y continúa con 09–10. Cada capítulo genera un perfil JSON privado; el capítulo 10 los publica juntos en `secrets/chatbot/model`, sin que el último proveedor borre los anteriores. La aplicación carga las tres identidades al arrancar y el usuario cambia de proveedor en el banner. `LUMEN_MODEL_PROVIDER=auto` solo fija OpenAI como selección inicial. Los capítulos 11–12 explican OBO y los bloqueos independientemente del LLM.
 

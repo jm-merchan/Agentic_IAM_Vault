@@ -30,6 +30,7 @@ mkdir -p "$runtime/app" "$runtime/static" "$runtime/scripts" "$runtime/docs" "$r
 rsync -a --delete --exclude __pycache__ "$DEMO_ROOT/chatbot/app/" "$runtime/app/"
 rsync -a --delete "$DEMO_ROOT/chatbot/static/" "$runtime/static/"
 cp "$DEMO_ROOT/chatbot/policies/agent-inspector.hcl" "$runtime/policies/agent-inspector.hcl"
+cp "$DEMO_ROOT/chatbot/policies/oauth-revoker.hcl" "$runtime/policies/oauth-revoker.hcl"
 cp "$DEMO_ROOT/chatbot/scripts/run.sh" "$runtime/scripts/run.sh"
 start_managed lumen /bin/bash "$runtime/scripts/run.sh"
 wait_http http://127.0.0.1:8088/health

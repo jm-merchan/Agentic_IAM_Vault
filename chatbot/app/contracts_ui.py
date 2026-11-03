@@ -47,7 +47,7 @@ def contract_controls(services,session,guard,run_action,row,language,*,on_downlo
         else:
             ui.label(t('Borrador · guardar no formaliza el contrato.')).classes('text-sm muted')
             if not contracts.config.get('enabled'):
-                ui.label(t('Contratación CIBA pendiente de la verificación inicial.')).classes('text-sm muted')
+                ui.label(t('La contratación CIBA está deshabilitada en la configuración.')).classes('text-sm muted')
                 return
             if not contracts.eligible(session):
                 ui.label(t('Activa Estándar o Creación de solicitudes para contratar.')).classes('text-sm muted')
@@ -80,7 +80,7 @@ def contract_controls(services,session,guard,run_action,row,language,*,on_downlo
                 for text in (
                     '1. Writer solicita contratar su borrador. Su credencial habitual no puede formalizarlo.',
                     '2. Verify autentica a Validador mediante CIBA y obtiene su confirmación.',
-                    '3. Vault valida ese JWT en auth/ciba-contract/login y emite una credencial MySQL limitada.',
+                    '3. Vault valida directamente el access token OAuth: Validador, actor CIBA y RAR. Emite una credencial MySQL limitada.',
                     '4. MySQL ejecuta formalize y guarda status = contratada. Repetir no crea otro contrato.',
                     '5. El PDF se publica después del commit. Writer lo descarga con OBO desde su espacio de contratos.'):
                     ui.label(t(text)).classes('text-sm')

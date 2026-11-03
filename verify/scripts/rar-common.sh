@@ -17,7 +17,10 @@ configure_rar() {
   api GET "/v1.0/auth-detail-types/$RAR_ID" "$TMP_WORK/rar-check.json"
   if ! jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '(.schema|fromjson)==$wanted[0]' "$TMP_WORK/rar-check.json" >/dev/null; then
     jq -e --slurpfile wanted "$VERIFY_DIR/config/rar-schema.json" '
-      (.schema|fromjson)==($wanted[0]|del(.properties.allowed_parameters,.properties.denied_parameters,.properties.required_parameters))
+      (.schema|fromjson) as $old |
+      ($old.properties.path.pattern == "^[A-Za-z0-9._/:-]+$" or $old.properties.path.pattern == $wanted[0].properties.path.pattern) and
+      (($old|.properties.path.pattern=$wanted[0].properties.path.pattern) == $wanted[0] or
+       ($old|.properties.path.pattern=$wanted[0].properties.path.pattern) == ($wanted[0]|del(.properties.allowed_parameters,.properties.denied_parameters,.properties.required_parameters)))
     ' "$TMP_WORK/rar-check.json" >/dev/null || fail 'The RAR schema is not a known Lumen version; leaving it unchanged.'
     jq --rawfile schema "$VERIFY_DIR/config/rar-schema.json" '.schema=$schema' "$TMP_WORK/rar-check.json" > "$TMP_WORK/rar-update.json"
     api PUT "/v1.0/auth-detail-types/$RAR_ID" "$TMP_WORK/rar-updated.json" --data-binary "@$TMP_WORK/rar-update.json"

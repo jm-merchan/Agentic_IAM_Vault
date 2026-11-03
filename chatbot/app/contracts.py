@@ -1,4 +1,4 @@
-"""Drafts use OBO; only a CIBA-bound Vault login can obtain SQL contract credentials."""
+"""Drafts use OBO; approved CIBA access JWTs authorize Vault calls directly."""
 from __future__ import annotations
 import asyncio
 import base64
@@ -14,6 +14,7 @@ import httpx
 import pymysql
 from . import lab_capture
 from .application_pdf import application_pdf
+from .contract_oauth import ACTOR_NAME, CONFIG_VERSION, permissions, same_permissions
 from .http_capture import request_hook
 from .rar import LAB_CONTEXT
 from .security import AccessDenied, ISSUER
@@ -46,11 +47,13 @@ class ContractRequest:
     digest: str = ''
     approved_by: str = ''
     traces: list[str] = field(default_factory=list)
+    authorization_details: list[dict] = field(default_factory=list, repr=False)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
 
     def clear(self):
         self.snapshot = {}
         self.auth_req_id = ''
+        self.authorization_details = []
 
     def public(self):
         return {name:getattr(self,name) for name in ('id','application_id','created_at','expires_at',
@@ -71,7 +74,8 @@ class Contracts:
         return self.services.role(session) == 'readwrite'
 
     def eligible(self, session):
-        return bool(self.config.get('enabled') and self.writer(session) and task_allows(session, 'write')
+        return bool(self.config.get('version') == CONFIG_VERSION and self.config.get('auth_mode') == 'oauth'
+                    and self.config.get('enabled') and self.writer(session) and task_allows(session, 'write')
                     and session.subject != self.config.get('validator_subject'))
 
     def owner(self, session):
@@ -143,6 +147,15 @@ class Contracts:
             expected = base64.urlsafe_b64encode(hashlib.sha256(tokens['access_token'].encode()).digest()[:16]).rstrip(b'=').decode()
             if not secrets.compare_digest(expected, id_claims['at_hash']):
                 raise AccessDenied('La respuesta CIBA no corresponde a esta petición.')
+        actor = access.get('actor-token')
+        times_valid = (type(access.get('iat')) in (int, float) and type(access.get('exp')) in (int, float))
+        if (not isinstance(actor, dict) or actor.get('sub') != cid
+                or not same_permissions(access.get('authorization_details'), item.authorization_details)
+                or not item.authorization_details or not isinstance(access.get('jti'), str)
+                or not access['jti'] or not times_valid or access.get('iat', 0) < item.created_at - 60
+                # Verify rounds the issue/expiry timestamps independently.
+                or access.get('exp', 0) > access.get('iat', 0) + 121):
+            raise AccessDenied('El token CIBA no conserva el actor, RAR y vigencia de la aprobación.')
         return id_claims['sub']
 
     async def start(self, session, reference, language='es'):
@@ -166,12 +179,18 @@ class Contracts:
             rid, now = str(uuid4()), time.time()
             item = ContractRequest(rid, reference, session.subject, session.task_agent, now, now+600,
                 rows[0], 'Lumen contrato ' + reference[:8] + ' ' + rid[:6], language)
+            existing = await self.services.database(session,
+                'SELECT contract_id FROM lumen_contracts.contracts WHERE application_id=%s AND requestor_subject=%s',
+                (reference, session.subject))
+            target = existing[0]['contract_id'] if existing else item.id
+            item.authorization_details = permissions(self.owner(session), target)
             self.requests[rid] = item
             context = LAB_CONTEXT.set({**LAB_CONTEXT.get(), **self.metadata(item)})
             try:
                 status, body = await self._verify_request('verify.ciba_start', '/ciba', {
                     'scope':'openid profile', 'login_hint':json.dumps(self.config['validator_login_hint']),
-                    'binding_message':item.binding_message, 'requested_expiry':600})
+                    'binding_message':item.binding_message, 'requested_expiry':600,
+                    'authorization_details':json.dumps(item.authorization_details)})
                 if status != 200 or not isinstance(body.get('auth_req_id'),str) or not body['auth_req_id'] \
                         or not isinstance(body.get('expires_in'),(int,float)) or not 0 < body['expires_in'] <= 86400:
                     raise AccessDenied('Verify no ha iniciado CIBA. El borrador sigue sin contratar.')
@@ -225,7 +244,7 @@ class Contracts:
                 if time.time() >= item.expires_at:
                     item.status='expired';item.clear()
                 else:
-                    await self.formalize(session,item,body['id_token'])
+                    await self.formalize(session,item,body['access_token'])
                     item.status='ready';item.clear()
                 self.services.event(session,'Contratación',item.application_id+' · '+item.status)
                 return item.public()
@@ -236,14 +255,12 @@ class Contracts:
                 item.traces.append(trace_id());item.traces[:]=item.traces[-20:]
                 LAB_CONTEXT.reset(context)
 
-    async def formalize(self, session, item, ciba_jwt):
-        # This login is verified again by Vault: issuer, signature, audience and
-        # validator subject. Ordinary OBO tokens do not receive this policy.
-        context=LAB_CONTEXT.set({**LAB_CONTEXT.get(),'auth.flow':'ciba_jwt','agent.identity':''})
-        token=''
+    async def formalize(self, session, item, token):
+        # The Verify access JWT is the credential sent to every Vault endpoint.
+        # Its human policy, dedicated actor ceiling and exact RAR all apply.
+        context=LAB_CONTEXT.set({**LAB_CONTEXT.get(),'auth.flow':'ciba_oauth','agent.identity':ACTOR_NAME,
+            'auth.rar.validated':json.dumps(item.authorization_details)})
         try:
-            auth=await self.services.vault_post('auth/ciba-contract/login','',{'role':'validator','jwt':ciba_jwt})
-            token=auth['auth']['client_token']
             credential=await self.services.vault_get('database/creds/chatbot-contract',token)
             profile=(await self.services.vault_post('transit/decrypt/lumen-applications',token,
                 {'ciphertext':item.snapshot['profile_ciphertext']}))['data']['plaintext']
@@ -286,10 +303,9 @@ class Contracts:
         finally:
             if token:
                 try:
-                    await self.services.vault_post('auth/token/revoke-self',token,{})
+                    await self.services.vault_post('auth/token/revoke',token,{'token':token})
                 except Exception:
-                    # Both the token and its dynamic SQL credential have short hard TTLs.
-                    self.services.event(session,'Revocación pendiente','La credencial CIBA caduca en un máximo de 120 s','error')
+                    self.services.event(session,'Revocación pendiente','El JWT OAuth CIBA caduca en un máximo de 120 s','error')
             LAB_CONTEXT.reset(context)
 
     async def commit(self, credential, item, owner, digest, encrypted):

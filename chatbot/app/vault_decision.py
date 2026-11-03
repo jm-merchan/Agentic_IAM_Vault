@@ -162,6 +162,8 @@ def explain(record, events=(), availability='available'):
         mode = 'oauth'
     elif 'root' in auth.get('policies', []):
         mode = 'root'
+    elif attrs.get('auth.flow') == 'ciba_oauth':
+        mode = 'obo'
     elif auth or attrs.get('auth.flow') == 'ciba_jwt':
         mode = 'native'
     code = attrs.get('http.response.status_code')

@@ -24,7 +24,7 @@ are for testing; no action signs up for an energy supply service.
 | Read, save, or reveal an application | Vault combines user permissions, agent limits, and the request's RAR restrictions. MySQL credentials are temporary. |
 | Protect personal data | Transit encrypts data, and Transform tokenizes national ID numbers (DNI) and IBANs. Authorized profiles can retrieve them. |
 | Switch models | OpenAI and Claude use SPIFFE identities issued by Vault; xAI receives dynamic keys. Users can switch providers without losing the conversation. |
-| Create a contract with approval | A Validator confirms the request in Verify through CIBA. The contract is then recorded in MySQL, and its owner can download the PDF. |
+| Create a contract with approval | A Validator confirms in Verify through CIBA. Its OAuth access JWT authorizes Vault directly through the `chatbot-contract` actor and RAR. MySQL records the contract and its owner can download the PDF. |
 | Inspect an operation | Lumen traces and Grafana/Tempo/Loki show the exchanges and authorization results. |
 
 The application is built with NiceGUI and LangChain Deep Agents. MySQL Enterprise
@@ -203,7 +203,8 @@ Additional workflows have their own guides:
 - [Task agents](docs/manual/14-agentes-por-tarea.md): compare different limits with the same user.
 - [RAR parameters](docs/manual/15-parametros-rar.md): restrict request parameters.
 - [Personal spaces](docs/manual/16-espacios-personales.md): verify KV isolation between users.
-- [CIBA contracting](docs/manual/17-contratacion-ciba.md): prepare a Validator, approve a request, and download the PDF. **A fresh installation leaves this feature disabled until its live test has passed and it is explicitly enabled.**
+- [CIBA contracting](docs/manual/17-contratacion-ciba.md): enabled by default after provisioning; Writer finalizes their own draft after Validator approval. [Direct OAuth migration verified on November 3](docs/CIBA_OAUTH_VERIFICATION.md).
+- [OAuth revocation lab](docs/manual/18-revocacion-oauth.md): demonstrate delegated and direct JWT blocking in the UI at `/laboratorio-revocacion`, or through the CLI/API; verify A is rejected before expiry while B remains valid.
 
 <a id="acceso-a-vault-y-grafana"></a>
 

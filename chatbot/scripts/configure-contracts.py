@@ -6,14 +6,40 @@ from pathlib import Path
 import secrets
 import ssl
 import subprocess
+import sys
 
 import httpx
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'chatbot'))
+from app.contract_oauth import ACTOR_NAME, CONFIG_VERSION
 TENANT = os.environ['VERIFY_TENANT'].rstrip('/')
 APP_NAME = 'vault-chatbot-contract'
 USERNAME = 'lumen-validator'
 GROUP = 'chatbot-validators'
+
+
+def oauth_identity(v, name, external_id, issuer, accessor, *, human=False):
+    existing = v('GET', 'identity/entity/name/' + name, missing=True)
+    if existing and (existing.get('disabled') or existing.get('external_id') not in (None, external_id)):
+        raise RuntimeError('Existing OAuth identity is disabled or belongs to another subject: ' + name)
+    policies = existing.get('policies', []) if existing and human else []
+    if existing and not human and existing.get('policies'):
+        raise RuntimeError('The CIBA actor must not have autonomous policies.')
+    v('POST', 'identity/entity/name/' + name, {'external_id': external_id, 'policies': policies})
+    entity = v('GET', 'identity/entity/name/' + name)
+    aliases = [a for a in entity.get('aliases', []) if a.get('name') == name]
+    if len(aliases) > 1:
+        raise RuntimeError('Duplicate CIBA OAuth alias: ' + name)
+    endpoint = 'identity/entity-alias'
+    if aliases:
+        alias = aliases[0]
+        if alias.get('canonical_id') != entity['id'] or alias.get('mount_accessor') != accessor:
+            raise RuntimeError('CIBA alias belongs to a different entity or OAuth profile.')
+        endpoint += '/id/' + alias['id']
+    v('POST', endpoint, {'name': name, 'canonical_id': entity['id'],
+                        'issuer': issuer, 'external_id': external_id})
+    return entity['id']
 
 
 def request(client, method, path, body=None, *, missing=False, **kwargs):
@@ -25,7 +51,7 @@ def request(client, method, path, body=None, *, missing=False, **kwargs):
     return result.json() if result.content else {}
 
 
-def configure(vault, verify, validator=None, enable=False):
+def configure(vault, verify, validator=None, enable=True):
     def v(method, path, body=None, **kwargs):
         value = request(vault, method, '/v1/' + path, body, **kwargs)
         return value.get('data', {}) if value is not None else None
@@ -52,6 +78,8 @@ def configure(vault, verify, validator=None, enable=False):
         return items[0] if items else None
 
     previous = kv('contracts', missing=True) or {}
+    if previous.get('version') != CONFIG_VERSION and previous.get('enabled'):
+        kv('contracts', {**previous, 'enabled': False})
     state_path = Path(os.environ.get('LUMEN_STATE_DIR', str(Path.home() / '.local/state/lumen-vault-demo'))) / 'contracts/validator.json'
     saved = json.loads(state_path.read_text()) if state_path.exists() else {}
     prior_validator = kv('pdf-approval', missing=True) or {}
@@ -164,36 +192,69 @@ def configure(vault, verify, validator=None, enable=False):
     cid = props['clientId']
     props['grantTypes'] = {k: 'true' if k == 'ciba' else 'false' for k in props['grantTypes']}
     props['generateRefreshToken'] = 'false'
-    props['accessTokenExpiry'] = 600
-    props['additionalConfig'].update(restrictAuthDetailTypes=True, ignoreUnknownAuthDetailTypes=False, authDetailTypes=[])
+    props['accessTokenExpiry'] = 120
+    props['additionalConfig'].update(restrictAuthDetailTypes=True, ignoreUnknownAuthDetailTypes=False,
+                                    authDetailTypes=[{'type': 'vault:path_access'}])
     oidc['consentAction'] = 'always_prompt'
     oidc['token']['accessTokenType'] = 'jwt'
-    oidc['token']['attributeMappings'] = [{'targetName': 'groups', 'sourceId': '4'}]
+    oidc['token']['attributeMappings'] = [
+        {'targetName': 'groups', 'sourceId': '4'},
+        {'targetName': 'actor-token', 'function': {'custom': json.dumps({'sub': cid})}},
+    ]
     api('PUT', '/v1.0/applications/' + aid, application)
     updated = api('GET', '/v1.0/applications/' + aid)['providers']['oidc']
     grants = updated['properties']['grantTypes']
     if grants.get('ciba') != 'true' or any(value != 'false' for key, value in grants.items() if key != 'ciba'):
         raise RuntimeError('Verify did not restrict this client to CIBA only.')
+    mappings = updated['token'].get('attributeMappings', [])
+    additional = updated['properties']['additionalConfig']
+    if (int(updated['properties']['accessTokenExpiry']) != 120
+            or updated['token'].get('accessTokenType') != 'jwt'
+            or not any(m.get('targetName') == 'actor-token'
+                       and json.loads(m.get('function', {}).get('custom', '{}')) == {'sub': cid}
+                       for m in mappings)
+            or [d.get('type') for d in additional.get('authDetailTypes', [])] != ['vault:path_access']
+            or any(d.get('filterOption', 'none') != 'none' for d in additional['authDetailTypes'])
+            or additional.get('restrictAuthDetailTypes') is not True):
+        raise RuntimeError('Verify did not preserve the CIBA OAuth actor, TTL or RAR configuration.')
     api('POST', '/v1.0/owner/applications/' + aid + '/entitlements', {
         'birthRightAccess': False, 'requestAccess': False,
         'additions': [{'assignee': {'subjectId': group['id'], 'subjectType': 'group'}, 'grantType': 'BRT'}]})
-    # CIBA-only audience: ordinary login and client_credentials cannot mint a
-    # matching human JWT. The JWT role grants policy on this token, not the entity.
-    mounts = v('GET', 'sys/auth')
-    if 'ciba-contract/' not in mounts:
-        v('POST', 'sys/auth/ciba-contract', {'type': 'jwt', 'description': 'Lumen CIBA contract confirmation'})
-    elif mounts['ciba-contract/']['type'] != 'jwt':
-        raise RuntimeError('ciba-contract is not a JWT auth mount.')
-    v('POST', 'auth/ciba-contract/config', {'jwks_url': TENANT + '/oauth2/jwks',
-        'bound_issuer': TENANT + '/oauth2', 'jwt_supported_algs': ['RS256']})
+    # A dedicated approver must not acquire business-client access via the demo
+    # groups. The contract policy is usable with the CIBA actor, not Writer OBO.
+    for business_group in ('chatbot-readers', 'chatbot-writers', 'chatbot-supervisors'):
+        matches = api('GET', '/v2.0/Groups', params={'filter': f'displayName eq "{business_group}"'})['Resources']
+        for entry in matches:
+            members = api('GET', '/v2.0/Groups/' + entry['id']).get('members', [])
+            if any(m.get('value') == uid for m in members):
+                raise RuntimeError('The CIBA Validator must be separate from the demo business users.')
     for policy in ('confirm', 'owner', 'ceiling'):
         v('PUT', 'sys/policies/acl/lumen-contract-' + policy,
           {'policy': (ROOT / 'chatbot/policies' / ('contract-' + policy + '.hcl')).read_text()})
-    v('POST', 'auth/ciba-contract/role/validator', {'role_type': 'jwt', 'user_claim': 'sub',
-        'bound_subject': uid, 'bound_audiences': [cid], 'jwt_supported_algs': ['RS256'],
-        'token_policies': ['lumen-contract-confirm', 'lumen-block-database-read',
-                           'lumen-block-database-write', 'lumen-block-decrypt'], 'token_no_default_policy': True,
-        'token_ttl': 120, 'token_max_ttl': 120, 'token_explicit_max_ttl': 120})
+    # Only this CIBA-only application emits the dedicated actor claim. Ordinary
+    # actors never receive its confirmation ceiling; the human is not an agent.
+    profile = v('GET', 'sys/config/oauth-resource-server/verify')
+    if profile.get('issuer_id') != TENANT + '/oauth2' or profile.get('actor_claim') != 'actor-token.sub':
+        raise RuntimeError('The Verify OAuth profile does not match the CIBA delegation claims.')
+    validator_entity = oauth_identity(v, 'chatbot-human-' + uid, uid, TENANT + '/oauth2',
+                                     profile['mount_accessor'], human=True)
+    actor_entity = oauth_identity(v, ACTOR_NAME, cid, TENANT + '/oauth2', profile['mount_accessor'])
+    v('POST', 'identity/group/name/lumen-contract-validators', {'type': 'internal',
+      'policies': ['lumen-contract-confirm'], 'member_entity_ids': [validator_entity]})
+    v('POST', 'agent-registry/register', {'display_name': ACTOR_NAME, 'entity_id': actor_entity,
+      'description': 'Lumen CIBA-only OAuth contract actor',
+      'ceiling_policies': ['lumen-contract-confirm', 'lumen-block-database-read',
+                           'lumen-block-database-write', 'lumen-block-decrypt'],
+      'no_default_ceiling_policy': True, 'optional_authorization_details': False})
+    # Remove the owned legacy JWT route so it cannot bypass the OAuth RAR.
+    mounts = v('GET', 'sys/auth')
+    if 'ciba-contract/' in mounts:
+        legacy = mounts['ciba-contract/']
+        roles = v('LIST', 'auth/ciba-contract/role', missing=True) or {}
+        if (legacy['type'] != 'jwt' or legacy.get('description') != 'Lumen CIBA contract confirmation'
+                or set(roles.get('keys', [])) - {'validator'}):
+            raise RuntimeError('Refusing to remove an unrecognized legacy CIBA auth mount.')
+        v('DELETE', 'sys/auth/ciba-contract')
     # Preserve active global blocks when extending an existing installation.
     for target in ('database-read', 'database-write'):
         path = 'sys/policies/acl/lumen-block-' + target
@@ -241,19 +302,13 @@ def configure(vault, verify, validator=None, enable=False):
     if not realm:
         raise RuntimeError('Validator identity source realm is missing.')
     hint_username = username.removesuffix('@' + realm) if realm != 'cloudIdentityRealm' else username
-    previous = kv('contracts', missing=True) or {}
-    enabled = (previous.get('version') == 2 and previous.get('enabled', False)
-               and previous.get('validator_subject') == uid and previous.get('client_id') == cid)
-    if enable:
-        evidence = json.loads((ROOT / 'chatbot/docs/contracts-verification.json').read_text())
-        if evidence.get('flow') != 'contract-ciba' or evidence.get('passed') is not True or evidence.get('validator_subject') != uid or evidence.get('client_id') != cid:
-            raise RuntimeError('Run verify-contracts.sh with the selected validator before enabling.')
-        enabled = True
-    kv('contracts', {'version': 2, 'enabled': enabled, 'client_id': cid,
+    enabled = enable
+    kv('contracts', {'version': CONFIG_VERSION, 'auth_mode': 'oauth', 'enabled': enabled, 'client_id': cid,
         'client_secret': updated['properties']['clientSecret'], 'application_id': aid,
         'validator_subject': uid, 'validator_username': username, 'validator_group': group['id'],
         'validator_login_hint': {'username': hint_username, 'realm': realm},
-        'delivery_mode': 'poll', 'auth_mount': 'ciba-contract', 'database_role': 'chatbot-contract',
+        'delivery_mode': 'poll', 'actor_name': ACTOR_NAME, 'actor_entity_id': actor_entity,
+        'validator_entity_id': validator_entity, 'database_role': 'chatbot-contract',
         'writers': writers})
     v('PUT', 'sys/policies/acl/chatbot-bootstrap',
       {'policy': (ROOT / 'chatbot/policies/bootstrap.hcl').read_text()})
@@ -262,13 +317,16 @@ def configure(vault, verify, validator=None, enable=False):
     state_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     state_path.write_text(json.dumps({'username': username}) + '\n')
     state_path.chmod(0o600)
-    print('Validator and CIBA client prepared. Contracting: ' + ('enabled' if enabled else 'disabled until validation') + '.')
+    print('Validator and CIBA client prepared. Contracting: ' + ('enabled' if enabled else 'explicitly disabled') + '.')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--validator', help='Existing Verify username; no password or profile changes')
-    parser.add_argument('--enable', action='store_true', help='Enable after the real CIBA/contract verification passed')
+    activation = parser.add_mutually_exclusive_group()
+    activation.add_argument('--enable', dest='enable', action='store_true', help='Enable contracting (the default)')
+    activation.add_argument('--disable', dest='enable', action='store_false', help='Explicitly disable contracting')
+    parser.set_defaults(enable=True)
     args = parser.parse_args()
     with httpx.Client(base_url=os.environ['VAULT_ADDR'], timeout=30,
                       verify=ssl.create_default_context(cafile=os.environ['VAULT_CACERT']),

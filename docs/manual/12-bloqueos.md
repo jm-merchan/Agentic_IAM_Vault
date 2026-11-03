@@ -136,4 +136,4 @@ Local sources: [block.sh](../../scripts/demo/block.sh), [access-controls.sh](../
 
 The Database and decryption blocks affect the OBO tools with any of the three models. Changing the provider does not change the user's permissions, the Vault policies or the agent's limits.
 
-The [CIBA contracting](17-contratacion-ciba.md) extension attaches these three blocks to the JWT role `auth/ciba-contract/role/validator`. Finalization uses a native token with those policies, not the OBO ceiling. Blocking reads or writes also revokes `database/creds/chatbot-contract/`.
+The [CIBA contracting](17-contratacion-ciba.md) extension attaches these three blocks to the `chatbot-contract` actor ceiling. Finalization presents Verify's CIBA access JWT directly to Vault, which intersects the Validator's policy, that ceiling and the signed RAR. Blocking reads or writes also revokes `database/creds/chatbot-contract/`.

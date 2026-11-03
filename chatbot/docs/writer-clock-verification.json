@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-11-03T13:20:19.531129+00:00",
+  "flow": "writer-clock-diagnostic",
+  "passed": true,
+  "historical": {
+    "trace_id": "f951579bdb7df4780c32fd679f01dc9e",
+    "http_status": 403,
+    "lumen_utc": "2026-11-03T13:01:52Z",
+    "vault_http_date": "Tue, 03 Nov 2026 12:28:27 GMT",
+    "vault_clock_offset_seconds": -2005.2
+  },
+  "browser_validation": {
+    "browser": "Google Chrome",
+    "user": "lumen-writer",
+    "agent": "chatbot-oidc",
+    "mode": "legacy",
+    "trace_id": "5c0d7adf8cbd7faa1a31ece591ba3db9",
+    "vault_read_status": 200,
+    "mysql_query_succeeded": true
+  },
+  "business_acl_changes": false,
+  "global_block_changes": false,
+  "clock_change_performed_by_agent": false,
+  "diagnostic": "VM and host clocks were already aligned when inspected; added a specific JWT/HTTP Date clock diagnostic, preserving ordinary permission denials."
+}

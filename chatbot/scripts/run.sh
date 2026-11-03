@@ -10,6 +10,12 @@ CHATBOT_BOOTSTRAP_TOKEN=$(vault token create -format=json -policy=chatbot-bootst
 vault policy write chatbot-agent-inspector policies/agent-inspector.hcl >/dev/null
 export CHATBOT_AGENT_INSPECTOR_TOKEN
 CHATBOT_AGENT_INSPECTOR_TOKEN=$(vault token create -format=json -policy=chatbot-agent-inspector -no-default-policy -period=1h -display-name=lumen-agent-inspector | jq -er .auth.client_token)
+export CHATBOT_OAUTH_REVOKER_ISSUER
+CHATBOT_OAUTH_REVOKER_ISSUER=$(vault read -format=json sys/config/oauth-resource-server/verify | jq -er .data.issuer_id)
+"${CHATBOT_PYTHON:-/tmp/vault-chatbot-venv/bin/python}" -c 'import json,os,pathlib; print(pathlib.Path("policies/oauth-revoker.hcl").read_text().replace("__VERIFY_ISSUER__", json.dumps(os.environ["CHATBOT_OAUTH_REVOKER_ISSUER"])))' | vault policy write chatbot-oauth-revoker - >/dev/null
+export CHATBOT_OAUTH_REVOKER_TOKEN
+CHATBOT_OAUTH_REVOKER_TOKEN=$(vault token create -format=json -policy=chatbot-oauth-revoker -no-default-policy -period=1h -display-name=lumen-oauth-revocation-lab | jq -er .auth.client_token)
+unset CHATBOT_OAUTH_REVOKER_ISSUER
 unset VAULT_TOKEN
 # Provisioning inputs must never be inherited by the application process.
 unset VERIFY_ADMIN_CLIENT_SECRET XAI_MANAGEMENT_API_KEY XAI_TEAM_ID TAVILY_API_KEY

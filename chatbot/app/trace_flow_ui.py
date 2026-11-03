@@ -17,7 +17,7 @@ ICONS = {
 
 
 class TraceFlow(Element, component='trace_flow.js'):
-    def __init__(self, records: list[dict], trace_id='', language='es', agent_details=None, selected_span=''):
+    def __init__(self, records: list[dict], trace_id='', language='es', agent_details=None, selected_span='', inspection=True):
         super().__init__()
         self._props['flow'] = localize_flow(build_flow(records, agent_details), language)
         self._props['initialSelectedId'] = next((c['id'] for c in self._props['flow']['calls']
@@ -25,7 +25,7 @@ class TraceFlow(Element, component='trace_flow.js'):
         self._props['messages'] = EN if language == 'en' else {}
         self._props['locale'] = Translator(language).locale
         self._props['traceId'] = trace_id
-        self._props['labEnabled'] = enabled()
+        self._props['labEnabled'] = bool(inspection and enabled())
         self._props['icons'] = {actor['id']: ICONS[actor['id']]
                                 for actor in self._props['flow']['actors'] if actor['id'] in ICONS}
         ui.add_css((Path(__file__).parents[1] / 'static/trace_flow.css').read_text())

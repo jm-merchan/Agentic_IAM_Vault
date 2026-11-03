@@ -7,6 +7,7 @@ import httpx
 import pytest
 from fastapi import FastAPI
 from app.contracts import ContractRequest,Contracts
+from app.contract_oauth import permissions
 from app.contracts_http import contract_download_router
 from app.security import AccessDenied,Session
 from app.trace_flow import build_flow
@@ -14,7 +15,7 @@ from app.trace_flow import build_flow
 
 def setup():
     subject='writer';entity=str(uuid4())
-    config={'contracts':{'enabled':True,'validator_subject':'validator','validator_username':'validator',
+    config={'contracts':{'version':3,'auth_mode':'oauth','enabled':True,'validator_subject':'validator','validator_username':'validator',
         'client_id':'ciba-client','validator_login_hint':{'username':'validator','realm':'cloudIdentityRealm'},
         'writers':[{'subject':subject,'entity_id':entity}]}}
     services=SimpleNamespace(config=config,role=lambda s:'readwrite' if 'writers' in s.groups else 'readonly',
@@ -24,7 +25,15 @@ def setup():
     item=ContractRequest(str(uuid4()),str(uuid4()),subject,'write',time.time(),time.time()+500,
         {'snapshot_hash':'hash'},'Lumen contrato test',auth_req_id='auth-request')
     manager.requests[item.id]=item
+    item.authorization_details=permissions(entity,item.id)
     return manager,session,item
+
+
+def confirmation_claims(manager,item):
+    claims={'sub':'validator','iat':int(time.time()),'azp':'ciba-client'}
+    access={**claims,'exp':claims['iat']+120,'jti':'approval-token',
+            'actor-token':{'sub':'ciba-client'},'authorization_details':item.authorization_details}
+    return claims,access
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize('error,status',[('authorization_pending','waiting'),('slow_down','waiting'),('access_denied','denied'),('expired_token','expired'),('invalid_grant','error')])
@@ -41,10 +50,11 @@ async def test_no_write_without_successful_confirmation(error,status):
     else:assert not item.auth_req_id and not item.snapshot
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('wrong',['subject','self','audience','request','stale','hash','access_subject'])
+@pytest.mark.parametrize('wrong',['subject','self','audience','request','stale','hash','access_subject',
+                                 'actor','rar','jti','ttl','access_stale'])
 async def test_confirmation_cannot_be_swapped(wrong):
     manager,session,item=setup()
-    claims={'sub':'validator','iat':time.time(),'azp':'ciba-client'};access=dict(claims)
+    claims,access=confirmation_claims(manager,item)
     if wrong=='subject':claims['sub']='other'
     if wrong=='self':claims['sub']=access['sub']=session.subject
     if wrong=='audience':claims['azp']='other'
@@ -52,6 +62,11 @@ async def test_confirmation_cannot_be_swapped(wrong):
     if wrong=='stale':claims['iat']=item.created_at-300
     if wrong=='hash':claims['at_hash']='bad'
     if wrong=='access_subject':access['sub']='other'
+    if wrong=='actor':access['actor-token']={'sub':'ordinary-agent'}
+    if wrong=='rar':access['authorization_details']=[]
+    if wrong=='jti':access.pop('jti')
+    if wrong=='ttl':access['exp']+=2
+    if wrong=='access_stale':access['iat']=item.created_at-300
     manager.services.identity=SimpleNamespace(validate=lambda token,aud:claims if token=='id' else access)
     manager._verify_request=AsyncMock(return_value=(200,{'id_token':'id','access_token':'access'}))
     manager.formalize=AsyncMock()
@@ -62,9 +77,16 @@ async def test_confirmation_cannot_be_swapped(wrong):
 @pytest.mark.asyncio
 async def test_success_is_only_reported_after_formalization_and_duplicates_do_not_write():
     manager,session,item=setup()
+    claims,access=confirmation_claims(manager,item)
+    access['exp']+=1  # Verify's independently rounded timestamps can differ by 121 s.
+    # Verify returns consented details in a different order than requested.
+    from copy import deepcopy
+    access['authorization_details']=deepcopy(list(reversed(access['authorization_details'])))
+    for detail in access['authorization_details']:
+        detail['capabilities'].reverse()
     audiences=[]
     def validate(token,audience):
-        audiences.append(audience);return {'sub':'validator','iat':time.time()}
+        audiences.append(audience);return claims if token=='id' else access
     manager.services.identity=SimpleNamespace(validate=validate)
     manager._verify_request=AsyncMock(return_value=(200,{'id_token':'id','access_token':'access'}))
     async def commit(*args):
@@ -74,14 +96,15 @@ async def test_success_is_only_reported_after_formalization_and_duplicates_do_no
     results=await asyncio.gather(manager.poll(session,item.id),manager.poll(session,item.id))
     assert all(r['status']=='ready' for r in results)
     assert audiences==['ciba-client','ciba-client']
-    manager.formalize.assert_awaited_once_with(session,item,'id')
+    manager.formalize.assert_awaited_once_with(session,item,'access')
     assert not item.snapshot and not item.auth_req_id
 
 @pytest.mark.asyncio
 async def test_vault_or_mysql_failure_never_reports_success():
     manager,session,item=setup()
     manager._verify_request=AsyncMock(return_value=(200,{'id_token':'id','access_token':'access'}))
-    manager.services.identity=SimpleNamespace(validate=lambda *a:{'sub':'validator','iat':time.time()})
+    claims,access=confirmation_claims(manager,item)
+    manager.services.identity=SimpleNamespace(validate=lambda token,*a:claims if token=='id' else access)
     manager.formalize=AsyncMock(side_effect=AccessDenied('SQL denied'))
     with pytest.raises(AccessDenied):await manager.poll(session,item.id)
     assert item.status=='error' and not item.auth_req_id
@@ -121,7 +144,8 @@ async def test_expiration_while_waiting_for_lock_is_checked():
 async def test_cleanup_does_not_clear_or_forget_an_inflight_confirmation(elapsed):
     manager,session,item=setup()
     manager._verify_request=AsyncMock(return_value=(200,{'id_token':'id','access_token':'access'}))
-    manager.services.identity=SimpleNamespace(validate=lambda *a:{'sub':'validator','iat':time.time()})
+    claims,access=confirmation_claims(manager,item)
+    manager.services.identity=SimpleNamespace(validate=lambda token,*a:claims if token=='id' else access)
     async def commit(*args):
         # Simulate the periodic cleanup firing while a slow SQL commit is awaited.
         item.expires_at=time.time()-elapsed
@@ -150,7 +174,7 @@ async def test_cancelled_confirmation_is_terminal_and_clears_sensitive_state():
 @pytest.mark.asyncio
 async def test_cancelled_ciba_start_does_not_leave_an_unusable_pending_request():
     manager,session,item=setup();manager.requests.clear()
-    manager.services.database.return_value=[item.snapshot]
+    manager.services.database.side_effect=[[item.snapshot],[]]
     manager._verify_request=AsyncMock(side_effect=asyncio.CancelledError())
     with pytest.raises(asyncio.CancelledError):
         await manager.start(session,item.application_id)
@@ -249,10 +273,10 @@ async def test_formalization_publishes_only_after_commit_and_always_revokes(monk
     calls = []
     async def post(path, token, body):
         calls.append(path)
-        if path == 'auth/ciba-contract/login':
-            assert body == {'role':'validator', 'jwt':'confirmed-ciba-id-token'}
-            return {'auth':{'client_token':'native-token'}}
-        assert token == 'native-token'
+        assert path != 'auth/ciba-contract/login'
+        assert token == 'confirmed-ciba-access-token'
+        if path == 'auth/token/revoke':
+            assert body == {'token':token}
         if path == 'transit/decrypt/lumen-applications':
             return {'data':{'plaintext':base64.b64encode(json.dumps({'full_name':'Fictional'}).encode()).decode()}}
         if path.startswith('transform/decode/'):
@@ -274,12 +298,12 @@ async def test_formalization_publishes_only_after_commit_and_always_revokes(monk
     manager.commit = commit
     if fail_commit:
         with pytest.raises(AccessDenied):
-            await manager.formalize(session,item,'confirmed-ciba-id-token')
+            await manager.formalize(session,item,'confirmed-ciba-access-token')
         assert not any(path.startswith('secrets/data/') for path in calls)
     else:
-        await manager.formalize(session,item,'confirmed-ciba-id-token')
+        await manager.formalize(session,item,'confirmed-ciba-access-token')
         assert item.contract_id == item.id
-    assert calls[-1] == 'auth/token/revoke-self'
+    assert calls[-1] == 'auth/token/revoke'
     manager.services.exchange.assert_not_called()
 
 
@@ -293,3 +317,29 @@ def test_native_ciba_steps_never_inherit_session_agent(name,path):
     call=build_flow(records)['calls'][0]
     assert call['agent_name']=='' and 'no utiliza OBO' in call['notes'][0]
     assert 'OBO' not in call['credential']
+
+
+@pytest.mark.asyncio
+async def test_ciba_request_binds_exact_owner_pdf_rar_and_recovery_contract():
+    manager,session,old=setup();manager.requests.clear()
+    existing=str(uuid4())
+    manager.services.database.side_effect=[[old.snapshot],[{'contract_id':existing}]]
+    manager._verify_request=AsyncMock(return_value=(200,{'auth_req_id':'approval','expires_in':600}))
+    result=await manager.start(session,old.application_id)
+    item=manager.requests[result['id']]
+    assert item.authorization_details==permissions(manager.owner(session),existing)
+    assert len(item.authorization_details)==5
+    assert {d['path'] for d in item.authorization_details if '*' in d['path']} == {'transit/*','transform/decode/lumen-*'}
+    import json
+    assert json.loads(manager._verify_request.call_args.args[2]['authorization_details'])==item.authorization_details
+
+
+def test_oauth_ciba_trace_uses_its_dedicated_actor_and_access_jwt():
+    records=[{'span_id':'parent','parent_id':None,'name':'lumen.contract.confirm','start_ns':1,'end_ns':4,
+              'duration_ms':3,'status':'UNSET','attributes':{'agent.identity':'chatbot-task-write'}},
+             {'span_id':'step','parent_id':'parent','name':'vault.read','start_ns':2,'end_ns':3,'duration_ms':1,
+              'status':'UNSET','attributes':{'auth.flow':'ciba_oauth','agent.identity':'chatbot-contract',
+                  'vault.path':'database/creds/chatbot-contract','http.response.status_code':200}}]
+    call=build_flow(records)['calls'][0]
+    assert call['agent_name']=='chatbot-contract'
+    assert 'OAuth' in call['credential'] and 'Token nativo' not in call['credential']

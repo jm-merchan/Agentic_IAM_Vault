@@ -1,5 +1,13 @@
 # Workspace review
 
+## CIBA direct OAuth migration · November 3, 2026
+
+[Live verification and scope](CIBA_OAUTH_VERIFICATION.md): CIBA's Verify access JWT
+now authorizes Vault directly, using the dedicated `chatbot-contract` actor,
+the Validator's group policy and signed RAR. The owned legacy JWT auth mount was
+retired. Thirteen live checks passed, including JWT/SQL revocation and PDF integrity.
+The earlier reviews below describe their historical implementations.
+
 ## Final repository validation · October 22, 2026
 
 The [final validation](runs/20261022T161825Z-repo-validation/README.md) adds

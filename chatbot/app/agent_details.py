@@ -11,7 +11,7 @@ import httpx
 import jwt
 
 AGENT_NAMES = frozenset('chatbot-' + suffix for suffix in (
-    'oidc', 'research', 'openai', 'anthropic', 'xai', 'task-read', 'task-write', 'task-reveal'))
+    'oidc', 'research', 'openai', 'anthropic', 'xai', 'task-read', 'task-write', 'task-reveal', 'contract'))
 
 
 def vault_ui_url(base, path, namespace='verify'):
@@ -27,7 +27,7 @@ def token_agent(token, config):
         claims = jwt.decode(token, options={'verify_signature': False})
         subject = (claims.get('actor-token') or {}).get('sub') or claims.get('sub')
         return next((name for name in sorted(AGENT_NAMES)
-                     if config.get(name.removeprefix('chatbot-'), {}).get('client_id') == subject and subject), '')
+                     if config.get('contracts' if name == 'chatbot-contract' else name.removeprefix('chatbot-'), {}).get('client_id') == subject and subject), '')
     except (jwt.InvalidTokenError, AttributeError, TypeError):
         return ''
 

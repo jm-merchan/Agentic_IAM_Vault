@@ -30,6 +30,7 @@ from .application_ui import render_wizard, render_applications
 from .task_agents import actor_credential, task_agents_ready, task_allows
 from .task_agent_ui import task_agent_selector
 from .rar_lab_ui import render_rar_lab
+from .oauth_revocation_ui import render_oauth_revocation
 from .personal_spaces_ui import render_personal_spaces
 
 CONFIG = load_config()
@@ -37,6 +38,8 @@ IDENTITY = Identity(CONFIG)
 SERVICES = Services(CONFIG, IDENTITY)
 app.on_startup(SERVICES.agent_inspector.start)
 app.on_shutdown(SERVICES.agent_inspector.close)
+app.on_startup(SERVICES.oauth_revocation.start)
+app.on_shutdown(SERVICES.oauth_revocation.close)
 app.timer(60, SERVICES.contracts.purge)
 COOKIE = 'lumen_session'
 app.include_router(inspection_router(IDENTITY, records_for, COOKIE))
@@ -53,7 +56,7 @@ FAVICON = (Path(__file__).parents[1] / 'static/favicon.svg').read_text()
 @app.middleware('http')
 async def private_headers(request: Request, call_next):
     response = await call_next(request)
-    if request.url.path == '/' or request.url.path.startswith(('/auth/', '/traces/', '/solicitud', '/laboratorio-rar', '/mi-espacio')):
+    if request.url.path == '/' or request.url.path.startswith(('/auth/', '/traces/', '/solicitud', '/laboratorio-', '/mi-espacio')):
         response.headers['Cache-Control'] = 'no-store'
         response.headers['Referrer-Policy'] = 'no-referrer'
     return response
@@ -65,7 +68,9 @@ def health():
              ('provider', 'model', 'credential_source')},
             'models': [{key: profile.get(key) for key in ('provider', 'model', 'credential_source')}
                        for profile in model_profiles(CONFIG).values()],
-            'task_agents_available': task_agents_ready(CONFIG)}
+            'task_agents_available': task_agents_ready(CONFIG),
+            'ciba_enabled': bool(SERVICES.contracts.config.get('enabled')),
+            'oauth_revocation_lab_available': SERVICES.oauth_revocation.available}
 
 
 @app.get('/language/{language}')
@@ -385,6 +390,7 @@ def home(request: Request):
                 ui.button(t('Planes de energía'), icon='light_mode', on_click=quick_plans).props('flat').classes('nav-button')
                 ui.button(t('Solicitudes'), icon='description', on_click=lambda: ui.navigate.to('/solicitudes')).props('flat').classes('nav-button')
                 ui.button(t('Laboratorio RAR'), icon='tune', on_click=lambda: ui.navigate.to('/laboratorio-rar')).props('flat').classes('nav-button')
+                ui.button(t('Revocación OAuth'), icon='block', on_click=lambda: ui.navigate.to('/laboratorio-revocacion')).props('flat').classes('nav-button')
                 ui.button(t('Mi espacio de secretos'), icon='lock_outline', on_click=lambda: ui.navigate.to('/mi-espacio')).props('flat').classes('nav-button')
                 ui.button(t('Borradores anteriores'), icon='history', on_click=quick_requests).props('flat').classes('nav-button')
                 ui.button(t('Explorar en la web'), icon='public', on_click=quick_search).props('flat').classes('nav-button')
@@ -485,7 +491,7 @@ async def application_page(request, renderer):
     agent_controls = task_agent_selector(CONFIG, session, t, lambda: bool(
         session and LOCKS.setdefault(session.sid, asyncio.Lock()).locked()))
     with ui.element('main').classes('application-shell') as shell:
-        if renderer in (render_rar_lab, render_personal_spaces):
+        if renderer in (render_rar_lab, render_personal_spaces, render_oauth_revocation):
             shell.classes('rar-lab')
         try:
             guard()
@@ -532,6 +538,11 @@ async def rar_laboratory(request: Request):
 @ui.page('/mi-espacio')
 async def personal_workspace(request: Request):
     await application_page(request, render_personal_spaces)
+
+
+@ui.page('/laboratorio-revocacion')
+async def oauth_revocation_laboratory(request: Request):
+    await application_page(request, render_oauth_revocation)
 
 
 @ui.page('/traces/{tid}')

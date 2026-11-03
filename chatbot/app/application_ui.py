@@ -253,6 +253,8 @@ async def render_applications(services, session, guard, run_action, language=Non
             ui.link(t('Nueva solicitud'), '/solicitud').classes('primary')
         ui.button(t('Actualizar'), icon='refresh', on_click=lambda: ui.navigate.to('/solicitudes')).props('flat no-caps').classes('secondary')
         ui.label(t('Puede revelar datos' if supervisor else 'Lectura enmascarada')).classes('access-badge')
+    if services.contracts.config.get('enabled'):
+        ui.label(t('CIBA activo · Contratar está disponible para Writer, en sus propios borradores, con Estándar o Creación de solicitudes.')).classes('tiny muted mb-3')
     rows = await run_action('lumen.applications.list', lambda: services.applications(session))
     if not rows:
         with ui.element('div').classes('application-panel'):

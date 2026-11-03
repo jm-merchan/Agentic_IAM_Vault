@@ -152,9 +152,12 @@ def test_trace_shows_only_annotated_synthetic_context_and_never_the_token():
 
 
 @pytest.mark.parametrize('known', [True, False])
-def test_rar_schema_migration_is_idempotent_and_preserves_custom_metadata(tmp_path, known):
+@pytest.mark.parametrize('legacy_path', [True, False])
+def test_rar_schema_migration_is_idempotent_and_preserves_custom_metadata(tmp_path, known, legacy_path):
     schema = json.loads((ROOT/'verify/config/rar-schema.json').read_text())
     old = deepcopy(schema)
+    if legacy_path:
+        old['properties']['path']['pattern'] = '^[A-Za-z0-9._/:-]+$'
     for key in ('allowed_parameters', 'denied_parameters', 'required_parameters'):
         old['properties'].pop(key)
     if not known:

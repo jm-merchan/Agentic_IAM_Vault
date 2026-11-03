@@ -24,6 +24,7 @@ from .task_agents import actor_credential, task_allows
 from .agent_details import AgentInspector, agent_markdown, token_agent
 from .spiffe import SpiffeModelServices, OPENAI_RAR, ANTHROPIC_RAR
 from .rar import authorization_details
+from .vault_clock import raise_for_clock_mismatch
 from opentelemetry import trace
 
 
@@ -64,6 +65,8 @@ class Services(ApplicationServices, SpiffeModelServices):
         self.agent_inspector = AgentInspector(config, self.vault_tls)
         from .contracts import Contracts
         self.contracts = Contracts(self)
+        from .oauth_revocation_lab import OAuthRevocationLab
+        self.oauth_revocation = OAuthRevocationLab(self)
 
     def role(self, session: Session) -> str:
         session.require_login()
@@ -207,6 +210,7 @@ class Services(ApplicationServices, SpiffeModelServices):
         except (ValueError, AttributeError):
             pass
         if response.status_code == 403:
+            raise_for_clock_mismatch(response, token, current)
             raise VaultPermissionDenied(f'Vault ha denegado esta operación (HTTP 403): {path}. Revisa los permisos o los bloqueos activos.')
         if response.status_code == 204:
             return {}

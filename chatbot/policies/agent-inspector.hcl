@@ -1,4 +1,7 @@
 # Runtime metadata inspection only. No secrets, business routes, writes or listing.
+path "agent-registry/registration/display-name/chatbot-contract" { capabilities = ["read"] }
+path "identity/entity/name/chatbot-contract" { capabilities = ["read"] }
+path "sys/policies/acl/lumen-contract-confirm" { capabilities = ["read"] }
 path "agent-registry/registration/display-name/chatbot-oidc" { capabilities = ["read"] }
 path "identity/entity/name/chatbot-oidc" { capabilities = ["read"] }
 path "agent-registry/registration/display-name/chatbot-research" { capabilities = ["read"] }
