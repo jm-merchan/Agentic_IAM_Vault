@@ -1,0 +1,35 @@
+{
+  "checked_at": "2026-11-03T17:34:23.645398+00:00",
+  "completed": true,
+  "removed_namespaces": 3,
+  "removed_volumes": 10,
+  "removed_verify_resources": 17,
+  "remaining_demo_namespaces": [],
+  "remaining_demo_volumes": [],
+  "local_listeners": [],
+  "ports_checked": [
+    8088,
+    8443,
+    13306,
+    3000,
+    3200,
+    4318,
+    3100,
+    4040
+  ],
+  "operational_state_removed": true,
+  "manual_state_archived": true,
+  "env_and_presentation_unchanged": true,
+  "preserved": [
+    ".env",
+    "OpenAI project, service account and WIF provider/mapping",
+    "Claude issuer, federation rule and service account",
+    "Verify administrative API client",
+    "vault:path_access RAR schema",
+    "non-Lumen Verify resources",
+    "Minikube profile and image cache",
+    "workspace documentation and historical reports"
+  ],
+  "remaining_managed_verify_resources": 0,
+  "all_passed": true
+}

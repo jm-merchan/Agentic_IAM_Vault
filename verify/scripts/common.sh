@@ -29,7 +29,16 @@ model_profile_write() {
 form_encode() { jq -jr 'to_entries|map((.key|@uri)+"="+(.value|tostring|@uri))|join("&")'; }
 http() {
   local method=$1 url=$2 output=$3 headers=$4; shift 4
-  local status
+  local status arg
+  # Verify rejects (HTTP 400) duplicated Accept/Content-Type headers: a
+  # per-call override replaces the default from the headers file.
+  for arg in "$@"; do
+    case "$arg" in
+      [Aa]ccept:*) grep -vi '^Accept:' "$headers" > "$TMP_WORK/request.headers" || true; headers="$TMP_WORK/request.headers";;
+      [Cc]ontent-[Tt]ype:*) grep -vi '^Content-Type:' "$headers" > "$TMP_WORK/request.headers.next" || true
+        mv "$TMP_WORK/request.headers.next" "$TMP_WORK/request.headers"; headers="$TMP_WORK/request.headers";;
+    esac
+  done
   status=$(curl --silent --show-error --connect-timeout 15 --max-time 90 \
     --request "$method" --header "@$headers" --dump-header "$TMP_WORK/response.headers" \
     --output "$output" --write-out '%{http_code}' "$@" "$url") || fail "Network error: $method $url"

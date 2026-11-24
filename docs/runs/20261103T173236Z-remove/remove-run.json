@@ -1,0 +1,12 @@
+{
+  "run": "20261103T173239Z",
+  "action": "remove",
+  "dry_run": false,
+  "completed": true,
+  "steps": [
+    {
+      "name": "Demo removal (or dry run)",
+      "passed": true
+    }
+  ]
+}
